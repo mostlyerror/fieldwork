@@ -16,6 +16,7 @@
 
 import { chromium, type Browser, type Page } from "playwright";
 import { hashContent } from "../utils/hash.js";
+import { parseRscTournamentData } from "../utils/parse-rsc.js";
 import type { ScrapedTournament, ScraperSource } from "../types.js";
 
 const SOURCE_PLATFORM = "pickleballbrackets";
@@ -174,42 +175,22 @@ async function parseTournamentDetailPage(
     const pageContent = await page.content();
     const contentHash = hashContent(pageContent);
 
-    // The RSC payload is embedded in script tags as escaped JSON.
-    // Find the position of "tourneyId" and extract fields from surrounding content.
-    // This avoids matching fields from other parts of the page (RSS feed, etc.)
-    const tourneyIdx = pageContent.indexOf("tourneyId");
-    const chunk = tourneyIdx >= 0
-      ? pageContent.slice(Math.max(0, tourneyIdx - 100), tourneyIdx + 5000)
-      : "";
+    // Extract structured fields from the RSC payload embedded in the page
+    const rscData = parseRscTournamentData(pageContent);
 
-    // Helper to extract escaped JSON string values from the chunk
-    const rsc = (key: string): string | null => {
-      // Try escaped quotes: \"key\":\"value\"
-      const escaped = new RegExp(`\\\\"${key}\\\\":\\s*\\\\"([^\\\\]*?)\\\\"`, "i");
-      const m1 = chunk.match(escaped);
-      if (m1) return m1[1];
-      // Try unescaped: "key":"value"
-      const plain = new RegExp(`"${key}":\\s*"([^"]*?)"`, "i");
-      const m2 = chunk.match(plain);
-      return m2?.[1] || null;
-    };
-
-    const title = rsc("title");
-    const dateStart = rsc("dateStart");
-    const dateEnd = rsc("dateEnd");
-    const venueName = rsc("venueName");
-    const street = rsc("street");
-    const cityStateZip = rsc("cityStateZip");
-    const status = rsc("status");
-    const latStr = rsc("Latitude");
-    const lngStr = rsc("Longitude");
-    const venueFromLoc = rsc("Venue");
-    const city = rsc("City");
-    const stateAbbr = rsc("StateAbbreviation");
-
-    // Price — costRegistrationCurrent is a numeric field (no quotes around value)
-    const priceMatch = chunk.match(/costRegistrationCurrent[\\",]*:?\s*(\d+)/);
-    const priceNum = priceMatch ? parseFloat(priceMatch[1]) : null;
+    const title = rscData?.title ?? null;
+    const dateStart = rscData?.dateStart ?? null;
+    const dateEnd = rscData?.dateEnd ?? null;
+    const venueName = rscData?.venueName ?? null;
+    const street = rscData?.street ?? null;
+    const cityStateZip = rscData?.cityStateZip ?? null;
+    const status = rscData?.status ?? null;
+    const latStr = rscData?.latitude ?? null;
+    const lngStr = rscData?.longitude ?? null;
+    const venueFromLoc = rscData?.venue ?? null;
+    const city = rscData?.city ?? null;
+    const stateAbbr = rscData?.stateAbbreviation ?? null;
+    const priceNum = rscData?.costRegistrationCurrent ?? null;
 
     const pageTitle = title || (await page.title()) || null;
 
