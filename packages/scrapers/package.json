@@ -1,0 +1,19 @@
+{
+  "name": "@pickleup/scrapers",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "start": "tsx src/index.ts",
+    "start:pickleballbrackets": "tsx src/sources/pickleballbrackets.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.1",
+    "playwright": "^1.50.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.12.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

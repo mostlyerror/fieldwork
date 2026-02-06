@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env
+.env.local
+*.tsbuildinfo
+
+# Expo
+apps/mobile/.expo/
+apps/mobile/ios/
+apps/mobile/android/
+
+# Playwright
+packages/scrapers/test-results/
+
+# OS
+.DS_Store

@@ -1,0 +1,12 @@
+{
+  "name": "pickleup",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "scrape": "npm run start --workspace=packages/scrapers",
+    "scrape:pickleballbrackets": "npm run start:pickleballbrackets --workspace=packages/scrapers"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "PickleUp",
+    "slug": "pickleup",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "scheme": "pickleup",
+    "platforms": ["ios", "android"],
+    "ios": {
+      "bundleIdentifier": "app.pickleup"
+    },
+    "android": {
+      "package": "app.pickleup"
+    },
+    "plugins": [
+      "expo-router"
+    ]
+  }
+}
