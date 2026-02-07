@@ -8,6 +8,7 @@
 import { startRun, completeRun, failRun } from "./utils/logger.js";
 import { upsertTournaments } from "./utils/upsert.js";
 import { scrape as scrapePickleballBrackets } from "./sources/pickleballbrackets.js";
+import { scrape as scrapePickleballDen } from "./sources/pickleballden.js";
 import type { ScraperSource } from "./types.js";
 
 const sources: ScraperSource[] = [
@@ -15,8 +16,11 @@ const sources: ScraperSource[] = [
     name: "pickleballbrackets",
     scrape: scrapePickleballBrackets,
   },
+  {
+    name: "pickleball_den",
+    scrape: scrapePickleballDen,
+  },
   // Future sources:
-  // { name: "pickleball_den", scrape: scrapePickleballDen },
   // { name: "houston_ssc", scrape: scrapeHoustonSSC },
   // { name: "sportsmonkey", scrape: scrapeSportsmonkey },
 ];

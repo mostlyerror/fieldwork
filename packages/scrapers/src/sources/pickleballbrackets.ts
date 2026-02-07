@@ -17,17 +17,13 @@
 import { chromium, type Browser, type Page } from "playwright";
 import { hashContent } from "../utils/hash.js";
 import { parseRscTournamentData } from "../utils/parse-rsc.js";
+import { distanceMiles, HOUSTON_LAT, HOUSTON_LNG, MAX_DISTANCE_MILES } from "../utils/geo.js";
 import type { ScrapedTournament, ScraperSource } from "../types.js";
 
 const SOURCE_PLATFORM = "pickleballbrackets";
 const BASE_URL = "https://pickleballtournaments.com";
 const SEARCH_URL = `${BASE_URL}/search?loc=Houston%2C+TX&lat=29.7604&lng=-95.3698&zoom=9`;
 const SEARCH_API_URL = `${BASE_URL}/api/v1/search`;
-
-// Houston center coords for distance filtering
-const HOUSTON_LAT = 29.7604;
-const HOUSTON_LNG = -95.3698;
-const MAX_DISTANCE_MILES = 50;
 
 interface SearchApiTournament {
   TournamentID: string;
@@ -40,27 +36,6 @@ interface SearchApiTournament {
   LocationState: string;
   RegistrationDateOpen: string;
   RegistrationDateClosed: string;
-}
-
-/**
- * Calculate distance between two lat/lng points in miles using Haversine formula.
- */
-function distanceMiles(
-  lat1: number,
-  lng1: number,
-  lat2: number,
-  lng2: number
-): number {
-  const R = 3959; // Earth's radius in miles
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLng = ((lng2 - lng1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLng / 2) ** 2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
 }
 
 /**

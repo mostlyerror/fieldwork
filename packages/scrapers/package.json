@@ -6,6 +6,7 @@
     "build": "tsc",
     "start": "tsx src/index.ts",
     "start:pickleballbrackets": "tsx src/sources/pickleballbrackets.ts",
+    "start:pickleballden": "tsx src/sources/pickleballden.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "snapshot": "tsx src/utils/capture-snapshot.ts"
