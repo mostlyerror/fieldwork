@@ -120,28 +120,49 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
+  // Cross-platform dedup: check if a matching tournament already exists
+  let canonicalId: string | null = null;
+  let isDuplicate = false;
+
+  if (body.latitude != null && body.longitude != null) {
+    const { data: matches } = await supabase.rpc("find_nearby_tournament", {
+      p_date_start: body.dateStart!,
+      p_lat: body.latitude,
+      p_lng: body.longitude,
+      p_max_distance_meters: 100,
+    });
+
+    if (matches && matches.length > 0) {
+      canonicalId = matches[0].id;
+      isDuplicate = true;
+    }
+  }
+
+  const insertRow = {
+    name: body.name!.trim(),
+    date_start: body.dateStart!,
+    date_end: body.dateEnd ?? null,
+    location_name: body.locationName!.trim(),
+    location_address: body.locationAddress?.trim() ?? null,
+    latitude: body.latitude ?? null,
+    longitude: body.longitude ?? null,
+    skill_levels: body.skillLevels ?? null,
+    format: body.format ?? null,
+    entry_fee: body.entryFee ?? null,
+    registration_url: body.registrationUrl!.trim(),
+    description: body.description?.trim() ?? null,
+    source_platform: "manual",
+    source_url: body.registrationUrl!.trim(),
+    source_hash: null,
+    is_manually_submitted: true,
+    submitted_by: submittedBy,
+    status: isDuplicate ? "duplicate" : "active",
+    canonical_id: canonicalId,
+  };
+
   const { data, error } = await supabase
     .from("tournaments")
-    .insert({
-      name: body.name!.trim(),
-      date_start: body.dateStart!,
-      date_end: body.dateEnd ?? null,
-      location_name: body.locationName!.trim(),
-      location_address: body.locationAddress?.trim() ?? null,
-      latitude: body.latitude ?? null,
-      longitude: body.longitude ?? null,
-      skill_levels: body.skillLevels ?? null,
-      format: body.format ?? null,
-      entry_fee: body.entryFee ?? null,
-      registration_url: body.registrationUrl!.trim(),
-      description: body.description?.trim() ?? null,
-      source_platform: "manual",
-      source_url: body.registrationUrl!.trim(),
-      source_hash: null,
-      is_manually_submitted: true,
-      submitted_by: submittedBy,
-      status: "active",
-    })
+    .insert(insertRow)
     .select("id, name")
     .single();
 
@@ -155,8 +176,27 @@ Deno.serve(async (req) => {
     );
   }
 
-  return new Response(JSON.stringify({ id: data.id, name: data.name }), {
-    status: 201,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
+  // Record source for the canonical tournament (or self if new)
+  const sourceTargetId = canonicalId ?? data.id;
+  await supabase.from("tournament_sources").upsert(
+    {
+      tournament_id: sourceTargetId,
+      source_platform: "manual",
+      source_url: body.registrationUrl!.trim(),
+      registration_url: body.registrationUrl!.trim(),
+    },
+    { onConflict: "tournament_id,source_platform,source_url" },
+  );
+
+  return new Response(
+    JSON.stringify({
+      id: data.id,
+      name: data.name,
+      ...(isDuplicate && { duplicateOf: canonicalId }),
+    }),
+    {
+      status: 201,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    },
+  );
 });

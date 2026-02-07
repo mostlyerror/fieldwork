@@ -34,6 +34,7 @@ export async function completeRun(
     tournamentsFound: number;
     tournamentsNew: number;
     tournamentsUpdated: number;
+    tournamentsDeduplicated: number;
   }
 ): Promise<void> {
   if (run.id === "unknown") return;
@@ -46,6 +47,7 @@ export async function completeRun(
       tournaments_found: stats.tournamentsFound,
       tournaments_new: stats.tournamentsNew,
       tournaments_updated: stats.tournamentsUpdated,
+      tournaments_deduplicated: stats.tournamentsDeduplicated,
     })
     .eq("id", run.id);
 
@@ -54,7 +56,8 @@ export async function completeRun(
   } else {
     console.log(
       `[${run.sourcePlatform}] Run ${run.id} completed — ` +
-        `found: ${stats.tournamentsFound}, new: ${stats.tournamentsNew}, updated: ${stats.tournamentsUpdated}`
+        `found: ${stats.tournamentsFound}, new: ${stats.tournamentsNew}, ` +
+        `updated: ${stats.tournamentsUpdated}, deduped: ${stats.tournamentsDeduplicated}`
     );
   }
 }

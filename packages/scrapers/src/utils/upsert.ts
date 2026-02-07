@@ -1,29 +1,35 @@
 import { supabase } from "./supabase.js";
+import { findCanonicalMatch, addTournamentSource } from "./dedup.js";
 import type { ScrapedTournament } from "../types.js";
 
 export interface UpsertStats {
   tournamentsNew: number;
   tournamentsUpdated: number;
+  tournamentsDeduplicated: number;
 }
 
 /**
  * Upsert a batch of scraped tournaments into the database.
  *
  * Logic per tournament:
- * 1. Look for existing tournament by (source_platform, source_url)
- * 2. If not found → insert (new)
- * 3. If found and source_hash differs → update (changed)
- * 4. If found and source_hash matches → skip (unchanged)
+ * 1. Same-source check: WHERE source_platform = ? AND source_url = ?
+ *    - Found + same hash  → SKIP
+ *    - Found + diff hash  → UPDATE
+ *    - Not found           → continue to step 2
+ * 2. Cross-platform check: find_nearby_tournament(date, lat, lng, 100m)
+ *    - Found canonical     → INSERT as duplicate, add source to canonical
+ *    - Not found           → INSERT as new canonical, add source
  */
 export async function upsertTournaments(
   tournaments: ScrapedTournament[]
 ): Promise<UpsertStats> {
   let tournamentsNew = 0;
   let tournamentsUpdated = 0;
+  let tournamentsDeduplicated = 0;
 
   for (const t of tournaments) {
     try {
-      // Check if tournament already exists by source
+      // Step 1: Check if tournament already exists by source
       const { data: existing, error: fetchError } = await supabase
         .from("tournaments")
         .select("id, source_hash")
@@ -58,45 +64,97 @@ export async function upsertTournaments(
         description: t.description || null,
       };
 
-      if (!existing) {
-        // New tournament — insert
-        const { error: insertError } = await supabase
-          .from("tournaments")
-          .insert(row);
+      if (existing) {
+        if (existing.source_hash !== t.rawPageHash) {
+          // Existing tournament with changed content — update
+          const { error: updateError } = await supabase
+            .from("tournaments")
+            .update(row)
+            .eq("id", existing.id);
 
-        if (insertError) {
-          console.error(
-            `[upsert] Error inserting "${t.name}":`,
-            insertError
-          );
+          if (updateError) {
+            console.error(
+              `[upsert] Error updating "${t.name}":`,
+              updateError
+            );
+          } else {
+            tournamentsUpdated++;
+            console.log(`[upsert] UPDATED: "${t.name}" (${t.dateStart})`);
+          }
         } else {
-          tournamentsNew++;
-          console.log(`[upsert] NEW: "${t.name}" (${t.dateStart})`);
+          // Unchanged — skip
+          console.log(`[upsert] UNCHANGED: "${t.name}" (${t.dateStart})`);
         }
-      } else if (existing.source_hash !== t.rawPageHash) {
-        // Existing tournament with changed content — update
-        const { error: updateError } = await supabase
-          .from("tournaments")
-          .update(row)
-          .eq("id", existing.id);
+        continue;
+      }
 
-        if (updateError) {
-          console.error(
-            `[upsert] Error updating "${t.name}":`,
-            updateError
-          );
-        } else {
-          tournamentsUpdated++;
-          console.log(`[upsert] UPDATED: "${t.name}" (${t.dateStart})`);
+      // Step 2: Cross-platform dedup check (only if we have GPS)
+      if (t.latitude && t.longitude) {
+        const canonical = await findCanonicalMatch(
+          t.dateStart,
+          t.latitude,
+          t.longitude
+        );
+
+        if (canonical) {
+          // Insert as duplicate pointing to canonical
+          const { error: insertError } = await supabase
+            .from("tournaments")
+            .insert({
+              ...row,
+              status: "duplicate",
+              canonical_id: canonical.id,
+            });
+
+          if (insertError) {
+            console.error(
+              `[upsert] Error inserting duplicate "${t.name}":`,
+              insertError
+            );
+          } else {
+            tournamentsDeduplicated++;
+            console.log(
+              `[upsert] DEDUP: "${t.name}" → canonical "${canonical.name}"`
+            );
+            // Add this platform's source to the canonical tournament
+            await addTournamentSource(
+              canonical.id,
+              t.sourcePlatform,
+              t.sourceUrl,
+              t.registrationUrl
+            );
+          }
+          continue;
         }
+      }
+
+      // No existing match — insert as new canonical
+      const { data: inserted, error: insertError } = await supabase
+        .from("tournaments")
+        .insert(row)
+        .select("id")
+        .single();
+
+      if (insertError) {
+        console.error(
+          `[upsert] Error inserting "${t.name}":`,
+          insertError
+        );
       } else {
-        // Unchanged — skip
-        console.log(`[upsert] UNCHANGED: "${t.name}" (${t.dateStart})`);
+        tournamentsNew++;
+        console.log(`[upsert] NEW: "${t.name}" (${t.dateStart})`);
+        // Record this source for the new canonical tournament
+        await addTournamentSource(
+          inserted.id,
+          t.sourcePlatform,
+          t.sourceUrl,
+          t.registrationUrl
+        );
       }
     } catch (err) {
       console.error(`[upsert] Unexpected error for "${t.name}":`, err);
     }
   }
 
-  return { tournamentsNew, tournamentsUpdated };
+  return { tournamentsNew, tournamentsUpdated, tournamentsDeduplicated };
 }
