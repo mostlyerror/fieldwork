@@ -4,6 +4,9 @@ dist/
 .env.local
 *.tsbuildinfo
 
+# Next.js
+apps/web/.next/
+
 # Expo
 apps/mobile/.expo/
 apps/mobile/ios/
