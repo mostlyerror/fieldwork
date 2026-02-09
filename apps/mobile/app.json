@@ -1,16 +1,16 @@
 {
   "expo": {
-    "name": "PickleUp",
-    "slug": "pickleup",
+    "name": "PickleRadar",
+    "slug": "pickleradar",
     "version": "0.0.1",
     "orientation": "portrait",
-    "scheme": "pickleup",
+    "scheme": "pickleradar",
     "platforms": ["ios", "android"],
     "ios": {
-      "bundleIdentifier": "app.pickleup"
+      "bundleIdentifier": "app.pickleradar"
     },
     "android": {
-      "package": "app.pickleup"
+      "package": "app.pickleradar"
     },
     "plugins": [
       "expo-router"

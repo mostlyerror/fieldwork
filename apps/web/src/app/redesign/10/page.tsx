@@ -308,7 +308,7 @@ export default function Design10() {
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-emerald-500">
               <span className="text-xs font-black text-white">P</span>
             </div>
-            <span className="text-sm font-bold text-gray-900">PickleUp</span>
+            <span className="text-sm font-bold text-gray-900">PickleRadar</span>
           </Link>
 
           <div className="flex items-center gap-3">

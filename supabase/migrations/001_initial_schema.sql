@@ -1,4 +1,4 @@
--- PickleUp Initial Schema Migration
+-- PickleRadar Initial Schema Migration
 -- Enables required extensions, creates all tables, indexes, RLS policies, and realtime.
 
 -- =============================================================================

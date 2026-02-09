@@ -113,7 +113,7 @@ export default function Design1() {
               P
             </div>
             <div>
-              <span className="block text-lg font-black uppercase tracking-tight">PickleUp</span>
+              <span className="block text-lg font-black uppercase tracking-tight">PickleRadar</span>
               <span className="block text-[10px] font-medium uppercase tracking-[0.3em] text-gray-400">Houston TX</span>
             </div>
           </Link>
@@ -174,10 +174,10 @@ export default function Design1() {
         <div className="mx-auto max-w-7xl px-6 py-8">
           <div className="flex items-center justify-between">
             <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
-              PickleUp &copy; {new Date().getFullYear()}
+              PickleRadar &copy; {new Date().getFullYear()}
             </p>
             <p className="text-xs text-gray-300">
-              &copy; {new Date().getFullYear()} PickleUp
+              &copy; {new Date().getFullYear()} PickleRadar
             </p>
           </div>
         </div>

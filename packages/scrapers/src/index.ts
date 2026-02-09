@@ -1,5 +1,5 @@
 /**
- * PickleUp Scraper Runner
+ * PickleRadar Scraper Runner
  *
  * Runs all configured scrapers sequentially, logging results to the database.
  * Add new sources by importing their scrape function and adding to the sources array.
@@ -27,7 +27,7 @@ const sources: ScraperSource[] = [
 
 async function main() {
   console.log(`\n${"=".repeat(60)}`);
-  console.log(`PickleUp Scraper — ${new Date().toISOString()}`);
+  console.log(`PickleRadar Scraper — ${new Date().toISOString()}`);
   console.log(`Running ${sources.length} source(s)`);
   console.log(`${"=".repeat(60)}\n`);
 

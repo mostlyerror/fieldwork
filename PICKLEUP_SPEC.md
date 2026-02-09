@@ -1,10 +1,10 @@
-# PickleUp — Product & Technical Specification
+# PickleRadar — Product & Technical Specification
 
 ## Project Overview
 
-PickleUp is a mobile app that aggregates all local pickleball tournaments into a single feed with push notifications, share functionality, and partner matching. The app scrapes tournament data from multiple fragmented platforms and presents it in one clean, filterable interface.
+PickleRadar is a mobile app that aggregates all local pickleball tournaments into a single feed with push notifications, share functionality, and partner matching. The app scrapes tournament data from multiple fragmented platforms and presents it in one clean, filterable interface.
 
-**North Star:** Houston pickleball players say "just check PickleUp" instead of scrolling through 5 different sites and 3 Facebook groups.
+**North Star:** Houston pickleball players say "just check PickleRadar" instead of scrolling through 5 different sites and 3 Facebook groups.
 
 **Founder context:** Ben Poon is a competitive pickleball player in Houston who plays tournaments regularly with doubles partner Hue. He experiences this pain firsthand. Houston is the #1 US city for pickleball facilities (70+ locations) with an estimated 14,000 tournament-competitive players in the metro area.
 
@@ -71,7 +71,7 @@ No platform aggregates across all of these. No platform sends push notifications
 
 ### 3. Share (Viral Loop)
 - Every tournament shareable with single tap
-- Deep links: `pickleup.app/t/{tournament_id}` 
+- Deep links: `pickleradar.app/t/{tournament_id}` 
 - If app installed → opens directly to tournament
 - If not installed → mobile web preview showing tournament details + "Get the App" CTA
 - Pre-formatted share message: "🏓 [Tournament Name] — [Date] at [Location]. [Skill levels]. [Link]"
@@ -332,8 +332,8 @@ When a new tournament is upserted to the database:
 ## Deep Linking & Share System
 
 ### URL Structure
-- Tournament: `https://pickleup.app/t/{tournament_id}`
-- Partner post: `https://pickleup.app/p/{partner_post_id}`
+- Tournament: `https://pickleradar.app/t/{tournament_id}`
+- Partner post: `https://pickleradar.app/p/{partner_post_id}`
 
 ### Flow
 1. User taps Share on a tournament
@@ -346,8 +346,8 @@ When a new tournament is upserted to the database:
 ### Web Fallback Page
 A simple, mobile-optimized web page (can be a Next.js or static site hosted on Vercel) that:
 - Displays tournament name, date, location, skill levels, entry fee
-- Shows "Open in PickleUp" button (deep link attempt)
-- Shows "Get PickleUp" button (App Store / Play Store links)
+- Shows "Open in PickleRadar" button (deep link attempt)
+- Shows "Get PickleRadar" button (App Store / Play Store links)
 - Clean, fast, no bloat — this is the first impression for new users
 
 ---
@@ -413,7 +413,7 @@ IMPORTANT: Do NOT take a cut of tournament registration fees. This would discour
 ### Phase 6: Polish & Launch
 - [ ] Onboarding flow (skill level, location, notification preferences)
 - [ ] App Store / Play Store submission
-- [ ] Landing page (pickleup.app)
+- [ ] Landing page (pickleradar.app)
 - [ ] Beta distribution to Houston pickleball community
 
 ---

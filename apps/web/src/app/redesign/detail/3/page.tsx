@@ -29,7 +29,7 @@ export default function DetailDesign3() {
           <Link href="/" className="flex items-center gap-2">
             <span className="text-3xl">{"\u{1F3D3}"}</span>
             <div>
-              <span className="block text-xl font-bold text-green-700">PickleUp</span>
+              <span className="block text-xl font-bold text-green-700">PickleRadar</span>
               <span className="block text-[11px] text-gray-400">Your Houston pickleball community</span>
             </div>
           </Link>

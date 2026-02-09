@@ -18,7 +18,7 @@ export async function generateMetadata({
   if (!tournament) return { title: "Tournament Not Found" };
 
   return {
-    title: `${tournament.name} — PickleUp`,
+    title: `${tournament.name} — PickleRadar`,
     description: `${formatDateRange(tournament.date_start, tournament.date_end)} at ${tournament.location_name}. Find details and register for this Houston-area pickleball tournament.`,
   };
 }
@@ -49,7 +49,7 @@ export default async function TournamentPage({ params }: PageProps) {
             <span className="text-3xl">{"\u{1F3D3}"}</span>
             <div>
               <span className="block text-xl font-bold text-green-700">
-                PickleUp
+                PickleRadar
               </span>
               <span className="block text-[11px] text-gray-400">
                 Your Houston pickleball community

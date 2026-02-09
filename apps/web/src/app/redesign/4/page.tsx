@@ -116,7 +116,7 @@ export default function Design4() {
       <nav className="mx-auto max-w-3xl px-6">
         <div className="flex items-center justify-between py-8">
           <Link href="/redesign/4">
-            <span className="text-lg font-light tracking-[0.15em] text-gray-900">PICKLEUP</span>
+            <span className="text-lg font-light tracking-[0.15em] text-gray-900">PICKLERADAR</span>
           </Link>
           <span className="text-xs tracking-[0.2em] text-gray-300">HOUSTON</span>
         </div>
@@ -166,7 +166,7 @@ export default function Design4() {
       <footer className="mx-auto max-w-3xl border-t border-gray-100 px-6 py-10">
         <div className="flex items-center justify-between">
           <span className="text-xs tracking-[0.15em] text-gray-300">
-            PICKLEUP &copy; {new Date().getFullYear()}
+            PICKLERADAR &copy; {new Date().getFullYear()}
           </span>
           <span className="text-xs text-gray-300">
             Multi-source aggregation

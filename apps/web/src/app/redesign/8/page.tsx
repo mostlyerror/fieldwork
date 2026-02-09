@@ -158,7 +158,7 @@ export default function Design8() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500">
               <span className="text-sm font-black text-white">P</span>
             </div>
-            <span className="text-sm font-bold text-gray-900">PickleUp</span>
+            <span className="text-sm font-bold text-gray-900">PickleRadar</span>
           </Link>
           <span className="text-xs text-gray-400">Houston, TX</span>
         </div>
@@ -252,7 +252,7 @@ export default function Design8() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6">
           <div className="flex items-center gap-2">
             <div className="h-4 w-4 rounded bg-emerald-500" />
-            <span className="text-xs text-gray-400">PickleUp</span>
+            <span className="text-xs text-gray-400">PickleRadar</span>
           </div>
         </div>
       </footer>

@@ -69,7 +69,7 @@ export default function Design3() {
             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500 text-sm font-black text-white">
               PU
             </div>
-            <span className="text-sm font-bold text-gray-900">PickleUp</span>
+            <span className="text-sm font-bold text-gray-900">PickleRadar</span>
           </Link>
           <div className="flex items-center gap-4 text-xs text-gray-400">
             <span className="flex items-center gap-1.5">
@@ -202,7 +202,7 @@ export default function Design3() {
 
       {/* Footer */}
       <footer className="border-t border-gray-200 bg-white py-6 text-center text-xs text-gray-400">
-        PickleUp &middot; Auto-refreshed every 5 minutes
+        PickleRadar &middot; Auto-refreshed every 5 minutes
       </footer>
 
       <DesignSwitcher />

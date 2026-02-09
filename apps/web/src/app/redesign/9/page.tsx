@@ -167,7 +167,7 @@ export default function Design9() {
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-emerald-500">
               <span className="text-xs font-black text-white">P</span>
             </div>
-            <span className="text-sm font-bold text-gray-900">PickleUp</span>
+            <span className="text-sm font-bold text-gray-900">PickleRadar</span>
           </Link>
 
           {/* Search in nav */}
@@ -297,7 +297,7 @@ export default function Design9() {
       {/* Footer */}
       <footer className="mt-auto border-t border-gray-200 py-5">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 sm:px-6">
-          <span className="text-[11px] text-gray-400">PickleUp</span>
+          <span className="text-[11px] text-gray-400">PickleRadar</span>
         </div>
       </footer>
 

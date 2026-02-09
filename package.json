@@ -1,5 +1,5 @@
 {
-  "name": "pickleup",
+  "name": "pickleradar",
   "private": true,
   "workspaces": [
     "apps/*",

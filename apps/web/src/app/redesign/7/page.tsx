@@ -159,7 +159,7 @@ export default function Design7() {
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-green-500 to-emerald-600">
               <span className="text-base font-black text-white">P</span>
             </div>
-            <span className="text-sm font-bold text-gray-700">PickleUp</span>
+            <span className="text-sm font-bold text-gray-700">PickleRadar</span>
           </Link>
 
           {/* Search in nav */}
@@ -278,7 +278,7 @@ export default function Design7() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6">
           <div className="flex items-center gap-2">
             <div className="h-5 w-5 rounded bg-gradient-to-br from-green-500 to-emerald-600" />
-            <span className="text-xs font-medium text-gray-400">PickleUp</span>
+            <span className="text-xs font-medium text-gray-400">PickleRadar</span>
           </div>
         </div>
       </footer>

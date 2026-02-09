@@ -143,7 +143,7 @@ export default function Design6() {
           <Link href="/redesign/6" className="flex items-center gap-2.5">
             <div className="h-7 w-7 rounded-md bg-gradient-to-br from-green-500 to-emerald-600" />
             <span className="text-sm font-semibold tracking-wide text-gray-700">
-              PICKLEUP
+              PICKLERADAR
             </span>
           </Link>
           <span className="text-xs tracking-[0.15em] text-gray-400">
@@ -194,7 +194,7 @@ export default function Design6() {
       <footer className="border-t border-gray-200">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-8">
           <span className="text-[11px] tracking-[0.12em] text-gray-400">
-            PICKLEUP &copy; {new Date().getFullYear()}
+            PICKLERADAR &copy; {new Date().getFullYear()}
           </span>
         </div>
       </footer>

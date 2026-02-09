@@ -1,5 +1,5 @@
 {
-  "name": "@pickleup/mobile",
+  "name": "@pickleradar/mobile",
   "version": "0.0.1",
   "private": true,
   "main": "expo-router/entry",

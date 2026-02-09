@@ -132,7 +132,7 @@ export default function Design5() {
               <span className="text-lg font-black text-white">P</span>
             </div>
             <div>
-              <span className="block text-base font-bold text-gray-900">PickleUp</span>
+              <span className="block text-base font-bold text-gray-900">PickleRadar</span>
               <span className="block text-[10px] font-medium uppercase tracking-widest text-green-600">
                 Houston
               </span>
@@ -241,7 +241,7 @@ export default function Design5() {
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <div className="flex items-center gap-2">
               <div className="h-6 w-6 rounded-md bg-gradient-to-br from-green-500 to-emerald-600" />
-              <span className="text-sm font-bold text-gray-400">PickleUp</span>
+              <span className="text-sm font-bold text-gray-400">PickleRadar</span>
             </div>
           </div>
         </div>
