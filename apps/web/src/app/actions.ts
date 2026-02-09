@@ -41,7 +41,7 @@ export async function subscribeEmail(formData: FormData): Promise<SubscribeResul
       .from("email_subscribers")
       .update({ status: "active" })
       .eq("id", existing.id);
-    void sendWelcomeDigest(normalizedEmail, supabase);
+    await sendWelcomeDigest(normalizedEmail, supabase);
     return { status: "success" };
   }
 
@@ -58,7 +58,7 @@ export async function subscribeEmail(formData: FormData): Promise<SubscribeResul
     return { status: "error", message: "Something went wrong. Please try again." };
   }
 
-  void sendWelcomeDigest(normalizedEmail, supabase);
+  await sendWelcomeDigest(normalizedEmail, supabase);
   return { status: "success" };
 }
 
