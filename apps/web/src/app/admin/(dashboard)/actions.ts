@@ -1,16 +1,10 @@
 "use server";
 
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { requireAdmin } from "@/lib/admin-auth";
 
-function verifySecret(secret: string | null) {
-  const expected = process.env.ADMIN_SECRET;
-  if (!expected || secret !== expected) {
-    throw new Error("Unauthorized");
-  }
-}
-
-export async function approveTournament(id: string, secret: string) {
-  verifySecret(secret);
+export async function approveTournament(id: string) {
+  await requireAdmin();
   const { error } = await getSupabaseAdmin()
     .from("tournaments")
     .update({ status: "active" })
@@ -19,8 +13,8 @@ export async function approveTournament(id: string, secret: string) {
   return { success: true };
 }
 
-export async function rejectTournament(id: string, secret: string) {
-  verifySecret(secret);
+export async function rejectTournament(id: string) {
+  await requireAdmin();
   const { error } = await getSupabaseAdmin()
     .from("tournaments")
     .delete()

@@ -1,15 +1,12 @@
 /**
  * PickleRadar Weekly Digest
  *
- * Queries upcoming weekend tournaments and posts a digest to Instagram.
- * Intended to run Thursday evening via GitHub Actions cron.
+ * Queries upcoming weekend tournaments and queues a digest post for admin review.
+ * The actual Instagram publish happens via the admin social dashboard.
+ * Runs Monday afternoon via GitHub Actions cron.
  */
 
 import { supabase } from "./utils/supabase.js";
-import {
-  getInstagramConfig,
-  postTournamentToInstagram,
-} from "./utils/instagram.js";
 
 interface DigestTournament {
   id: string;
@@ -82,18 +79,27 @@ function buildDigestCaption(
 }
 
 async function main() {
-  const config = getInstagramConfig();
-  if (!config) {
-    console.log(
-      "[digest] Instagram not configured (missing INSTAGRAM_ACCESS_TOKEN or INSTAGRAM_USER_ID). Skipping."
-    );
-    return;
-  }
-
+  const appUrl = process.env.APP_URL ?? "https://pickleradar.app";
   const { friday, sunday } = getUpcomingWeekend();
   console.log(
     `[digest] Fetching tournaments for weekend: ${friday} to ${sunday}`
   );
+
+  // Dedup: skip if a queued/published digest already exists for this weekend
+  const { data: existing } = await supabase
+    .from("social_posts")
+    .select("id")
+    .eq("post_type", "digest")
+    .in("status", ["queued", "published"])
+    .contains("metadata", { weekend_start: friday })
+    .limit(1);
+
+  if (existing && existing.length > 0) {
+    console.log(
+      `[digest] Digest already exists for weekend ${friday}. Skipping.`
+    );
+    return;
+  }
 
   const { data: tournaments, error } = await supabase
     .from("tournaments")
@@ -117,59 +123,30 @@ async function main() {
 
   console.log(`[digest] Found ${tournaments.length} weekend tournament(s)`);
 
-  // Use the digest image as the post image
-  const imageUrl = `${config.appUrl}/api/digest-image?from=${friday}&to=${sunday}`;
-  const caption = buildDigestCaption(tournaments, config.appUrl);
+  const imageUrl = `${appUrl}/api/digest-image?from=${friday}&to=${sunday}`;
+  const caption = buildDigestCaption(tournaments, appUrl);
 
-  // Post directly using the Graph API (same pattern as single tournament posts)
-  const GRAPH_API = "https://graph.facebook.com/v21.0";
+  const { error: insertErr } = await supabase.from("social_posts").insert({
+    post_type: "digest",
+    status: "queued",
+    platform: "instagram",
+    caption,
+    image_url: imageUrl,
+    metadata: {
+      weekend_start: friday,
+      weekend_end: sunday,
+      tournament_count: tournaments.length,
+    },
+  });
 
-  try {
-    const containerRes = await fetch(
-      `${GRAPH_API}/${config.userId}/media`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          image_url: imageUrl,
-          caption,
-          access_token: config.accessToken,
-        }),
-      }
-    );
-
-    if (!containerRes.ok) {
-      const err = await containerRes.text();
-      console.error("[digest] Container creation failed:", err);
-      process.exit(1);
-    }
-
-    const { id: containerId } = (await containerRes.json()) as { id: string };
-
-    const publishRes = await fetch(
-      `${GRAPH_API}/${config.userId}/media_publish`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          creation_id: containerId,
-          access_token: config.accessToken,
-        }),
-      }
-    );
-
-    if (!publishRes.ok) {
-      const err = await publishRes.text();
-      console.error("[digest] Publish failed:", err);
-      process.exit(1);
-    }
-
-    const { id: mediaId } = (await publishRes.json()) as { id: string };
-    console.log(`[digest] Posted weekly digest! Media ID: ${mediaId}`);
-  } catch (err) {
-    console.error("[digest] Error posting digest:", err);
+  if (insertErr) {
+    console.error("[digest] Error inserting social post:", insertErr);
     process.exit(1);
   }
+
+  console.log(
+    `[digest] Queued weekly digest for admin review (${tournaments.length} tournaments)`
+  );
 }
 
 main().catch((err) => {
