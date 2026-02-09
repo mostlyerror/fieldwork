@@ -70,6 +70,7 @@ export async function GET(request: Request) {
         {/* Title */}
         <div
           style={{
+            display: "flex",
             fontSize: 36,
             fontWeight: 800,
             marginBottom: "8px",
@@ -79,6 +80,7 @@ export async function GET(request: Request) {
         </div>
         <div
           style={{
+            display: "flex",
             fontSize: 20,
             opacity: 0.85,
             marginBottom: "28px",
@@ -117,7 +119,7 @@ export async function GET(request: Request) {
                   padding: "10px 16px",
                 }}
               >
-                <div style={{ display: "flex", flexDirection: "column" }}>
+                <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
                   <span
                     style={{
                       fontSize: 16,
@@ -145,6 +147,7 @@ export async function GET(request: Request) {
         {/* Footer */}
         <div
           style={{
+            display: "flex",
             marginTop: "auto",
             paddingTop: "16px",
             fontSize: 14,

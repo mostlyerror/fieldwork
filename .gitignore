@@ -15,6 +15,9 @@ apps/mobile/android/
 # Playwright
 packages/scrapers/test-results/
 
+# Logs
+logs/
+
 # OS
 .DS_Store
 .vercel
