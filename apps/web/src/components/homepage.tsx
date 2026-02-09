@@ -5,6 +5,7 @@ import { useState, useMemo } from "react";
 import type { Tournament } from "@/lib/types";
 import { formatDateRange, formatCurrency } from "@/lib/format";
 import { useDebounce } from "@/hooks/use-debounce";
+import { EmailCapture } from "./email-capture";
 
 function TournamentCard({ tournament }: { tournament: Tournament }) {
   const statusEmoji: Record<string, string> = {
@@ -108,6 +109,9 @@ export function Homepage({ tournaments }: { tournaments: Tournament[] }) {
           We pull tournaments from across the web so you never miss one.
         </p>
       </header>
+
+      {/* Email capture */}
+      <EmailCapture />
 
       {/* Search + filters */}
       <div className="mx-auto max-w-6xl px-5 pb-8">
