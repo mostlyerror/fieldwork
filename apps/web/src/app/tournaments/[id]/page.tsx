@@ -53,8 +53,48 @@ export default async function TournamentPage({ params }: PageProps) {
       />
     ) : null;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SportsEvent",
+    name: tournament.name,
+    startDate: tournament.date_start,
+    ...(tournament.date_end && { endDate: tournament.date_end }),
+    location: {
+      "@type": "Place",
+      name: tournament.location_name,
+      ...(tournament.location_address && {
+        address: tournament.location_address,
+      }),
+      ...(tournament.latitude != null &&
+        tournament.longitude != null && {
+          geo: {
+            "@type": "GeoCoordinates",
+            latitude: tournament.latitude,
+            longitude: tournament.longitude,
+          },
+        }),
+    },
+    sport: "Pickleball",
+    ...(tournament.description && { description: tournament.description }),
+    ...(tournament.entry_fee != null && {
+      offers: {
+        "@type": "Offer",
+        price: tournament.entry_fee,
+        priceCurrency: "USD",
+        ...(tournament.registration_url && {
+          url: tournament.registration_url,
+        }),
+      },
+    }),
+    url: `https://pickleradar.app/tournaments/${tournament.id}`,
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50/50 via-white to-amber-50/30">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Nav */}
       <nav className="bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
