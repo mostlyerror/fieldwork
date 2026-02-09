@@ -1,6 +1,7 @@
 import type { Tournament, TournamentSource } from "@/lib/types";
 import { formatDateRange, formatCurrency } from "@/lib/format";
 import { SOURCE_DISPLAY_NAMES } from "@/lib/constants";
+import { ShareButtons } from "./share-buttons";
 
 const FORMAT_LABELS: Record<string, string> = {
   round_robin: "Round Robin",
@@ -132,6 +133,14 @@ export function TournamentDetail({
                 ))}
               </div>
             )}
+
+            {/* Share */}
+            <div className="mt-4 border-t border-gray-100 pt-4">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                Share
+              </p>
+              <ShareButtons tournamentId={tournament.id} />
+            </div>
           </div>
         </div>
 

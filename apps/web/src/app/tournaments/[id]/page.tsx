@@ -17,9 +17,22 @@ export async function generateMetadata({
   const tournament = await getTournament(id);
   if (!tournament) return { title: "Tournament Not Found" };
 
+  const description = `${formatDateRange(tournament.date_start, tournament.date_end)} at ${tournament.location_name}. Find details and register for this Houston-area pickleball tournament.`;
+
   return {
     title: `${tournament.name} — PickleRadar`,
-    description: `${formatDateRange(tournament.date_start, tournament.date_end)} at ${tournament.location_name}. Find details and register for this Houston-area pickleball tournament.`,
+    description,
+    openGraph: {
+      title: tournament.name,
+      description,
+      siteName: "PickleRadar",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: tournament.name,
+      description,
+    },
   };
 }
 

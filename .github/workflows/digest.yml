@@ -1,0 +1,30 @@
+name: Weekly Digest
+
+on:
+  schedule:
+    - cron: "0 23 * * 4" # Thursday 11 PM UTC / 5 PM CT
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Post weekly digest to Instagram
+        run: npx tsx packages/scrapers/src/digest.ts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
+          APP_URL: https://pickleradar.app

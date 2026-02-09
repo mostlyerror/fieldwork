@@ -6,6 +6,7 @@ export interface UpsertStats {
   tournamentsNew: number;
   tournamentsUpdated: number;
   tournamentsDeduplicated: number;
+  newTournamentIds: string[];
 }
 
 /**
@@ -26,6 +27,7 @@ export async function upsertTournaments(
   let tournamentsNew = 0;
   let tournamentsUpdated = 0;
   let tournamentsDeduplicated = 0;
+  const newTournamentIds: string[] = [];
 
   for (const t of tournaments) {
     try {
@@ -142,6 +144,7 @@ export async function upsertTournaments(
         );
       } else {
         tournamentsNew++;
+        newTournamentIds.push(inserted.id);
         console.log(`[upsert] NEW: "${t.name}" (${t.dateStart})`);
         // Record this source for the new canonical tournament
         await addTournamentSource(
@@ -156,5 +159,5 @@ export async function upsertTournaments(
     }
   }
 
-  return { tournamentsNew, tournamentsUpdated, tournamentsDeduplicated };
+  return { tournamentsNew, tournamentsUpdated, tournamentsDeduplicated, newTournamentIds };
 }

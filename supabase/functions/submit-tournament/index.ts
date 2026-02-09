@@ -20,6 +20,7 @@ interface SubmitTournamentBody {
   entryFee?: number;
   registrationUrl?: string;
   description?: string;
+  website?: string; // honeypot field — should always be empty
 }
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -113,12 +114,70 @@ Deno.serve(async (req) => {
     });
   }
 
+  // Honeypot: if the hidden "website" field is filled, it's a bot.
+  // Silently accept but don't actually insert.
+  if (body.website) {
+    return new Response(
+      JSON.stringify({
+        id: "00000000-0000-0000-0000-000000000000",
+        name: body.name,
+        message: "Your tournament has been submitted and is pending review.",
+      }),
+      {
+        status: 201,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
+  }
+
   const submittedBy = getUserId(req);
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
+
+  // Rate limiting: max 3 submissions per IP per hour
+  const clientIP =
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    req.headers.get("cf-connecting-ip") ??
+    "unknown";
+
+  if (clientIP !== "unknown") {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { data: rateRow } = await supabase
+      .from("submission_rate_limits")
+      .select("submission_count, window_start")
+      .eq("ip_address", clientIP)
+      .single();
+
+    if (rateRow && rateRow.window_start > oneHourAgo) {
+      if (rateRow.submission_count >= 3) {
+        return new Response(
+          JSON.stringify({
+            error: "Too many submissions. Please try again later.",
+          }),
+          {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+      await supabase
+        .from("submission_rate_limits")
+        .update({ submission_count: rateRow.submission_count + 1 })
+        .eq("ip_address", clientIP);
+    } else {
+      await supabase.from("submission_rate_limits").upsert(
+        {
+          ip_address: clientIP,
+          submission_count: 1,
+          window_start: new Date().toISOString(),
+        },
+        { onConflict: "ip_address" },
+      );
+    }
+  }
 
   // Cross-platform dedup: check if a matching tournament already exists
   let canonicalId: string | null = null;
@@ -156,7 +215,7 @@ Deno.serve(async (req) => {
     source_hash: null,
     is_manually_submitted: true,
     submitted_by: submittedBy,
-    status: isDuplicate ? "duplicate" : "active",
+    status: isDuplicate ? "duplicate" : "pending_review",
     canonical_id: canonicalId,
   };
 
@@ -192,6 +251,7 @@ Deno.serve(async (req) => {
     JSON.stringify({
       id: data.id,
       name: data.name,
+      message: "Your tournament has been submitted and is pending review.",
       ...(isDuplicate && { duplicateOf: canonicalId }),
     }),
     {
