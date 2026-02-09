@@ -10,7 +10,6 @@ if (
   typeof window === "undefined" &&
   typeof globalThis.localStorage !== "undefined"
 ) {
-  // @ts-expect-error – overriding the broken built-in
   globalThis.localStorage = {
     getItem: () => null,
     setItem: () => {},

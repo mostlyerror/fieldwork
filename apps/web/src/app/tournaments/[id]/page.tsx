@@ -41,18 +41,49 @@ export default async function TournamentPage({ params }: PageProps) {
     ) : null;
 
   return (
-    <>
-      <Link
-        href="/"
-        className="mb-4 inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-      >
-        ← Back to tournaments
-      </Link>
-      <TournamentDetail
-        tournament={tournament}
-        sources={sources}
-        miniMap={miniMap}
-      />
-    </>
+    <div className="min-h-screen bg-gradient-to-b from-green-50/50 via-white to-amber-50/30">
+      {/* Nav */}
+      <nav className="bg-white/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
+          <Link href="/" className="flex items-center gap-2">
+            <span className="text-3xl">{"\u{1F3D3}"}</span>
+            <div>
+              <span className="block text-xl font-bold text-green-700">
+                PickleUp
+              </span>
+              <span className="block text-[11px] text-gray-400">
+                Your Houston pickleball community
+              </span>
+            </div>
+          </Link>
+        </div>
+      </nav>
+
+      {/* Content */}
+      <main className="mx-auto max-w-5xl px-5 py-8">
+        <Link
+          href="/"
+          className="mb-6 inline-flex items-center text-sm text-gray-400 hover:text-green-700"
+        >
+          &larr; Back to tournaments
+        </Link>
+        <TournamentDetail
+          tournament={tournament}
+          sources={sources}
+          miniMap={miniMap}
+        />
+      </main>
+
+      {/* Footer */}
+      <footer className="mt-16 border-t border-gray-100 bg-white/60 py-8 text-center">
+        <p className="text-sm text-gray-400">
+          Made with {"\u{1F49A}"} for the Houston pickleball community
+        </p>
+        <p className="mt-1 text-xs text-gray-300">
+          Data from PickleballBrackets &middot; Pickleball Den &middot; Community
+          submissions
+        </p>
+      </footer>
+    </div>
   );
 }
