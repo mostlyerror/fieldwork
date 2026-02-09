@@ -1,6 +1,6 @@
 "use client";
 
-import { SKILL_LEVELS, FORMAT_OPTIONS } from "@/lib/constants";
+import { FORMAT_OPTIONS } from "@/lib/constants";
 import type { TournamentFilters as Filters } from "@/lib/types";
 
 export function TournamentFilters({
@@ -10,13 +10,6 @@ export function TournamentFilters({
   filters: Filters;
   onChange: (filters: Filters) => void;
 }) {
-  const toggleSkill = (level: string) => {
-    const next = filters.skillLevels.includes(level)
-      ? filters.skillLevels.filter((s) => s !== level)
-      : [...filters.skillLevels, level];
-    onChange({ ...filters, skillLevels: next });
-  };
-
   return (
     <div className="space-y-4">
       {/* Search */}
@@ -59,26 +52,6 @@ export function TournamentFilters({
             </option>
           ))}
         </select>
-      </div>
-
-      {/* Skill level pills */}
-      <div className="flex flex-wrap gap-1.5">
-        {SKILL_LEVELS.map((level) => {
-          const active = filters.skillLevels.includes(level);
-          return (
-            <button
-              key={level}
-              onClick={() => toggleSkill(level)}
-              className={`rounded-full border px-2.5 py-0.5 text-xs font-medium transition ${
-                active
-                  ? "border-green-600 bg-green-600 text-white"
-                  : "border-gray-300 bg-white text-gray-600 hover:border-gray-400"
-              }`}
-            >
-              {level}
-            </button>
-          );
-        })}
       </div>
     </div>
   );

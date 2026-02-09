@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useState, useMemo } from "react";
 import type { Tournament } from "@/lib/types";
 import { formatDateRange, formatCurrency } from "@/lib/format";
-import { SKILL_LEVELS } from "@/lib/constants";
 import { useDebounce } from "@/hooks/use-debounce";
 
 function TournamentCard({ tournament }: { tournament: Tournament }) {
@@ -65,7 +64,6 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
 
 export function Homepage({ tournaments }: { tournaments: Tournament[] }) {
   const [search, setSearch] = useState("");
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const debouncedSearch = useDebounce(search, 250);
 
   const filtered = useMemo(() => {
@@ -78,18 +76,8 @@ export function Homepage({ tournaments }: { tournaments: Tournament[] }) {
           t.location_name.toLowerCase().includes(q)
       );
     }
-    if (selectedSkills.length > 0) {
-      result = result.filter((t) =>
-        t.skill_levels?.some((s) => selectedSkills.includes(s))
-      );
-    }
     return result;
-  }, [tournaments, debouncedSearch, selectedSkills]);
-
-  const toggleSkill = (s: string) =>
-    setSelectedSkills((prev) =>
-      prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]
-    );
+  }, [tournaments, debouncedSearch]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50/50 via-white to-amber-50/30">
@@ -137,24 +125,6 @@ export function Homepage({ tournaments }: { tournaments: Tournament[] }) {
             />
           </div>
 
-          <div className="mt-4 flex flex-wrap justify-center gap-2">
-            {SKILL_LEVELS.map((level) => {
-              const active = selectedSkills.includes(level);
-              return (
-                <button
-                  key={level}
-                  onClick={() => toggleSkill(level)}
-                  className={`rounded-full px-3 py-1 text-xs font-medium transition ${
-                    active
-                      ? "bg-green-600 text-white shadow-sm"
-                      : "bg-white text-gray-500 ring-1 ring-gray-200 hover:ring-green-300"
-                  }`}
-                >
-                  {level}
-                </button>
-              );
-            })}
-          </div>
         </div>
       </div>
 
