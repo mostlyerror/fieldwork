@@ -254,9 +254,6 @@ export default function Design8() {
             <div className="h-4 w-4 rounded bg-emerald-500" />
             <span className="text-xs text-gray-400">PickleUp</span>
           </div>
-          <p className="text-[11px] text-gray-300">
-            PickleballBrackets &middot; Pickleball Den &middot; Community
-          </p>
         </div>
       </footer>
 

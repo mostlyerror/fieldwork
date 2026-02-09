@@ -243,9 +243,6 @@ export default function Design5() {
               <div className="h-6 w-6 rounded-md bg-gradient-to-br from-green-500 to-emerald-600" />
               <span className="text-sm font-bold text-gray-400">PickleUp</span>
             </div>
-            <p className="text-xs text-gray-400">
-              Aggregating data from PickleballBrackets &middot; Pickleball Den &middot; Community
-            </p>
           </div>
         </div>
       </footer>

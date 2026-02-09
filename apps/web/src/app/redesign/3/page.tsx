@@ -202,7 +202,7 @@ export default function Design3() {
 
       {/* Footer */}
       <footer className="border-t border-gray-200 bg-white py-6 text-center text-xs text-gray-400">
-        PickleUp &middot; Data aggregated from PickleballBrackets & Pickleball Den &middot; Auto-refreshed every 5 minutes
+        PickleUp &middot; Auto-refreshed every 5 minutes
       </footer>
 
       <DesignSwitcher />

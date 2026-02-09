@@ -199,9 +199,6 @@ export default function Design2() {
         <p className="text-sm text-gray-400">
           Made with 💚 for the Houston pickleball community
         </p>
-        <p className="mt-1 text-xs text-gray-300">
-          Data from PickleballBrackets &middot; Pickleball Den &middot; Community submissions
-        </p>
       </footer>
 
       <DesignSwitcher />

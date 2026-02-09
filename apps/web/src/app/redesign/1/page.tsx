@@ -177,7 +177,7 @@ export default function Design1() {
               PickleUp &copy; {new Date().getFullYear()}
             </p>
             <p className="text-xs text-gray-300">
-              Aggregating tournaments from PickleballBrackets, Pickleball Den & more
+              &copy; {new Date().getFullYear()} PickleUp
             </p>
           </div>
         </div>

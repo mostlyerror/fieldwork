@@ -196,9 +196,6 @@ export default function Design6() {
           <span className="text-[11px] tracking-[0.12em] text-gray-400">
             PICKLEUP &copy; {new Date().getFullYear()}
           </span>
-          <span className="text-[11px] text-gray-300">
-            PickleballBrackets &middot; Pickleball Den
-          </span>
         </div>
       </footer>
 

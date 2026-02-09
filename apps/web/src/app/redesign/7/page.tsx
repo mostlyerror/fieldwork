@@ -280,9 +280,6 @@ export default function Design7() {
             <div className="h-5 w-5 rounded bg-gradient-to-br from-green-500 to-emerald-600" />
             <span className="text-xs font-medium text-gray-400">PickleUp</span>
           </div>
-          <p className="text-[11px] text-gray-300">
-            PickleballBrackets &middot; Pickleball Den &middot; Community
-          </p>
         </div>
       </footer>
 
