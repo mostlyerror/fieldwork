@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { createAdminSession, verifyAdminSession } from "@/lib/admin-auth";
+import { verifyAdminSession } from "@/lib/admin-auth";
+import { loginAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -24,15 +25,7 @@ export default async function AdminLoginPage({ searchParams }: PageProps) {
         </div>
 
         <form
-          action={async (formData: FormData) => {
-            "use server";
-            const password = formData.get("password") as string;
-            if (!password || password !== process.env.ADMIN_SECRET) {
-              redirect("/admin/login?error=1");
-            }
-            await createAdminSession();
-            redirect("/admin");
-          }}
+          action={loginAction}
           className="rounded-2xl bg-white p-8 shadow-sm ring-1 ring-gray-100"
         >
           <label
