@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getTournament, getTournamentSources } from "@/lib/queries";
+import { getTournament, getTournamentSources, getTournaments } from "@/lib/queries";
 import { TournamentDetail } from "@/components/tournament-detail";
 import { MiniMapWrapper } from "@/components/mini-map-wrapper";
-import { formatDateRange } from "@/lib/format";
+import { Header } from "@/components/header";
+import { formatDateRange, formatCurrency, distanceMiles } from "@/lib/format";
+import type { Tournament } from "@/lib/types";
 
 export const revalidate = 600; // ISR: 10 minutes
 
@@ -36,11 +38,30 @@ export async function generateMetadata({
   };
 }
 
+function getRelatedTournaments(
+  current: Tournament,
+  all: Tournament[],
+): Tournament[] {
+  const others = all.filter((t) => t.id !== current.id);
+  if (current.latitude != null && current.longitude != null) {
+    return others
+      .filter((t) => t.latitude != null && t.longitude != null)
+      .sort(
+        (a, b) =>
+          distanceMiles(current.latitude!, current.longitude!, a.latitude!, a.longitude!) -
+          distanceMiles(current.latitude!, current.longitude!, b.latitude!, b.longitude!),
+      )
+      .slice(0, 3);
+  }
+  return others.slice(0, 3);
+}
+
 export default async function TournamentPage({ params }: PageProps) {
   const { id } = await params;
-  const [tournament, sources] = await Promise.all([
+  const [tournament, sources, allTournaments] = await Promise.all([
     getTournament(id),
     getTournamentSources(id),
+    getTournaments(),
   ]);
 
   if (!tournament) notFound();
@@ -52,6 +73,15 @@ export default async function TournamentPage({ params }: PageProps) {
         longitude={tournament.longitude}
       />
     ) : null;
+
+  const related = getRelatedTournaments(tournament, allTournaments);
+
+  const statusEmoji: Record<string, string> = {
+    open: "\u{1F7E2}",
+    filling: "\u{1F7E1}",
+    full: "\u{1F534}",
+    closed: "\u26AB",
+  };
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -95,22 +125,7 @@ export default async function TournamentPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {/* Nav */}
-      <nav className="bg-white/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-3xl">{"\u{1F3D3}"}</span>
-            <div>
-              <span className="block text-xl font-bold text-green-700">
-                PickleRadar
-              </span>
-              <span className="block text-[11px] text-gray-400">
-                Your Houston pickleball community
-              </span>
-            </div>
-          </Link>
-        </div>
-      </nav>
+      <Header />
 
       {/* Content */}
       <main className="mx-auto max-w-5xl px-5 py-8">
@@ -125,6 +140,61 @@ export default async function TournamentPage({ params }: PageProps) {
           sources={sources}
           miniMap={miniMap}
         />
+
+        {/* Related tournaments */}
+        {related.length > 0 && (
+          <section className="mt-12">
+            <h2 className="mb-4 text-lg font-bold text-gray-800">
+              More Upcoming Tournaments
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {related.map((t) => (
+                <Link
+                  key={t.id}
+                  href={`/tournaments/${t.id}`}
+                  className="group block rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:ring-green-200"
+                >
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                      {formatDateRange(t.date_start, t.date_end)}
+                    </span>
+                    <span title={t.registration_status ?? "open"}>
+                      {statusEmoji[t.registration_status ?? "open"] ?? "\u{1F7E2}"}
+                    </span>
+                  </div>
+                  <h3 className="mb-1 text-lg font-bold text-gray-800 group-hover:text-green-700">
+                    {t.name}
+                  </h3>
+                  <p className="mb-3 flex items-center gap-1.5 text-sm text-gray-500">
+                    <span>{"\u{1F4CD}"}</span> {t.location_name}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap gap-1">
+                      {t.skill_levels?.slice(0, 4).map((s) => (
+                        <span
+                          key={s}
+                          className="rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-medium text-green-700"
+                        >
+                          {s}
+                        </span>
+                      ))}
+                      {(t.skill_levels?.length ?? 0) > 4 && (
+                        <span className="rounded-full bg-gray-50 px-2 py-0.5 text-[11px] text-gray-400">
+                          +{(t.skill_levels?.length ?? 0) - 4}
+                        </span>
+                      )}
+                    </div>
+                    {t.entry_fee != null && (
+                      <span className="text-sm font-bold text-green-600">
+                        {formatCurrency(t.entry_fee)}
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
 
       {/* Footer */}

@@ -9,7 +9,8 @@
     "dev:web": "mkdir -p logs && : > logs/web.log && npm run dev --workspace=apps/web 2>&1 | tee logs/web.log",
     "build:web": "npm run build --workspace=apps/web",
     "scrape": "npm run start --workspace=packages/scrapers",
-    "scrape:pickleballbrackets": "npm run start:pickleballbrackets --workspace=packages/scrapers"
+    "scrape:pickleballbrackets": "npm run start:pickleballbrackets --workspace=packages/scrapers",
+    "scrape:cloud": "gh workflow run scrape.yml && echo 'Scraper triggered! Check progress: gh run list --workflow=scrape.yml -L 1'"
   },
   "devDependencies": {
     "react": "19.1.0",

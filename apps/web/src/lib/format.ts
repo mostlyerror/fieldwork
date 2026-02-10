@@ -23,6 +23,47 @@ export function formatCurrency(amount: number): string {
   return `$${amount.toFixed(0)}`;
 }
 
+export function relativeDate(dateStr: string): string | null {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(dateStr + "T00:00:00");
+  const diffMs = target.getTime() - today.getTime();
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) return null;
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Tomorrow";
+
+  // "This weekend" — target is the upcoming Sat or Sun within the same week
+  const dayOfWeek = today.getDay(); // 0=Sun
+  const daysUntilSat = (6 - dayOfWeek + 7) % 7 || 7;
+  if (target.getDay() === 6 && diffDays <= daysUntilSat) return "This weekend";
+  if (target.getDay() === 0 && diffDays <= daysUntilSat + 1)
+    return "This weekend";
+
+  if (diffDays <= 6) return `In ${diffDays} days`;
+  if (diffDays <= 13) return "Next week";
+  return null;
+}
+
+export function googleMapsUrl({
+  latitude,
+  longitude,
+  address,
+  name,
+}: {
+  latitude?: number | null;
+  longitude?: number | null;
+  address?: string | null;
+  name?: string | null;
+}): string {
+  const q =
+    latitude != null && longitude != null
+      ? `${latitude},${longitude}`
+      : address ?? name ?? "";
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(q)}`;
+}
+
 export function distanceMiles(
   lat1: number,
   lng1: number,
