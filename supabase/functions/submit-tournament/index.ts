@@ -19,6 +19,7 @@ interface SubmitTournamentBody {
   format?: string;
   entryFee?: number;
   registrationUrl?: string;
+  sourceUrl?: string;
   description?: string;
   website?: string; // honeypot field — should always be empty
 }
@@ -30,7 +31,7 @@ function validate(body: SubmitTournamentBody): string | null {
     "name",
     "dateStart",
     "locationName",
-    "registrationUrl",
+    "sourceUrl",
   ] as const) {
     if (!body[field] || (typeof body[field] === "string" && !body[field].trim())) {
       return `Missing required field: ${field}`;
@@ -197,6 +198,8 @@ Deno.serve(async (req) => {
     }
   }
 
+  const effectiveRegUrl = body.registrationUrl?.trim() || body.sourceUrl!.trim();
+
   const insertRow = {
     name: body.name!.trim(),
     date_start: body.dateStart!,
@@ -208,10 +211,10 @@ Deno.serve(async (req) => {
     skill_levels: body.skillLevels ?? null,
     format: body.format ?? null,
     entry_fee: body.entryFee ?? null,
-    registration_url: body.registrationUrl!.trim(),
+    registration_url: effectiveRegUrl,
     description: body.description?.trim() ?? null,
     source_platform: "manual",
-    source_url: body.registrationUrl!.trim(),
+    source_url: body.sourceUrl!.trim(),
     source_hash: null,
     is_manually_submitted: true,
     submitted_by: submittedBy,
@@ -241,8 +244,8 @@ Deno.serve(async (req) => {
     {
       tournament_id: sourceTargetId,
       source_platform: "manual",
-      source_url: body.registrationUrl!.trim(),
-      registration_url: body.registrationUrl!.trim(),
+      source_url: body.sourceUrl!.trim(),
+      registration_url: effectiveRegUrl,
     },
     { onConflict: "tournament_id,source_platform,source_url" },
   );

@@ -20,8 +20,10 @@ export function AdminNav({
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3 lg:px-10">
         {/* Brand */}
         <div className="flex items-center gap-2">
-          <span className="text-xl">{"\u{1F3D3}"}</span>
-          <span className="text-lg font-bold text-green-700">PickleRadar</span>
+          <Link href="/" className="flex items-center gap-2">
+            <span className="text-xl">{"\u{1F3D3}"}</span>
+            <span className="text-lg font-bold text-green-700">PickleRadar</span>
+          </Link>
           <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-green-600">
             Admin
           </span>

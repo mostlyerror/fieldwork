@@ -6,8 +6,19 @@ import type { Tournament } from "@/lib/types";
 import { formatDateRange, formatCurrency } from "@/lib/format";
 import { useDebounce } from "@/hooks/use-debounce";
 import { subscribeEmail } from "@/app/actions";
+import { Header } from "./header";
 
 type EmailState = "idle" | "submitting" | "success" | "already_subscribed" | "error";
+
+function isToday(dateStr: string) {
+  const now = new Date();
+  const d = new Date(dateStr);
+  return (
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate()
+  );
+}
 
 function TournamentCard({ tournament }: { tournament: Tournament }) {
   const statusEmoji: Record<string, string> = {
@@ -17,15 +28,24 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
     closed: "\u26AB",
   };
 
+  const justAdded = isToday(tournament.created_at);
+
   return (
     <Link
       href={`/tournaments/${tournament.id}`}
       className="group block rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:ring-green-200"
     >
       <div className="mb-3 flex items-center justify-between">
-        <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-          {formatDateRange(tournament.date_start, tournament.date_end)}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+            {formatDateRange(tournament.date_start, tournament.date_end)}
+          </span>
+          {justAdded && (
+            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600">
+              Just added
+            </span>
+          )}
+        </div>
         <span title={tournament.registration_status ?? "open"}>
           {statusEmoji[tournament.registration_status ?? "open"] ?? "\u{1F7E2}"}
         </span>
@@ -106,22 +126,7 @@ export function Homepage({ tournaments }: { tournaments: Tournament[] }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50/50 via-white to-amber-50/30">
-      {/* Nav */}
-      <nav className="bg-white/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-3xl">{"\u{1F3D3}"}</span>
-            <div>
-              <span className="block text-xl font-bold text-green-700">
-                PickleRadar
-              </span>
-              <span className="block text-[11px] text-gray-400">
-                Your Houston pickleball community
-              </span>
-            </div>
-          </Link>
-        </div>
-      </nav>
+      <Header />
 
       {/* Hero */}
       <div className="mx-auto max-w-2xl px-5 pt-12 pb-10 text-center">
@@ -211,6 +216,19 @@ export function Homepage({ tournaments }: { tournaments: Tournament[] }) {
           </div>
         )}
       </section>
+
+      {/* Submit CTA */}
+      <div className="mx-auto max-w-6xl px-5 pb-12 text-center">
+        <p className="text-sm text-gray-400">
+          Know about a tournament we&apos;re missing?{" "}
+          <Link
+            href="/submit"
+            className="font-medium text-green-600 hover:text-green-700"
+          >
+            Submit it here
+          </Link>
+        </p>
+      </div>
 
       <footer className="border-t border-gray-100 bg-white/60 py-8 text-center">
         <p className="text-sm text-gray-400">
