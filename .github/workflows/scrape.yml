@@ -2,7 +2,7 @@ name: Scrape Tournaments
 
 on:
   schedule:
-    - cron: "0 */6 * * *" # Every 6 hours
+    - cron: "0 12,14,16,18,20,22,0,2,4 * * *" # Every 2h, 7am-11pm Central
   workflow_dispatch: # Manual trigger
 
 jobs:

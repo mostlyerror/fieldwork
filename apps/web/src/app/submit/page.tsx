@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Header } from "@/components/header";
 import { SKILL_LEVELS } from "@/lib/constants";
@@ -13,18 +14,24 @@ type FormState = "idle" | "submitting" | "success" | "error";
 type Step = 1 | "extracting" | 2;
 
 export default function SubmitTournamentPage() {
+  const searchParams = useSearchParams();
   const [state, setState] = useState<FormState>("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [step, setStep] = useState<Step>(1);
   const [sourceUrl, setSourceUrl] = useState("");
   const [extracted, setExtracted] = useState<ExtractedTournament | null>(null);
+  const autoExtractRan = useRef(false);
 
-  async function handleStep1(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    const url = (fd.get("sourceUrl") as string).trim();
-    if (!url) return;
+  // Auto-advance if ?url= query param is present (e.g. from Chrome extension)
+  useEffect(() => {
+    const urlParam = searchParams.get("url");
+    if (urlParam && !autoExtractRan.current) {
+      autoExtractRan.current = true;
+      startExtraction(urlParam);
+    }
+  }, [searchParams]);
 
+  async function startExtraction(url: string) {
     setSourceUrl(url);
     setStep("extracting");
 
@@ -32,11 +39,18 @@ export default function SubmitTournamentPage() {
       const result = await extractTournamentFromUrl(url);
       setExtracted(result.data);
     } catch {
-      // Extraction failed — that's fine, user fills in manually
       setExtracted(null);
     }
 
     setStep(2);
+  }
+
+  async function handleStep1(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const url = (fd.get("sourceUrl") as string).trim();
+    if (!url) return;
+    await startExtraction(url);
   }
 
   function resetForm() {
