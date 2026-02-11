@@ -9,7 +9,7 @@ export async function triggerScraper() {
   if (!token) throw new Error("GITHUB_PAT not configured");
 
   const res = await fetch(
-    "https://api.github.com/repos/mostlyerror/pickleup/actions/workflows/scrape.yml/dispatches",
+    "https://api.github.com/repos/mostlyerror/pickleradar/actions/workflows/scrape.yml/dispatches",
     {
       method: "POST",
       headers: {
