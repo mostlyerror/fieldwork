@@ -6,6 +6,7 @@ import Link from "next/link";
 const NAV_ITEMS = [
   { href: "/admin", label: "Tournaments" },
   { href: "/admin/social", label: "Social Queue" },
+  { href: "/admin/scraping", label: "Scraping" },
 ];
 
 export function AdminNav({

@@ -21,6 +21,13 @@ export async function generateMetadata({
 
   const description = `${formatDateRange(tournament.date_start, tournament.date_end)} at ${tournament.location_name}. Find details and register for this Houston-area pickleball tournament.`;
 
+  const ogImageParams = new URLSearchParams({
+    title: tournament.name,
+    date: formatDateRange(tournament.date_start, tournament.date_end),
+    venue: tournament.location_name,
+  });
+  const ogImageUrl = `https://pickleradar.app/api/og?${ogImageParams.toString()}`;
+
   return {
     title: `${tournament.name} — PickleRadar`,
     description,
@@ -29,11 +36,14 @@ export async function generateMetadata({
       description,
       siteName: "PickleRadar",
       type: "website",
+      url: `https://pickleradar.app/tournaments/${id}`,
+      images: [{ url: ogImageUrl, width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
       title: tournament.name,
       description,
+      images: [ogImageUrl],
     },
   };
 }
@@ -195,6 +205,27 @@ export default async function TournamentPage({ params }: PageProps) {
             </div>
           </section>
         )}
+        {/* Submit CTA */}
+        <div className="mt-12 rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 px-6 py-5 text-center">
+          <p className="text-sm text-gray-500">
+            Something missing or incorrect?{" "}
+            <Link
+              href="/submit"
+              className="font-medium text-green-600 hover:text-green-700"
+            >
+              Let us know
+            </Link>
+          </p>
+          <p className="mt-1 text-sm text-gray-400">
+            Know about another tournament?{" "}
+            <Link
+              href="/submit"
+              className="font-medium text-green-600 hover:text-green-700"
+            >
+              Submit it
+            </Link>
+          </p>
+        </div>
       </main>
 
       {/* Footer */}

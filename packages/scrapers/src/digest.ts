@@ -82,7 +82,9 @@ function buildDigestCaption(
 function buildDigestEmailHtml(
   tournaments: DigestTournament[],
   appUrl: string,
-  recipientEmail: string
+  recipientEmail: string,
+  newThisWeekCount: number,
+  comingUpTournaments: DigestTournament[]
 ): string {
   const rows = tournaments.slice(0, 10).map((t) => {
     const start = new Date(t.date_start + "T00:00:00");
@@ -111,6 +113,29 @@ function buildDigestEmailHtml(
       ? `<p style="color:#666;font-size:14px">...and ${tournaments.length - 10} more!</p>`
       : "";
 
+  const newThisWeekLine =
+    newThisWeekCount > 0
+      ? `<p style="text-align:center;color:#15803d;font-size:14px;margin:0 0 16px;font-weight:600">${newThisWeekCount} new tournament${newThisWeekCount !== 1 ? "s" : ""} added this week</p>`
+      : `<p style="text-align:center;color:#999;font-size:14px;margin:0 0 16px">No new tournaments this week</p>`;
+
+  const comingUpSection =
+    comingUpTournaments.length > 0
+      ? `<div style="background:#fefce8;border-radius:12px;padding:16px;margin-top:20px">
+      <h3 style="margin:0 0 10px;font-size:15px;color:#92400e">Also Coming Up</h3>
+      ${comingUpTournaments
+        .map((t) => {
+          const start = new Date(t.date_start + "T00:00:00");
+          const dayStr = start.toLocaleDateString("en-US", {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+          });
+          return `<p style="margin:0 0 6px;font-size:14px;color:#78716c"><strong style="color:#1c1917">${t.name}</strong> &mdash; ${dayStr} &bull; ${t.location_name}</p>`;
+        })
+        .join("\n")}
+    </div>`
+      : "";
+
   const unsubToken = Buffer.from(recipientEmail).toString("base64url");
   const unsubUrl = `${appUrl}/unsubscribe?token=${unsubToken}`;
 
@@ -123,6 +148,7 @@ function buildDigestEmailHtml(
     <h1 style="margin:8px 0 0;color:#15803d;font-size:22px">PickleRadar Weekly Digest</h1>
   </div>
   <div style="background:#fff;border-radius:16px;padding:24px;border:1px solid #e5e7eb">
+    ${newThisWeekLine}
     <h2 style="margin:0 0 16px;font-size:18px;color:#1a1a1a">This Weekend&rsquo;s Tournaments in Houston</h2>
     <table style="width:100%;border-collapse:collapse;font-size:15px">
       ${rows.join("\n")}
@@ -131,6 +157,11 @@ function buildDigestEmailHtml(
     <div style="text-align:center;margin-top:24px">
       <a href="${appUrl}" style="display:inline-block;background:#16a34a;color:#fff;padding:12px 28px;border-radius:12px;text-decoration:none;font-weight:600;font-size:15px">Browse All Tournaments</a>
     </div>
+    ${comingUpSection}
+  </div>
+  <div style="background:#f0fdf4;border-radius:12px;padding:20px;margin-top:16px;text-align:center">
+    <p style="margin:0 0 8px;font-size:15px;color:#1a1a1a">Know about a tournament we&rsquo;re missing?</p>
+    <a href="${appUrl}/submit" style="color:#16a34a;font-weight:600;font-size:14px;text-decoration:underline">Submit it here</a>
   </div>
   <div style="text-align:center;padding:24px 0;font-size:12px;color:#999">
     <p>You&rsquo;re getting this because you subscribed on PickleRadar.</p>
@@ -142,7 +173,9 @@ function buildDigestEmailHtml(
 
 async function sendDigestEmails(
   tournaments: DigestTournament[],
-  appUrl: string
+  appUrl: string,
+  newThisWeekCount: number,
+  comingUpTournaments: DigestTournament[]
 ): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
@@ -178,7 +211,7 @@ async function sendDigestEmails(
           from: "PickleRadar <digest@pickleradar.app>",
           to: sub.email,
           subject: `\u{1F3D3} This Weekend's Houston Pickleball Tournaments`,
-          html: buildDigestEmailHtml(tournaments, appUrl, sub.email),
+          html: buildDigestEmailHtml(tournaments, appUrl, sub.email, newThisWeekCount, comingUpTournaments),
         })
       )
     );
@@ -237,6 +270,31 @@ async function main() {
 
   console.log(`[digest] Found ${tournaments.length} weekend tournament(s)`);
 
+  // Count tournaments added in the last 7 days
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const { count: newThisWeekCount } = await supabase
+    .from("tournaments")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "active")
+    .gte("created_at", sevenDaysAgo.toISOString());
+
+  console.log(`[digest] ${newThisWeekCount ?? 0} new tournaments added this week`);
+
+  // Fetch up to 3 tournaments coming up after this weekend
+  const { data: comingUp } = await supabase
+    .from("tournaments")
+    .select(
+      "id, name, date_start, date_end, location_name, entry_fee, skill_levels"
+    )
+    .eq("status", "active")
+    .gt("date_start", sunday)
+    .order("date_start", { ascending: true })
+    .limit(3);
+
+  const comingUpTournaments: DigestTournament[] = comingUp ?? [];
+  console.log(`[digest] ${comingUpTournaments.length} tournament(s) coming up after this weekend`);
+
   const imageUrl = `${appUrl}/api/digest-image?from=${friday}&to=${sunday}`;
   const caption = buildDigestCaption(tournaments, appUrl);
 
@@ -263,7 +321,7 @@ async function main() {
   );
 
   // Send digest email to all active subscribers
-  await sendDigestEmails(tournaments, appUrl);
+  await sendDigestEmails(tournaments, appUrl, newThisWeekCount ?? 0, comingUpTournaments);
 }
 
 main().catch((err) => {

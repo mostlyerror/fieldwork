@@ -202,10 +202,21 @@ export function Homepage({ tournaments }: { tournaments: Tournament[] }) {
           <div className="rounded-2xl bg-white p-16 text-center shadow-sm">
             <p className="text-4xl">{"\u{1F3D3}"}</p>
             <p className="mt-4 text-lg font-bold text-gray-300">
-              No matches right now
+              {debouncedSearch
+                ? "Can\u2019t find what you\u2019re looking for?"
+                : "No matches right now"}
             </p>
             <p className="mt-1 text-sm text-gray-400">
               Try a different search or check back soon!
+            </p>
+            <p className="mt-4 text-sm text-gray-500">
+              Know about an upcoming tournament?{" "}
+              <Link
+                href="/submit"
+                className="inline-flex items-center gap-1 rounded-lg bg-green-600 px-3.5 py-1.5 font-semibold text-white transition-colors hover:bg-green-700"
+              >
+                Submit it
+              </Link>
             </p>
           </div>
         ) : (
