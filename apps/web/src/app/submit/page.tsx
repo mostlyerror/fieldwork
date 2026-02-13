@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Header } from "@/components/header";
+import { VenueSearch, type VenueSelection } from "@/components/venue-search";
 import { SKILL_LEVELS } from "@/lib/constants";
 import {
   extractTournamentFromUrl,
@@ -20,6 +21,8 @@ export default function SubmitTournamentPage() {
   const [step, setStep] = useState<Step>(1);
   const [sourceUrl, setSourceUrl] = useState("");
   const [extracted, setExtracted] = useState<ExtractedTournament | null>(null);
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
   const autoExtractRan = useRef(false);
 
   // Auto-advance if ?url= query param is present (e.g. from Chrome extension)
@@ -59,6 +62,8 @@ export default function SubmitTournamentPage() {
     setStep(1);
     setSourceUrl("");
     setExtracted(null);
+    setLatitude(null);
+    setLongitude(null);
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -83,6 +88,8 @@ export default function SubmitTournamentPage() {
       dateEnd: (fd.get("dateEnd") as string) || undefined,
       locationName: fd.get("locationName") as string,
       locationAddress: (fd.get("locationAddress") as string) || undefined,
+      latitude: latitude ?? undefined,
+      longitude: longitude ?? undefined,
       skillLevels: skillLevels.length > 0 ? skillLevels : undefined,
       format: (fd.get("format") as string) || undefined,
       entryFee: fd.get("entryFee")
@@ -251,6 +258,8 @@ export default function SubmitTournamentPage() {
                 onClick={() => {
                   setExtracted(null);
                   setStep(1);
+                  setLatitude(null);
+                  setLongitude(null);
                 }}
                 className="text-xs text-gray-400 hover:text-green-700"
               >
@@ -328,37 +337,22 @@ export default function SubmitTournamentPage() {
                 </div>
               </div>
 
-              {/* Location */}
+              {/* Venue */}
               <div>
-                <label
-                  htmlFor="locationName"
-                  className="mb-1 block text-sm font-semibold text-gray-700"
-                >
-                  Venue Name *
+                <label className="mb-1 block text-sm font-semibold text-gray-700">
+                  Venue *
                 </label>
-                <input
-                  id="locationName"
-                  name="locationName"
-                  required
-                  defaultValue={extracted?.locationName ?? ""}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-                  placeholder="e.g. Memorial Park Pickleball Center"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="locationAddress"
-                  className="mb-1 block text-sm font-semibold text-gray-700"
-                >
-                  Venue Address
-                </label>
-                <input
-                  id="locationAddress"
-                  name="locationAddress"
-                  defaultValue={extracted?.locationAddress ?? ""}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-                  placeholder="e.g. 7600 Memorial Dr, Houston, TX 77024"
+                <VenueSearch
+                  defaultName={extracted?.locationName ?? ""}
+                  defaultAddress={extracted?.locationAddress ?? ""}
+                  onSelect={(venue: VenueSelection) => {
+                    setLatitude(venue.latitude);
+                    setLongitude(venue.longitude);
+                  }}
+                  onClear={() => {
+                    setLatitude(null);
+                    setLongitude(null);
+                  }}
                 />
               </div>
 
@@ -480,6 +474,8 @@ export default function SubmitTournamentPage() {
                   onClick={() => {
                     setExtracted(null);
                     setStep(1);
+                    setLatitude(null);
+                    setLongitude(null);
                   }}
                   className="rounded-xl border border-gray-200 px-6 py-3 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
                 >
