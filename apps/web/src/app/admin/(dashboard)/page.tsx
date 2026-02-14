@@ -1,24 +1,98 @@
-import { redirect } from "next/navigation";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
-import { formatDateRange, formatCurrency } from "@/lib/format";
-import { approveTournament, rejectTournament } from "./actions";
+import { PendingTournamentCard } from "@/components/pending-tournament-card";
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
 
 export default async function AdminPage() {
-  const { data: pending } = await getSupabaseAdmin()
-    .from("tournaments")
-    .select("*")
-    .eq("status", "pending_review")
-    .order("created_at", { ascending: false });
+  const supabase = getSupabaseAdmin();
+
+  const [
+    { data: pending },
+    { count: activeCount },
+    { count: subscriberCount },
+    { data: lastScrapeData },
+  ] = await Promise.all([
+    supabase
+      .from("tournaments")
+      .select("*")
+      .eq("status", "pending_review")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("tournaments")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "active"),
+    supabase
+      .from("email_subscribers")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "active"),
+    supabase
+      .from("scraper_runs")
+      .select("started_at, status")
+      .order("started_at", { ascending: false })
+      .limit(1),
+  ]);
 
   const tournaments = pending ?? [];
+  const lastScrape = lastScrapeData?.[0] ?? null;
+
+  const stats = [
+    {
+      label: "Pending Review",
+      value: tournaments.length,
+      color: "text-amber-600",
+      bg: "bg-amber-50 ring-amber-100",
+    },
+    {
+      label: "Active Tournaments",
+      value: activeCount ?? 0,
+      color: "text-green-600",
+      bg: "bg-green-50 ring-green-100",
+    },
+    {
+      label: "Email Subscribers",
+      value: subscriberCount ?? 0,
+      color: "text-blue-600",
+      bg: "bg-blue-50 ring-blue-100",
+    },
+    {
+      label: "Last Scrape",
+      value: lastScrape ? timeAgo(lastScrape.started_at) : "never",
+      color: "text-gray-600",
+      bg: "bg-gray-50 ring-gray-100",
+    },
+  ];
 
   return (
     <>
+      {/* Quick stats */}
+      <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <div
+            key={stat.label}
+            className={`rounded-xl p-4 shadow-sm ring-1 ${stat.bg}`}
+          >
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+              {stat.label}
+            </p>
+            <p className={`mt-1 text-2xl font-bold ${stat.color}`}>
+              {stat.value}
+            </p>
+          </div>
+        ))}
+      </div>
+
       {/* Page header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-800">
-          Pending Tournaments
-        </h1>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">Pending Review</h1>
         <p className="mt-1 text-sm text-gray-500">
           {tournaments.length} submission{tournaments.length !== 1 && "s"}{" "}
           awaiting review
@@ -36,81 +110,7 @@ export default async function AdminPage() {
       ) : (
         <div className="space-y-4">
           {tournaments.map((t) => (
-            <div
-              key={t.id}
-              className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100 transition duration-200 hover:shadow-md hover:ring-green-200"
-            >
-              <div className="mb-3 flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <h2 className="truncate text-lg font-bold text-gray-800">
-                    {t.name}
-                  </h2>
-                  <p className="mt-0.5 text-sm text-gray-500">
-                    {formatDateRange(t.date_start, t.date_end)} &middot;{" "}
-                    {t.location_name}
-                  </p>
-                </div>
-                {t.entry_fee != null && (
-                  <span className="shrink-0 text-sm font-bold text-green-600">
-                    {formatCurrency(t.entry_fee)}
-                  </span>
-                )}
-              </div>
-
-              {t.location_address && (
-                <p className="mb-2 text-xs text-gray-400">
-                  {t.location_address}
-                </p>
-              )}
-
-              {t.description && (
-                <p className="mb-3 whitespace-pre-line text-sm leading-relaxed text-gray-600">
-                  {t.description}
-                </p>
-              )}
-
-              {t.registration_url && (
-                <a
-                  href={t.registration_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mb-4 inline-block text-xs text-green-600 underline decoration-green-200 underline-offset-2 hover:text-green-700"
-                >
-                  {t.registration_url}
-                </a>
-              )}
-
-              <div className="flex gap-2 border-t border-gray-100 pt-4">
-                <form
-                  action={async () => {
-                    "use server";
-                    await approveTournament(t.id);
-                    redirect("/admin");
-                  }}
-                >
-                  <button
-                    type="submit"
-                    className="rounded-full bg-green-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700"
-                  >
-                    Approve
-                  </button>
-                </form>
-                <form
-                  action={async () => {
-                    "use server";
-                    await rejectTournament(t.id);
-                    redirect("/admin");
-                  }}
-                >
-                  <button
-                    type="submit"
-                    className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-red-600 ring-1 ring-gray-200 transition hover:ring-red-300"
-                  >
-                    Reject
-                  </button>
-                </form>
-              </div>
-            </div>
+            <PendingTournamentCard key={t.id} tournament={t} />
           ))}
         </div>
       )}

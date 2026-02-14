@@ -22,3 +22,26 @@ export async function rejectTournament(id: string) {
   if (error) throw new Error("Failed to reject tournament");
   return { success: true };
 }
+
+export async function updateAndApproveTournament(
+  id: string,
+  fields: {
+    name?: string;
+    date_start?: string;
+    date_end?: string | null;
+    location_name?: string;
+    location_address?: string | null;
+    entry_fee?: number | null;
+    skill_levels?: string[] | null;
+    format?: string | null;
+    description?: string | null;
+  }
+) {
+  await requireAdmin();
+  const { error } = await getSupabaseAdmin()
+    .from("tournaments")
+    .update({ ...fields, status: "active" })
+    .eq("id", id);
+  if (error) throw new Error("Failed to approve tournament");
+  return { success: true };
+}
