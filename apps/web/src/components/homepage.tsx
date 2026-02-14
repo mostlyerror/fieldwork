@@ -108,26 +108,113 @@ export function Homepage({ tournaments }: { tournaments: Tournament[] }) {
       </section>
 
       {/* Submit CTA */}
-      <div className="mx-auto max-w-6xl px-5 pb-12 text-center">
-        <p className="text-sm text-gray-400">
-          Know about a tournament we&apos;re missing?{" "}
-          <Link
-            href="/submit"
-            className="font-medium text-green-600 hover:text-green-700"
-          >
-            Submit it here
-          </Link>
-        </p>
-      </div>
+      <section className="mx-auto max-w-6xl px-5 py-16">
+        <div className="relative overflow-hidden rounded-2xl border border-gray-100 bg-gradient-to-br from-green-50/80 via-white to-emerald-50/50 px-8 py-12 sm:px-14">
+          {/* Subtle decorative grid */}
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.04]"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at 1px 1px, #16a34a 0.5px, transparent 0)",
+              backgroundSize: "24px 24px",
+            }}
+          />
 
-      <footer className="border-t border-gray-100 bg-white/60 py-8 text-center">
-        <p className="text-sm text-gray-400">
-          Made with {"\u{1F49A}"} for the Houston pickleball community
-        </p>
-        <div className="mt-3 flex items-center justify-center gap-3 text-xs text-gray-400">
-          <a href="mailto:hello@pickleradar.app" className="hover:text-gray-600 transition-colors">Feedback</a>
-          <span className="text-gray-200">{"/"}</span>
-          <a href="https://instagram.com/pickleradar" target="_blank" rel="noopener noreferrer" className="hover:text-gray-600 transition-colors">Instagram</a>
+          <div className="relative flex flex-col items-start justify-between gap-8 sm:flex-row sm:items-center">
+            <div>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-green-600/60">
+                Community-powered
+              </p>
+              <h2 className="text-2xl font-bold tracking-tight text-gray-900">
+                Missing a tournament?
+              </h2>
+              <p className="mt-2 max-w-md text-sm leading-relaxed text-gray-400">
+                Paste a link and our AI fills in the details. Takes about 30
+                seconds.
+              </p>
+            </div>
+
+            <Link
+              href="/submit"
+              className="group flex items-center gap-3 rounded-full border border-gray-200 bg-white py-3 pl-6 pr-3 text-sm font-semibold text-gray-900 shadow-sm transition-all hover:border-green-200 hover:shadow-md"
+            >
+              Submit a tournament
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-green-600 text-white transition-transform group-hover:scale-105">
+                {"\u2192"}
+              </span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <footer className="mx-auto max-w-6xl px-5">
+        <div className="border-t border-gray-100" />
+        <div className="py-16">
+          <div className="grid grid-cols-1 gap-12 sm:grid-cols-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">{"\u{1F3D3}"}</span>
+                <span className="text-base font-bold text-green-700">
+                  PickleRadar
+                </span>
+              </div>
+              <p className="mt-3 text-sm leading-relaxed text-gray-400">
+                Every upcoming Houston
+                <br />
+                pickleball tournament,
+                <br />
+                one search away.
+              </p>
+            </div>
+
+            <div>
+              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-300">
+                Links
+              </p>
+              <div className="space-y-2">
+                <Link
+                  href="/"
+                  className="block text-sm text-gray-500 transition-colors hover:text-gray-800"
+                >
+                  Browse tournaments
+                </Link>
+                <Link
+                  href="/submit"
+                  className="block text-sm text-gray-500 transition-colors hover:text-gray-800"
+                >
+                  Submit a tournament
+                </Link>
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-300">
+                Connect
+              </p>
+              <div className="space-y-2">
+                <a
+                  href="mailto:hello@pickleradar.app"
+                  className="block text-sm text-gray-500 transition-colors hover:text-gray-800"
+                >
+                  hello@pickleradar.app
+                </a>
+                <a
+                  href="https://instagram.com/pickleradar"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-sm text-gray-500 transition-colors hover:text-gray-800"
+                >
+                  Instagram
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-12 border-t border-gray-50 pt-6">
+            <p className="text-xs text-gray-300">
+              Made with {"\u{1F49A}"} for the Houston pickleball community
+            </p>
+          </div>
         </div>
       </footer>
     </div>
