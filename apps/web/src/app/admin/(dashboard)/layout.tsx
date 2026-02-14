@@ -20,7 +20,7 @@ export default async function AdminDashboardLayout({
           redirect("/admin/login");
         }}
       />
-      <main className="mx-auto max-w-7xl px-6 py-10 lg:px-10">{children}</main>
+      <main className="mx-auto max-w-full px-[33px] py-6">{children}</main>
     </div>
   );
 }

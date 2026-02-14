@@ -6,9 +6,8 @@ import Link from "next/link";
 const NAV_ITEMS = [
   { href: "/admin", label: "Review" },
   { href: "/admin/tournaments", label: "All Tournaments" },
-  { href: "/admin/social", label: "Social" },
+  { href: "/admin/audience", label: "Audience" },
   { href: "/admin/scraping", label: "Scraping" },
-  { href: "/admin/subscribers", label: "Subscribers" },
 ];
 
 export function AdminNav({
@@ -20,7 +19,7 @@ export function AdminNav({
 
   return (
     <header className="sticky top-0 z-30 border-b border-gray-100 bg-white/80 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3 lg:px-10">
+      <div className="mx-auto flex h-[45px] max-w-full items-center justify-between px-[19px]">
         {/* Brand */}
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2">

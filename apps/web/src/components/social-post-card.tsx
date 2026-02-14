@@ -6,7 +6,7 @@ import {
   publishPost,
   rejectPost,
   retryPost,
-} from "@/app/admin/(dashboard)/social/actions";
+} from "@/app/admin/(dashboard)/audience/actions";
 
 interface SocialPost {
   id: string;
@@ -54,7 +54,7 @@ export function SocialPostCard({ post }: { post: SocialPost }) {
   }
 
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100 transition duration-200 hover:shadow-md hover:ring-green-200">
+    <div className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100 transition duration-200 hover:shadow-md hover:ring-green-200">
       {/* Header row */}
       <div className="mb-4 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
