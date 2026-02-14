@@ -14,10 +14,7 @@ const TournamentMap = dynamic(() => import("./tournament-map"), { ssr: false });
 
 const EMPTY_FILTERS: Filters = {
   search: "",
-  dateFrom: "",
-  dateTo: "",
   skillLevels: [],
-  format: "",
 };
 
 export function TournamentBrowser({
@@ -45,24 +42,11 @@ export function TournamentBrowser({
       );
     }
 
-    // Date range
-    if (filters.dateFrom) {
-      result = result.filter((t) => t.date_start >= filters.dateFrom);
-    }
-    if (filters.dateTo) {
-      result = result.filter((t) => t.date_start <= filters.dateTo);
-    }
-
     // Skill levels
     if (filters.skillLevels.length > 0) {
       result = result.filter((t) =>
         t.skill_levels?.some((s) => filters.skillLevels.includes(s))
       );
-    }
-
-    // Format
-    if (filters.format) {
-      result = result.filter((t) => t.format === filters.format);
     }
 
     // Sort

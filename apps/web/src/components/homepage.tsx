@@ -45,51 +45,65 @@ export function Homepage({ tournaments }: { tournaments: Tournament[] }) {
         <p className="mt-2 text-gray-500">
           Every upcoming event, one search away.
         </p>
+      </div>
 
-        {/* Email capture */}
-        <div className="mt-5">
-          {emailState === "success" ? (
-            <p className="text-sm text-green-600">
-              {"\u2713"} You&apos;re subscribed! Weekly digest every Monday.
+      {/* Email subscribe banner */}
+      <div className="border-y border-green-100 bg-green-50/70">
+        <div className="mx-auto flex max-w-3xl flex-col items-center gap-3 px-5 py-5 sm:flex-row sm:justify-between sm:gap-4">
+          <div className="text-center sm:text-left">
+            <p className="text-sm font-semibold text-green-900">
+              Get the weekly digest
             </p>
-          ) : (
-            <>
-              <form ref={formRef} action={handleEmailSubmit} className="flex items-center justify-center gap-2">
-                <span className="hidden text-sm text-gray-400 sm:inline">
-                  Or get a weekly digest
-                </span>
-                <span className="text-sm text-gray-400 sm:hidden">
-                  Weekly digest
-                </span>
-                <span className="text-gray-200">{"/"}</span>
-                <input
-                  type="email"
-                  name="email"
-                  required
-                  placeholder="you@email.com"
-                  className="w-36 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm placeholder-gray-300 transition focus:border-green-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-green-100 sm:w-44"
-                />
-                <button
-                  type="submit"
-                  disabled={emailState === "submitting"}
-                  className="rounded-lg bg-green-600 px-3.5 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-green-700 disabled:opacity-50"
+            <p className="mt-0.5 text-xs text-green-700/70">
+              New tournaments in your inbox every Monday.
+            </p>
+          </div>
+
+          <div className="flex-shrink-0">
+            {emailState === "success" ? (
+              <p className="text-sm font-medium text-green-700">
+                {"\u2713"} You&apos;re subscribed!
+              </p>
+            ) : (
+              <>
+                <form
+                  ref={formRef}
+                  action={handleEmailSubmit}
+                  className="flex items-center gap-2"
                 >
-                  {emailState === "submitting" ? "..." : "Subscribe"}
-                </button>
-              </form>
-              {emailState === "already_subscribed" && (
-                <p className="mt-1.5 text-xs text-amber-600">Already subscribed!</p>
-              )}
-              {emailState === "error" && (
-                <p className="mt-1.5 text-xs text-red-500">{errorMsg}</p>
-              )}
-            </>
-          )}
+                  <input
+                    type="email"
+                    name="email"
+                    required
+                    placeholder="you@email.com"
+                    className="w-44 rounded-lg border border-green-200 bg-white px-3 py-2 text-sm placeholder-gray-400 shadow-sm transition focus:border-green-400 focus:outline-none focus:ring-2 focus:ring-green-200 sm:w-52"
+                  />
+                  <button
+                    type="submit"
+                    disabled={emailState === "submitting"}
+                    className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-green-800 disabled:opacity-50"
+                  >
+                    {emailState === "submitting" ? "..." : "Subscribe"}
+                  </button>
+                </form>
+                {emailState === "already_subscribed" && (
+                  <p className="mt-1.5 text-center text-xs text-amber-600">
+                    Already subscribed!
+                  </p>
+                )}
+                {emailState === "error" && (
+                  <p className="mt-1.5 text-center text-xs text-red-500">
+                    {errorMsg}
+                  </p>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Tournament Browser (list + map views with filters) */}
-      <section className="mx-auto max-w-6xl px-5 pb-16">
+      <section className="mx-auto max-w-6xl px-5 pt-8 pb-16">
         <TournamentBrowser tournaments={tournaments} />
       </section>
 

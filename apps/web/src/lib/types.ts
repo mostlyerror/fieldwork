@@ -29,8 +29,5 @@ export interface TournamentSource {
 
 export interface TournamentFilters {
   search: string;
-  dateFrom: string;
-  dateTo: string;
   skillLevels: string[];
-  format: string;
 }
