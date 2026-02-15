@@ -18,7 +18,8 @@ import { chromium, type Browser, type Page } from "playwright";
 import { hashContent } from "../utils/hash.js";
 import { parseRscTournamentData } from "../utils/parse-rsc.js";
 import { distanceMiles, HOUSTON_LAT, HOUSTON_LNG, MAX_DISTANCE_MILES } from "../utils/geo.js";
-import type { ScrapedTournament, ScraperSource } from "../types.js";
+import { parseEventName } from "../utils/parse-event-name.js";
+import type { ScrapedTournament, ScrapedEvent, ScrapedPlayer, ScraperSource } from "../types.js";
 
 const SOURCE_PLATFORM = "pickleballbrackets";
 const BASE_URL = "https://pickleballtournaments.com";
@@ -131,6 +132,264 @@ async function fetchSlugsFromSearchPage(page: Page): Promise<string[]> {
 }
 
 /**
+ * PBB eventPlayers API response shape.
+ */
+interface PbbPlayerResponse {
+  playerFullName: string;
+  partnerFullName: string;
+  playerSkill: string;
+  partnerSkill: string;
+  playerDuprActive: boolean;
+  partnerDuprActive: boolean;
+  isOnWaitlist: boolean;
+  isRegistered: boolean;
+  // Identity fields
+  playerId: string;
+  playerSlug: string;
+  playerCityState: string;
+  playerGender: string;
+  partnerId: string;
+  partnerSlug: string;
+}
+
+/**
+ * Scrape events from a tournament's /events page.
+ *
+ * PBB DOM structure (as of Feb 2026):
+ *   Category header:  <div class="rounded-lg bg-blue-600 ...">Mens Doubles (Amateur)</div>
+ *   Event card top:   <div class="... rounded-t-lg bg-blue-100 p-3">
+ *     Event name:       <div class="text-base font-bold text-gray-900">Men's Doubles (3.0)</div>
+ *     Skill range:      <div class="text-sm text-gray-600">3.000 – 3.499</div>
+ *     Format/Max:       "Round-Robin" | "Max Teams: 20"
+ *   Event card bottom: <div class="... rounded-b-lg bg-white ...">
+ *     Registered count: button text "Registered" followed by <span>9</span>
+ *
+ * Player data: Clicking an event's "All" button fires a fetch to
+ *   /tournaments/api/eventPlayers?activityId={uuid}&activitySplitId=null
+ * which returns JSON with player names, skill levels, and DUPR status.
+ */
+async function scrapeEvents(page: Page, slug: string): Promise<ScrapedEvent[]> {
+  const eventsUrl = `${BASE_URL}/tournaments/${slug}/events`;
+  const events: ScrapedEvent[] = [];
+
+  try {
+    await page.goto(eventsUrl, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(3000);
+
+    // Wait for event cards (blue header sections) to render
+    const hasEvents = await page
+      .waitForSelector('.bg-blue-100', { timeout: 8000 })
+      .then(() => true)
+      .catch(() => false);
+
+    if (!hasEvents) {
+      console.log(`[pickleballbrackets] No events found on ${eventsUrl}`);
+      return [];
+    }
+
+    // Set up listener to capture eventPlayers API responses
+    const playersByActivityId = new Map<string, PbbPlayerResponse[]>();
+    page.on("response", async (res) => {
+      const resUrl = res.url();
+      if (resUrl.includes("eventPlayers")) {
+        try {
+          const json = await res.json();
+          const urlObj = new URL(resUrl);
+          const activityId = urlObj.searchParams.get("activityId") || "";
+          if (activityId) {
+            playersByActivityId.set(activityId, json);
+          }
+        } catch {}
+      }
+    });
+
+    // Extract event data from the DOM and find which "All" buttons to click
+    const rawEvents = await page.evaluate(() => {
+      const results: Array<{
+        name: string;
+        skillRange: string;
+        format: string;
+        maxCapacity: number | null;
+        registeredCount: number;
+        allButtonIndex: number; // index into all "All" buttons on the page
+      }> = [];
+
+      const blueCards = document.querySelectorAll('div.bg-blue-100');
+      // Collect all "All" buttons on the page for index reference
+      const allAllButtons = Array.from(document.querySelectorAll('button')).filter(
+        btn => /^All\s*\d+/.test(btn.textContent?.trim() ?? '')
+      );
+      let buttonIdx = 0;
+
+      for (const card of blueCards) {
+        const nameEl = card.querySelector('.text-base.font-bold.text-gray-900');
+        const name = nameEl?.textContent?.trim();
+        if (!name) continue;
+
+        const skillRangeEl = Array.from(card.querySelectorAll('.text-sm.text-gray-600')).find(el => {
+          const text = el.textContent?.trim() ?? '';
+          return /[\d.]/.test(text) && (text.includes('–') || text.includes('-') || text.includes('+') || text.toLowerCase().includes('unranked'));
+        });
+        const skillRange = skillRangeEl?.textContent?.trim() ?? '';
+
+        let format = '';
+        let maxCapacity: number | null = null;
+        const infoTexts = card.querySelectorAll('.text-gray-900');
+        for (const el of infoTexts) {
+          const text = el.textContent?.trim() ?? '';
+          if (text.startsWith('Max Teams:') || text.startsWith('Max Players:')) {
+            const num = parseInt(text.replace(/\D/g, ''), 10);
+            if (!isNaN(num)) maxCapacity = num;
+          } else if (text && text !== name) {
+            if (['Round-Robin', 'Double Elim', 'Single Elim', 'Pool Play'].some(f => text.includes(f)) || text.includes('Robin') || text.includes('Bracket') || text.includes('Elim')) {
+              format = text;
+            }
+          }
+        }
+
+        let registeredCount = 0;
+        let allBtnIdx = -1;
+        const whiteCard = card.nextElementSibling;
+        if (whiteCard) {
+          const buttons = whiteCard.querySelectorAll('button');
+          for (const btn of buttons) {
+            const btnText = btn.textContent ?? '';
+            if (btnText.includes('Registered')) {
+              const spans = btn.querySelectorAll('span.rounded-full');
+              for (const span of spans) {
+                const num = parseInt(span.textContent?.trim() ?? '', 10);
+                if (!isNaN(num)) {
+                  registeredCount = num;
+                  break;
+                }
+              }
+            }
+            // Find the "All N" button for this event
+            const allMatch = btnText.trim().match(/^All\s*(\d+)/);
+            if (allMatch) {
+              const idx = allAllButtons.indexOf(btn);
+              if (idx !== -1) allBtnIdx = idx;
+            }
+          }
+        }
+
+        results.push({ name, skillRange, format, maxCapacity, registeredCount, allButtonIndex: allBtnIdx });
+      }
+
+      return results;
+    });
+
+    // Click each "All" button that has registered players to trigger the eventPlayers API
+    // We use locator-based clicking to avoid stale element handles
+    const allButtons = await page.locator('button').all();
+    const allButtonLocators: Array<{ index: number; count: number }> = [];
+    for (let i = 0; i < allButtons.length; i++) {
+      const text = await allButtons[i].textContent();
+      const match = text?.trim().match(/^All\s*(\d+)/);
+      if (match) {
+        allButtonLocators.push({ index: i, count: parseInt(match[1]) });
+      }
+    }
+
+    // Click buttons with registered players (count > 0)
+    const buttonsToClick = allButtonLocators.filter(b => b.count > 0);
+    if (buttonsToClick.length > 0) {
+      console.log(
+        `[pickleballbrackets] Clicking ${buttonsToClick.length} event buttons for player data...`
+      );
+
+      for (const btn of buttonsToClick) {
+        try {
+          // Re-query buttons each time since DOM may change after clicks
+          const freshButtons = await page.locator('button').all();
+          if (btn.index < freshButtons.length) {
+            await freshButtons[btn.index].click();
+            // Wait for the API response
+            await page.waitForTimeout(800);
+          }
+        } catch {
+          // Button may have changed, skip
+        }
+      }
+
+      // Wait a bit for final API responses to settle
+      await page.waitForTimeout(1000);
+    }
+
+    // Map API responses back to events by order
+    // The API calls arrive in the same order we clicked the buttons
+    const activityIds = Array.from(playersByActivityId.keys());
+
+    // Build events from DOM data + player API data
+    let playerApiIndex = 0;
+    for (const raw of rawEvents) {
+      const parsed = parseEventName(raw.name);
+
+      let skillMin = parsed.skillMin ?? undefined;
+      let skillMax = parsed.skillMax ?? undefined;
+      if (raw.skillRange) {
+        const rangeMatch = raw.skillRange.match(/([\d.]+)\s*[–-]\s*([\d.]+)/);
+        if (rangeMatch) {
+          skillMin = parseFloat(rangeMatch[1]);
+          skillMax = parseFloat(rangeMatch[2]);
+        } else {
+          const plusMatch = raw.skillRange.match(/([\d.]+)\+/);
+          if (plusMatch) {
+            skillMin = parseFloat(plusMatch[1]);
+            skillMax = undefined;
+          }
+        }
+      }
+
+      // Match this event to its API player data
+      const players: ScrapedPlayer[] = [];
+      if (raw.registeredCount > 0 && playerApiIndex < activityIds.length) {
+        const activityId = activityIds[playerApiIndex];
+        const apiPlayers = playersByActivityId.get(activityId) ?? [];
+        playerApiIndex++;
+
+        for (const p of apiPlayers) {
+          if (!p.isRegistered) continue; // skip waitlisted
+          const skill = parseFloat(p.playerSkill);
+          const partnerSkill = parseFloat(p.partnerSkill);
+          players.push({
+            name: p.playerFullName?.trim(),
+            duprRating: !isNaN(skill) && skill > 0 ? skill : undefined,
+            partnerName: p.partnerFullName?.trim() || undefined,
+            partnerDuprRating: !isNaN(partnerSkill) && partnerSkill > 0 ? partnerSkill : undefined,
+            // Identity fields
+            sourcePlayerId: p.playerId || undefined,
+            sourceSlug: p.playerSlug || undefined,
+            location: p.playerCityState || undefined,
+            gender: p.playerGender || undefined,
+            partnerSourcePlayerId: p.partnerId || undefined,
+          });
+        }
+      }
+
+      events.push({
+        name: raw.name,
+        eventType: parsed.eventType ?? undefined,
+        gender: parsed.gender ?? undefined,
+        skillLevelMin: skillMin,
+        skillLevelMax: skillMax,
+        maxTeams: raw.maxCapacity ?? undefined,
+        registeredCount: raw.registeredCount,
+        players,
+      });
+    }
+
+    console.log(
+      `[pickleballbrackets] Found ${events.length} events for "${slug}" (${playersByActivityId.size} with player data)`
+    );
+  } catch (err) {
+    console.error(`[pickleballbrackets] Error scraping events for ${slug}:`, err);
+  }
+
+  return events;
+}
+
+/**
  * Parse a tournament detail page for full data.
  * The page contains Next.js RSC payloads in self.__next_f.push() calls
  * that have structured tournament data.
@@ -219,6 +478,17 @@ async function parseTournamentDetailPage(
       ? `${street}, ${cityStateZip}`
       : cityStateZip || undefined;
 
+    const description =
+      (await page.evaluate(
+        () =>
+          document
+            .querySelector('meta[name="description"]')
+            ?.getAttribute("content") || null
+      )) || undefined;
+
+    // Scrape events from the /events sub-page
+    const events = await scrapeEvents(page, slug);
+
     const tournament: ScrapedTournament = {
       name: pageTitle,
       dateStart: parsedDateStart,
@@ -234,18 +504,13 @@ async function parseTournamentDetailPage(
       registrationStatus,
       sourcePlatform: SOURCE_PLATFORM,
       sourceUrl: url,
-      description:
-        (await page.evaluate(
-          () =>
-            document
-              .querySelector('meta[name="description"]')
-              ?.getAttribute("content") || null
-        )) || undefined,
+      description,
       rawPageHash: contentHash,
+      events: events.length > 0 ? events : undefined,
     };
 
     console.log(
-      `[pickleballbrackets] OK "${pageTitle}" on ${parsedDateStart} at ${locationName}`
+      `[pickleballbrackets] OK "${pageTitle}" on ${parsedDateStart} at ${locationName} (${events.length} events)`
     );
     return tournament;
   } catch (err) {
@@ -338,12 +603,31 @@ export async function scrape(): Promise<ScrapedTournament[]> {
 // Allow running this scraper directly
 async function main() {
   const { startRun, completeRun, failRun } = await import("../utils/logger.js");
-  const { upsertTournaments } = await import("../utils/upsert.js");
+  const { upsertTournaments, upsertEvents } = await import("../utils/upsert.js");
 
   const run = await startRun(SOURCE_PLATFORM);
   try {
     const tournaments = await scrape();
     const stats = await upsertTournaments(tournaments);
+
+    // Upsert events for tournaments that have event data
+    for (const t of tournaments) {
+      if (t.events && t.events.length > 0) {
+        // Find the tournament ID from the database by source URL
+        const { supabase } = await import("../utils/supabase.js");
+        const { data } = await supabase
+          .from("tournaments")
+          .select("id")
+          .eq("source_platform", t.sourcePlatform)
+          .eq("source_url", t.sourceUrl)
+          .maybeSingle();
+
+        if (data?.id) {
+          await upsertEvents(data.id, t.events);
+        }
+      }
+    }
+
     await completeRun(run, {
       tournamentsFound: tournaments.length,
       ...stats,

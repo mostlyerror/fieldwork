@@ -1,3 +1,28 @@
+export interface ScrapedPlayer {
+  name: string;
+  duprRating?: number;
+  partnerName?: string;
+  partnerDuprRating?: number;
+  // Identity fields from PBB
+  sourcePlayerId?: string;         // PBB playerId UUID
+  sourceSlug?: string;             // PBB playerSlug
+  location?: string;               // PBB playerCityState
+  gender?: string;                 // "Male", "Female"
+  partnerSourcePlayerId?: string;  // PBB partnerId UUID
+}
+
+export interface ScrapedEvent {
+  name: string;
+  eventType?: string;        // singles, doubles, mixed
+  gender?: string;           // men, women, mixed, open
+  skillLevelMin?: number;
+  skillLevelMax?: number;
+  maxTeams?: number;
+  registeredCount?: number;
+  players: ScrapedPlayer[];
+  sourceEventId?: string;
+}
+
 export interface ScrapedTournament {
   name: string;
   dateStart: string; // ISO date (YYYY-MM-DD)
@@ -15,6 +40,7 @@ export interface ScrapedTournament {
   sourceUrl: string;
   description?: string;
   rawPageHash: string;
+  events?: ScrapedEvent[];
 }
 
 export interface ScraperResult {
