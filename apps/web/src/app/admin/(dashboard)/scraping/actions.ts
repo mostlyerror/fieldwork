@@ -1,6 +1,6 @@
 "use server";
 
-import { requireAdmin } from "@/lib/admin-auth";
+import { requireAdmin } from "@/lib/auth";
 
 export async function triggerScraper() {
   await requireAdmin();

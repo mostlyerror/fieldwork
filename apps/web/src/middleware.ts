@@ -9,7 +9,7 @@ function matchCity(name: string): string | undefined {
   return CITY_SLUGS[name.toLowerCase().trim()];
 }
 
-const PROTECTED_ROUTES = ["/profile"];
+const PROTECTED_ROUTES = ["/profile", "/admin"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -27,18 +27,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 307);
   }
 
-  // Skip the admin login page
-  if (pathname === "/admin/login") return supabaseResponse;
-
-  // Protect /admin routes (existing cookie-based admin auth)
-  if (pathname.startsWith("/admin")) {
-    const session = request.cookies.get("admin_session")?.value;
-    if (!session) {
-      return NextResponse.redirect(new URL("/admin/login", request.url));
-    }
-  }
-
-  // Protect user routes (Supabase auth)
+  // Protect routes (Supabase auth — role gating happens in layout)
   if (PROTECTED_ROUTES.some((route) => pathname.startsWith(route))) {
     if (!user) {
       const loginUrl = new URL("/login", request.url);

@@ -26,6 +26,17 @@ export async function login(formData: FormData) {
       { id: user.id, email: user.email },
       { onConflict: "id" },
     );
+
+    // Check role for admin redirect
+    const { data: profile } = await admin
+      .from("users")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profile?.role === "admin") {
+      redirect("/admin");
+    }
   }
 
   redirect(redirectTo);

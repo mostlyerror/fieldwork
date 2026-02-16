@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { requireAdmin, destroyAdminSession } from "@/lib/admin-auth";
+import { requireAdmin } from "@/lib/auth";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { AdminNav } from "@/components/admin-nav";
 
 export const dynamic = "force-dynamic";
@@ -16,8 +17,9 @@ export default async function AdminDashboardLayout({
       <AdminNav
         logoutAction={async () => {
           "use server";
-          await destroyAdminSession();
-          redirect("/admin/login");
+          const supabase = await createSupabaseServerClient();
+          await supabase.auth.signOut();
+          redirect("/login");
         }}
       />
       <main className="mx-auto max-w-full px-[33px] py-6">{children}</main>
