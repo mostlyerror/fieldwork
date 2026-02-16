@@ -19,8 +19,10 @@ const EMPTY_FILTERS: Filters = {
 
 export function TournamentBrowser({
   tournaments,
+  citySlug,
 }: {
   tournaments: Tournament[];
+  citySlug?: string;
 }) {
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [view, setView] = useState<ViewMode>("list");
@@ -105,9 +107,9 @@ export function TournamentBrowser({
       </p>
 
       {view === "list" ? (
-        <TournamentList tournaments={filtered} />
+        <TournamentList tournaments={filtered} citySlug={citySlug} />
       ) : (
-        <TournamentMap tournaments={filtered} />
+        <TournamentMap tournaments={filtered} citySlug={citySlug} />
       )}
     </div>
   );

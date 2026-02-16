@@ -3,13 +3,25 @@
 import Link from "next/link";
 import { useState, useRef } from "react";
 import type { Tournament } from "@/lib/types";
+import type { City } from "@/lib/cities";
+import type { User } from "@supabase/supabase-js";
 import { subscribeEmail } from "@/app/actions";
 import { Header } from "./header";
 import { TournamentBrowser } from "./tournament-browser";
 
 type EmailState = "idle" | "submitting" | "success" | "already_subscribed" | "error";
 
-export function Homepage({ tournaments }: { tournaments: Tournament[] }) {
+export function Homepage({
+  tournaments,
+  city,
+  user,
+  recommendations,
+}: {
+  tournaments: Tournament[];
+  city?: City;
+  user?: User | null;
+  recommendations?: React.ReactNode;
+}) {
   const [emailState, setEmailState] = useState<EmailState>("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
@@ -35,12 +47,12 @@ export function Homepage({ tournaments }: { tournaments: Tournament[] }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50/50 via-white to-amber-50/30">
-      <Header />
+      <Header city={city} user={user} />
 
       {/* Hero */}
       <div className="mx-auto max-w-2xl px-5 pt-12 pb-8 text-center">
         <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 md:text-4xl">
-          Houston Pickleball Tournaments
+          {city?.name ?? "Houston"} Pickleball Tournaments
         </h1>
         <p className="mt-2 text-gray-500">
           Every upcoming event, one search away.
@@ -102,9 +114,16 @@ export function Homepage({ tournaments }: { tournaments: Tournament[] }) {
         </div>
       </div>
 
+      {/* Personalized recommendations (server-rendered, only for logged-in users with DUPR) */}
+      {recommendations && (
+        <section className="mx-auto max-w-6xl px-5 pt-8">
+          {recommendations}
+        </section>
+      )}
+
       {/* Tournament Browser (list + map views with filters) */}
       <section className="mx-auto max-w-6xl px-5 pt-8 pb-16">
-        <TournamentBrowser tournaments={tournaments} />
+        <TournamentBrowser tournaments={tournaments} citySlug={city?.slug} />
       </section>
 
       {/* Submit CTA */}
@@ -159,7 +178,7 @@ export function Homepage({ tournaments }: { tournaments: Tournament[] }) {
                 </span>
               </div>
               <p className="mt-3 text-sm leading-relaxed text-gray-400">
-                Every upcoming Houston
+                Every upcoming {city?.name ?? "Houston"}
                 <br />
                 pickleball tournament,
                 <br />
@@ -173,7 +192,7 @@ export function Homepage({ tournaments }: { tournaments: Tournament[] }) {
               </p>
               <div className="space-y-2">
                 <Link
-                  href="/"
+                  href={city ? `/${city.slug}` : "/"}
                   className="block text-sm text-gray-500 transition-colors hover:text-gray-800"
                 >
                   Browse tournaments
@@ -212,7 +231,7 @@ export function Homepage({ tournaments }: { tournaments: Tournament[] }) {
 
           <div className="mt-12 border-t border-gray-50 pt-6">
             <p className="text-xs text-gray-300">
-              Made with {"\u{1F49A}"} for the Houston pickleball community
+              Made with {"\u{1F49A}"} for the {city?.name ?? "Houston"} pickleball community
             </p>
           </div>
         </div>

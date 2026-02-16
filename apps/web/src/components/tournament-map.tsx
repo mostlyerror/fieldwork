@@ -27,8 +27,10 @@ type PointFeature = GeoJSON.Feature<
 
 export default function TournamentMap({
   tournaments,
+  citySlug,
 }: {
   tournaments: Tournament[];
+  citySlug?: string;
 }) {
   const mapRef = useRef<MapRef>(null);
   const [bounds, setBounds] = useState<[number, number, number, number]>([
@@ -145,6 +147,7 @@ export default function TournamentMap({
           <TournamentMapPopup
             tournament={selected}
             onClose={() => setSelected(null)}
+            citySlug={citySlug}
           />
         )}
       </Map>

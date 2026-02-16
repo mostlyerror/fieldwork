@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Tournament } from "@/lib/types";
 import { TournamentCard } from "./tournament-card";
 
-export function TournamentList({ tournaments }: { tournaments: Tournament[] }) {
+export function TournamentList({ tournaments, citySlug }: { tournaments: Tournament[]; citySlug?: string }) {
   if (tournaments.length === 0) {
     return (
       <div className="rounded-2xl bg-white p-16 text-center shadow-sm">
@@ -29,7 +29,7 @@ export function TournamentList({ tournaments }: { tournaments: Tournament[] }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {tournaments.map((t) => (
-        <TournamentCard key={t.id} tournament={t} />
+        <TournamentCard key={t.id} tournament={t} citySlug={citySlug} />
       ))}
     </div>
   );

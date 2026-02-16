@@ -1,5 +1,4 @@
-export const HOUSTON_LAT = 29.7604;
-export const HOUSTON_LNG = -95.3698;
+import { getDefaultCity } from "./cities";
 
 export const SKILL_LEVELS = [
   "2.0",
@@ -39,8 +38,10 @@ export const SOURCE_DISPLAY_NAMES: Record<string, string> = {
   manual: "Direct Link",
 };
 
+const defaultCity = getDefaultCity();
+
 export const DEFAULT_MAP_VIEW = {
-  longitude: HOUSTON_LNG,
-  latitude: HOUSTON_LAT,
-  zoom: 9,
+  longitude: defaultCity.longitude,
+  latitude: defaultCity.latitude,
+  zoom: defaultCity.defaultMapZoom,
 } as const;

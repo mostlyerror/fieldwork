@@ -15,6 +15,9 @@ apps/mobile/android/
 # Playwright
 packages/scrapers/test-results/
 
+# Prod data dumps
+supabase/seed/
+
 # Logs
 logs/
 

@@ -3,6 +3,7 @@ import type { Tournament } from "@/lib/types";
 import { formatDateRange, formatCurrency } from "@/lib/format";
 import { SkillBadge } from "./skill-badge";
 import { StatusBadge } from "./status-badge";
+import { FieldStrengthBadge } from "./field-strength-badge";
 
 function isToday(dateStr: string) {
   const now = new Date();
@@ -14,13 +15,13 @@ function isToday(dateStr: string) {
   );
 }
 
-export function TournamentCard({ tournament }: { tournament: Tournament }) {
+export function TournamentCard({ tournament, citySlug }: { tournament: Tournament; citySlug?: string }) {
   const { id, name, date_start, date_end, location_name, location_address, skill_levels, entry_fee, registration_status, created_at } = tournament;
   const justAdded = isToday(created_at);
 
   return (
     <Link
-      href={`/tournaments/${id}`}
+      href={citySlug ? `/${citySlug}/tournaments/${id}` : `/tournaments/${id}`}
       className="group block rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:ring-green-200"
     >
       <div className="mb-2 flex items-start justify-between gap-2">
@@ -48,10 +49,14 @@ export function TournamentCard({ tournament }: { tournament: Tournament }) {
       )}
 
       <div className="mt-3 flex items-center justify-between">
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap items-center gap-1">
           {skill_levels?.map((level) => (
             <SkillBadge key={level} level={level} />
           ))}
+          <FieldStrengthBadge
+            avgFieldStrength={tournament.avg_field_strength}
+            maxSandbaggerPct={tournament.max_sandbagger_pct}
+          />
         </div>
         {entry_fee != null && (
           <span className="text-sm font-bold text-green-600">

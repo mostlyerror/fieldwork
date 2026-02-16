@@ -9,9 +9,11 @@ import { StatusBadge } from "./status-badge";
 export function TournamentMapPopup({
   tournament,
   onClose,
+  citySlug,
 }: {
   tournament: Tournament;
   onClose: () => void;
+  citySlug?: string;
 }) {
   return (
     <Popup
@@ -37,7 +39,7 @@ export function TournamentMapPopup({
           {tournament.location_name}
         </p>
         <Link
-          href={`/tournaments/${tournament.id}`}
+          href={citySlug ? `/${citySlug}/tournaments/${tournament.id}` : `/tournaments/${tournament.id}`}
           className="mt-2 inline-block text-xs font-medium text-green-600 hover:text-green-700"
         >
           View details →

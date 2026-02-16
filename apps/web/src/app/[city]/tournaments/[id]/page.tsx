@@ -1,25 +1,29 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getTournament, getTournamentSources, getTournaments } from "@/lib/queries";
+import { getTournament, getTournamentSources, getTournamentsByCity, getTournamentEvents } from "@/lib/queries";
+import { getCityBySlug, getDefaultCity } from "@/lib/cities";
 import { TournamentDetail } from "@/components/tournament-detail";
+import { EventBreakdown } from "@/components/event-breakdown";
 import { MiniMapWrapper } from "@/components/mini-map-wrapper";
-import { Header } from "@/components/header";
+import { ServerHeader } from "@/components/server-header";
 import { formatDateRange, formatCurrency, distanceMiles } from "@/lib/format";
 import type { Tournament } from "@/lib/types";
 
-export const revalidate = 600; // ISR: 10 minutes
+export const revalidate = 600;
 
-type PageProps = { params: Promise<{ id: string }> };
+type PageProps = { params: Promise<{ city: string; id: string }> };
 
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const { id } = await params;
+  const { city: citySlug, id } = await params;
+  const city = getCityBySlug(citySlug);
   const tournament = await getTournament(id);
   if (!tournament) return { title: "Tournament Not Found" };
 
-  const description = `${formatDateRange(tournament.date_start, tournament.date_end)} at ${tournament.location_name}. Find details and register for this Houston-area pickleball tournament.`;
+  const cityName = city?.name ?? getDefaultCity().name;
+  const description = `${formatDateRange(tournament.date_start, tournament.date_end)} at ${tournament.location_name}. Find details and register for this ${cityName}-area pickleball tournament.`;
 
   const ogImageParams = new URLSearchParams({
     title: tournament.name,
@@ -36,7 +40,7 @@ export async function generateMetadata({
       description,
       siteName: "PickleRadar",
       type: "website",
-      url: `https://pickleradar.app/tournaments/${id}`,
+      url: `https://pickleradar.app/${citySlug}/tournaments/${id}`,
       images: [{ url: ogImageUrl, width: 1200, height: 630 }],
     },
     twitter: {
@@ -67,11 +71,15 @@ function getRelatedTournaments(
 }
 
 export default async function TournamentPage({ params }: PageProps) {
-  const { id } = await params;
-  const [tournament, sources, allTournaments] = await Promise.all([
+  const { city: citySlug, id } = await params;
+  const city = getCityBySlug(citySlug);
+  if (!city) notFound();
+
+  const [tournament, sources, cityTournaments, events] = await Promise.all([
     getTournament(id),
     getTournamentSources(id),
-    getTournaments(),
+    getTournamentsByCity(citySlug),
+    getTournamentEvents(id),
   ]);
 
   if (!tournament) notFound();
@@ -84,7 +92,7 @@ export default async function TournamentPage({ params }: PageProps) {
       />
     ) : null;
 
-  const related = getRelatedTournaments(tournament, allTournaments);
+  const related = getRelatedTournaments(tournament, cityTournaments);
 
   const statusEmoji: Record<string, string> = {
     open: "\u{1F7E2}",
@@ -126,7 +134,7 @@ export default async function TournamentPage({ params }: PageProps) {
         }),
       },
     }),
-    url: `https://pickleradar.app/tournaments/${tournament.id}`,
+    url: `https://pickleradar.app/${citySlug}/tournaments/${tournament.id}`,
   };
 
   return (
@@ -135,12 +143,11 @@ export default async function TournamentPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <Header />
+      <ServerHeader city={city} />
 
-      {/* Content */}
       <main className="mx-auto max-w-5xl px-5 py-8">
         <Link
-          href="/"
+          href={`/${citySlug}`}
           className="mb-6 inline-flex items-center text-sm text-gray-400 hover:text-green-700"
         >
           &larr; Back to tournaments
@@ -151,7 +158,12 @@ export default async function TournamentPage({ params }: PageProps) {
           miniMap={miniMap}
         />
 
-        {/* Related tournaments */}
+        {events.length > 0 && (
+          <section className="mt-8">
+            <EventBreakdown events={events} />
+          </section>
+        )}
+
         {related.length > 0 && (
           <section className="mt-12">
             <h2 className="mb-4 text-lg font-bold text-gray-800">
@@ -161,7 +173,7 @@ export default async function TournamentPage({ params }: PageProps) {
               {related.map((t) => (
                 <Link
                   key={t.id}
-                  href={`/tournaments/${t.id}`}
+                  href={`/${citySlug}/tournaments/${t.id}`}
                   className="group block rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:ring-green-200"
                 >
                   <div className="mb-3 flex items-center justify-between">
@@ -205,7 +217,6 @@ export default async function TournamentPage({ params }: PageProps) {
             </div>
           </section>
         )}
-        {/* Submit CTA */}
         <div className="mt-12 rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 px-6 py-5 text-center">
           <p className="text-sm text-gray-500">
             Something missing or incorrect?{" "}
@@ -228,10 +239,9 @@ export default async function TournamentPage({ params }: PageProps) {
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="mt-16 border-t border-gray-100 bg-white/60 py-8 text-center">
         <p className="text-sm text-gray-400">
-          Made with {"\u{1F49A}"} for the Houston pickleball community
+          Made with {"\u{1F49A}"} for the {city.name} pickleball community
         </p>
       </footer>
     </div>
