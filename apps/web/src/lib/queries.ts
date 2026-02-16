@@ -120,40 +120,6 @@ export async function getTournamentEvents(
   }));
 }
 
-export async function searchPlayers(
-  name: string
-): Promise<Array<{ player_name: string; dupr_rating: number | null; tournament_count: number }>> {
-  const { data, error } = await supabase
-    .from("event_players")
-    .select("player_name, dupr_rating")
-    .ilike("player_name", `%${name}%`)
-    .not("dupr_rating", "is", null)
-    .order("dupr_rating", { ascending: false })
-    .limit(20);
-
-  if (error) {
-    console.error("Error searching players:", error);
-    return [];
-  }
-
-  // Deduplicate by player name, keeping the most recent rating
-  const seen = new Map<string, { player_name: string; dupr_rating: number | null; tournament_count: number }>();
-  for (const row of data ?? []) {
-    const key = row.player_name.toLowerCase();
-    if (seen.has(key)) {
-      seen.get(key)!.tournament_count++;
-    } else {
-      seen.set(key, {
-        player_name: row.player_name,
-        dupr_rating: row.dupr_rating,
-        tournament_count: 1,
-      });
-    }
-  }
-
-  return Array.from(seen.values());
-}
-
 /**
  * Attach intelligence aggregate fields to tournaments.
  * Fetches event counts, total registered, avg field strength, max sandbagger pct

@@ -9,31 +9,24 @@ export async function searchPlayers(query: string) {
 
   const admin = getSupabaseAdmin();
   const { data, error } = await admin
-    .from("event_players")
-    .select("player_name, dupr_rating")
-    .ilike("player_name", `%${query}%`)
+    .from("players")
+    .select("id, name, dupr_rating, location")
+    .ilike("name", `%${query}%`)
     .not("dupr_rating", "is", null)
     .order("dupr_rating", { ascending: false })
-    .limit(20);
+    .limit(10);
 
   if (error) {
     console.error("Error searching players:", error);
     return [];
   }
 
-  // Deduplicate by name, keep highest rating
-  const seen = new Map<string, { player_name: string; dupr_rating: number }>();
-  for (const row of data ?? []) {
-    const key = row.player_name.toLowerCase();
-    if (!seen.has(key)) {
-      seen.set(key, {
-        player_name: row.player_name,
-        dupr_rating: row.dupr_rating,
-      });
-    }
-  }
-
-  return Array.from(seen.values());
+  return (data ?? []).map((p) => ({
+    id: p.id,
+    player_name: p.name,
+    dupr_rating: p.dupr_rating as number,
+    location: p.location as string | null,
+  }));
 }
 
 export async function linkDuprRating(formData: FormData) {

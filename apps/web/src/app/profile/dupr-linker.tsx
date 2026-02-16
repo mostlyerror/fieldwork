@@ -4,8 +4,10 @@ import { useState, useCallback } from "react";
 import { searchPlayers, linkDuprRating } from "./actions";
 
 interface PlayerMatch {
+  id: string;
   player_name: string;
   dupr_rating: number;
+  location: string | null;
 }
 
 export function DuprLinker() {
@@ -121,17 +123,24 @@ export function DuprLinker() {
               <p className="text-xs text-gray-400">
                 Select your profile:
               </p>
-              {results.map((player, i) => (
+              {results.map((player) => (
                 <button
-                  key={i}
+                  key={player.id}
                   type="button"
                   onClick={() => handleSelect(player)}
                   disabled={status === "saving"}
                   className="flex w-full items-center justify-between rounded-lg border border-gray-100 px-3 py-2 text-left text-sm transition hover:bg-green-50 hover:ring-1 hover:ring-green-200 disabled:opacity-50"
                 >
-                  <span className="font-medium text-gray-900">
-                    {player.player_name}
-                  </span>
+                  <div>
+                    <span className="font-medium text-gray-900">
+                      {player.player_name}
+                    </span>
+                    {player.location && (
+                      <span className="ml-2 text-xs text-gray-400">
+                        {player.location}
+                      </span>
+                    )}
+                  </div>
                   <span className="font-bold text-green-600">
                     {player.dupr_rating.toFixed(2)}
                   </span>
