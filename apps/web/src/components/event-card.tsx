@@ -15,13 +15,6 @@ export function EventCard({
   const hasPlayers = event.players && event.players.length > 0;
   const [expanded, setExpanded] = useState(false);
 
-  const skillRange =
-    event.skill_level_min != null
-      ? event.skill_level_max != null && event.skill_level_max !== event.skill_level_min
-        ? `${event.skill_level_min}-${event.skill_level_max}`
-        : `${event.skill_level_min}${event.skill_level_max == null ? "+" : ""}`
-      : null;
-
   const edge =
     userDupr != null && event.avg_dupr != null
       ? Math.round((userDupr - event.avg_dupr) * 100) / 100
@@ -36,11 +29,6 @@ export function EventCard({
       >
         <div className="flex flex-1 flex-wrap items-center gap-2">
           <h4 className="font-semibold text-gray-900">{event.name}</h4>
-          {skillRange && (
-            <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
-              {skillRange}
-            </span>
-          )}
           <FieldStrengthBadge
             avgFieldStrength={event.field_strength ?? undefined}
             maxSandbaggerPct={event.sandbagger_pct ?? undefined}
