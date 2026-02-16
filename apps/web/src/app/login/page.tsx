@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LoginForm } from "./login-form";
+import { DevQuickLogin } from "./dev-quick-login";
 
 export const metadata = {
   title: "Log In — PickleRadar",
@@ -43,6 +44,8 @@ export default async function LoginPage({
             Sign up
           </Link>
         </p>
+
+        <DevQuickLogin />
       </div>
     </div>
   );
