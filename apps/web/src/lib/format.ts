@@ -57,11 +57,9 @@ export function googleMapsUrl({
   address?: string | null;
   name?: string | null;
 }): string {
-  const q =
-    latitude != null && longitude != null
-      ? `${latitude},${longitude}`
-      : address ?? name ?? "";
-  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(q)}`;
+  const q = [name, address].filter(Boolean).join(", ") ||
+    (latitude != null && longitude != null ? `${latitude},${longitude}` : "");
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
 }
 
 export function distanceMiles(

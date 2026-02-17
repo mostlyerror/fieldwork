@@ -23,6 +23,25 @@ export interface UpsertStats {
  *    - Found canonical     → INSERT as duplicate, add source to canonical
  *    - Not found           → INSERT as new canonical, add source
  */
+/**
+ * Sanity-check: if date_end is set and date_start is more than 7 days
+ * before date_end, the dates are likely wrong (e.g. registration open
+ * date stored as tournament start). Log a warning and skip the record.
+ */
+function hasPlausibleDates(t: ScrapedTournament): boolean {
+  if (!t.dateEnd) return true;
+  const start = new Date(t.dateStart);
+  const end = new Date(t.dateEnd);
+  const spanDays = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+  if (spanDays > 7) {
+    console.warn(
+      `[upsert] SKIP "${t.name}": date span is ${Math.round(spanDays)} days (${t.dateStart} → ${t.dateEnd}) — likely registration dates, not tournament dates`,
+    );
+    return false;
+  }
+  return true;
+}
+
 export async function upsertTournaments(
   tournaments: ScrapedTournament[]
 ): Promise<UpsertStats> {
@@ -32,6 +51,7 @@ export async function upsertTournaments(
   const newTournamentIds: string[] = [];
 
   for (const t of tournaments) {
+    if (!hasPlausibleDates(t)) continue;
     try {
       // Step 1: Check if tournament already exists by source
       const { data: existing, error: fetchError } = await supabase
