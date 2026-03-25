@@ -2,7 +2,7 @@ name: Scrape Tournaments
 
 on:
   schedule:
-    - cron: "0 12,14,16,18,20,22,0,2,4 * * *" # Every 2h, 7am-11pm Central
+    - cron: "0 14,2 * * *" # 2x/day: 9am + 9pm Central
   workflow_dispatch: # Manual trigger
 
 jobs:
@@ -20,8 +20,21 @@ jobs:
 
       - run: npm ci
 
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('packages/scrapers/package-lock.json') }}
+
       - name: Install Playwright Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
+        working-directory: packages/scrapers
+
+      - name: Install Playwright OS dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
         working-directory: packages/scrapers
 
       - name: Run scrapers
