@@ -26,14 +26,16 @@ export interface ParsedTournamentFields {
 /**
  * Extract an RSC string value from a chunk of page content.
  * Tries escaped quotes first (\\\"key\\\":\\\"value\\\"), then plain quotes.
+ * Case-sensitive to avoid matching similar-named fields (e.g. DateStart
+ * from registration fee periods vs dateStart for tournament dates).
  */
 function rscStringValue(chunk: string, key: string): string | null {
   // Try escaped quotes: \"key\":\"value\"
-  const escaped = new RegExp(`\\\\"${key}\\\\":\\s*\\\\"([^\\\\]*?)\\\\"`, "i");
+  const escaped = new RegExp(`\\\\"${key}\\\\":\\s*\\\\"([^\\\\]*?)\\\\"`);
   const m1 = chunk.match(escaped);
   if (m1) return m1[1];
   // Try unescaped: "key":"value"
-  const plain = new RegExp(`"${key}":\\s*"([^"]*?)"`, "i");
+  const plain = new RegExp(`"${key}":\\s*"([^"]*?)"`);
   const m2 = chunk.match(plain);
   return m2?.[1] || null;
 }
@@ -50,7 +52,7 @@ export function parseRscTournamentData(
 
   const chunk = pageContent.slice(
     Math.max(0, tourneyIdx - 100),
-    tourneyIdx + 5000,
+    tourneyIdx + 10000,
   );
 
   const priceMatch = chunk.match(/costRegistrationCurrent[\\",]*:?\s*(\d+)/);
