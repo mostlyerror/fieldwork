@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
-import type { Tournament, TournamentFilters as Filters } from "@/lib/types";
+import type { Tournament, TournamentFilters as Filters, FieldStrengthFilter } from "@/lib/types";
+import { getFieldStrengthLevel } from "./field-strength-badge";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useUserLocation } from "@/hooks/use-user-location";
 import { distanceMiles } from "@/lib/format";
@@ -15,7 +16,16 @@ const TournamentMap = dynamic(() => import("./tournament-map"), { ssr: false });
 const EMPTY_FILTERS: Filters = {
   search: "",
   skillLevels: [],
+  fieldStrength: "all",
 };
+
+function matchesFieldStrength(t: Tournament, filter: FieldStrengthFilter): boolean {
+  if (filter === "all") return true;
+  const level = getFieldStrengthLevel(t.avg_field_strength, t.max_sandbagger_pct);
+  if (!level) return false;
+  if (filter === "stacked") return level === "stacked" || level === "sandbagger";
+  return level === filter;
+}
 
 export function TournamentBrowser({
   tournaments,
@@ -49,6 +59,11 @@ export function TournamentBrowser({
       result = result.filter((t) =>
         t.skill_levels?.some((s) => filters.skillLevels.includes(s))
       );
+    }
+
+    // Field strength
+    if (filters.fieldStrength !== "all") {
+      result = result.filter((t) => matchesFieldStrength(t, filters.fieldStrength));
     }
 
     // Sort

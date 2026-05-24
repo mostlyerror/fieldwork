@@ -13,7 +13,7 @@ export function EventCard({
   userDupr?: number;
 }) {
   const hasPlayers = event.players && event.players.length > 0;
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(hasPlayers && event.players!.length < 20);
 
   const edge =
     userDupr != null && event.avg_dupr != null

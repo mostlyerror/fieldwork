@@ -72,7 +72,10 @@ export interface Player {
   updated_at: string;
 }
 
+export type FieldStrengthFilter = "all" | "friendly" | "competitive" | "stacked";
+
 export interface TournamentFilters {
   search: string;
   skillLevels: string[];
+  fieldStrength: FieldStrengthFilter;
 }
