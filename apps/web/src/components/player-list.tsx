@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { EventPlayer } from "@/lib/types";
 
 export function PlayerList({ players }: { players: EventPlayer[] }) {
@@ -24,7 +25,16 @@ export function PlayerList({ players }: { players: EventPlayer[] }) {
           {players.map((player) => (
             <tr key={player.id} className="hover:bg-gray-50/50">
               <td className="px-3 py-1.5 font-medium text-gray-900">
-                {player.player_name}
+                {player.player_id ? (
+                  <Link
+                    href={`/players/${player.player_id}`}
+                    className="text-emerald-700 hover:text-emerald-800 hover:underline"
+                  >
+                    {player.player_name}
+                  </Link>
+                ) : (
+                  player.player_name
+                )}
               </td>
               <td className="px-3 py-1.5 text-right">
                 {player.dupr_rating != null ? (
@@ -36,7 +46,16 @@ export function PlayerList({ players }: { players: EventPlayer[] }) {
                 )}
               </td>
               <td className="hidden px-3 py-1.5 text-gray-600 sm:table-cell">
-                {player.partner_name ?? "--"}
+                {player.partner_id ? (
+                  <Link
+                    href={`/players/${player.partner_id}`}
+                    className="text-emerald-700 hover:text-emerald-800 hover:underline"
+                  >
+                    {player.partner_name}
+                  </Link>
+                ) : (
+                  player.partner_name ?? "--"
+                )}
               </td>
               <td className="hidden px-3 py-1.5 text-right sm:table-cell">
                 {player.partner_dupr_rating != null ? (

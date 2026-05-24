@@ -64,6 +64,15 @@ export function TournamentCard({ tournament, citySlug }: { tournament: Tournamen
           </span>
         )}
       </div>
+
+      {tournament.total_registered != null && tournament.total_registered > 0 && (
+        <p className="mt-2 text-[11px] text-gray-400">
+          {tournament.total_registered} registered
+          {tournament.event_count != null && tournament.event_count > 0 && (
+            <> across {tournament.event_count} events</>
+          )}
+        </p>
+      )}
     </Link>
   );
 }

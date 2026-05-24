@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { TournamentEvent } from "@/lib/types";
 import { FieldStrengthBadge } from "./field-strength-badge";
 import { PlayerList } from "./player-list";
+import { DuprDistribution } from "./dupr-distribution";
 
 export function EventCard({
   event,
@@ -75,6 +76,7 @@ export function EventCard({
 
       {expanded && hasPlayers && (
         <div className="border-t border-gray-50 px-4 pb-3">
+          <DuprDistribution players={event.players!} />
           <PlayerList players={event.players!} />
         </div>
       )}

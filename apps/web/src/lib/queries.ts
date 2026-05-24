@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import type { Tournament, TournamentSource, TournamentEvent, EventPlayer } from "./types";
+import type { Tournament, TournamentSource, TournamentEvent, EventPlayer, Player } from "./types";
 import { getCityBySlug, getDefaultCity } from "./cities";
 
 export async function getTournaments(): Promise<Tournament[]> {
@@ -176,6 +176,64 @@ async function attachIntelligenceAggregates(
       total_registered: agg.total_registered,
       avg_field_strength: avgFieldStrength != null ? Math.round(avgFieldStrength * 100) / 100 : undefined,
       max_sandbagger_pct: maxSandbaggerPct != null ? Math.round(maxSandbaggerPct * 100) / 100 : undefined,
+    };
+  });
+}
+
+export async function getPlayer(id: string): Promise<Player | null> {
+  const { data, error } = await supabase
+    .from("players")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return data as Player;
+}
+
+export interface PlayerTournamentHistory {
+  tournamentId: string;
+  tournamentName: string;
+  dateStart: string;
+  eventName: string;
+  duprRating: number | null;
+  partnerName: string | null;
+}
+
+export async function getPlayerTournamentHistory(
+  playerId: string,
+): Promise<PlayerTournamentHistory[]> {
+  const { data, error } = await supabase
+    .from("event_players")
+    .select(`
+      dupr_rating,
+      partner_name,
+      event_id,
+      tournament_events!inner (
+        name,
+        tournament_id,
+        tournaments!inner (
+          id,
+          name,
+          date_start
+        )
+      )
+    `)
+    .eq("player_id", playerId)
+    .order("dupr_rating", { ascending: false, nullsFirst: false });
+
+  if (error || !data) return [];
+
+  return data.map((row: Record<string, unknown>) => {
+    const event = row.tournament_events as Record<string, unknown>;
+    const tournament = event.tournaments as Record<string, unknown>;
+    return {
+      tournamentId: tournament.id as string,
+      tournamentName: tournament.name as string,
+      dateStart: tournament.date_start as string,
+      eventName: event.name as string,
+      duprRating: row.dupr_rating as number | null,
+      partnerName: row.partner_name as string | null,
     };
   });
 }

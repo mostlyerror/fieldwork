@@ -1,6 +1,12 @@
 import type { TournamentEvent } from "@/lib/types";
 import { FieldStrengthBadge, getFieldStrengthLevel } from "./field-strength-badge";
 
+function getSandbaggerEvents(events: TournamentEvent[]): TournamentEvent[] {
+  return events.filter(
+    (e) => e.sandbagger_pct != null && e.sandbagger_pct > 0.2
+  );
+}
+
 export function FieldIntelSummary({ events }: { events: TournamentEvent[] }) {
   const withDupr = events.filter((e) => e.avg_dupr != null);
   if (withDupr.length === 0) return null;
@@ -24,19 +30,25 @@ export function FieldIntelSummary({ events }: { events: TournamentEvent[] }) {
     sandbaggerPcts.length > 0 ? Math.max(...sandbaggerPcts) : undefined;
 
   const level = getFieldStrengthLevel(avgFieldStrength, maxSandbaggerPct);
+  const sandbaggerEvents = getSandbaggerEvents(events);
 
   const TAKEAWAYS: Record<string, string> = {
-    friendly: "Brackets are playing at or below listed skill levels",
+    friendly: "Brackets are playing at or below listed skill levels — good for newer competitors",
     competitive: "Brackets are playing close to the top of listed skill levels",
     stacked: "Brackets are playing above listed skill levels — expect tough competition",
     sandbagger: "High percentage of players rated above bracket limits",
   };
 
+  const isSandbaggerAlert = level === "sandbagger" || (maxSandbaggerPct != null && maxSandbaggerPct > 0.3);
+  const borderClass = isSandbaggerAlert
+    ? "border-red-200 bg-gradient-to-r from-red-50/80 via-white to-red-50/40"
+    : "border-emerald-100 bg-gradient-to-r from-emerald-50/80 via-white to-emerald-50/40";
+
   return (
-    <div className="rounded-xl border border-emerald-100 bg-gradient-to-r from-emerald-50/80 via-white to-emerald-50/40 p-5">
+    <div className={`rounded-xl border p-5 ${borderClass}`}>
       <div className="flex flex-wrap items-center gap-3">
-        <h3 className="text-sm font-bold uppercase tracking-wide text-emerald-700">
-          Field Intel
+        <h3 className={`text-sm font-bold uppercase tracking-wide ${isSandbaggerAlert ? "text-red-700" : "text-emerald-700"}`}>
+          {isSandbaggerAlert ? "⚠️ Sandbagger Radar" : "Field Intel"}
         </h3>
         {avgFieldStrength != null && (
           <FieldStrengthBadge
@@ -46,6 +58,14 @@ export function FieldIntelSummary({ events }: { events: TournamentEvent[] }) {
           />
         )}
       </div>
+
+      {isSandbaggerAlert && sandbaggerEvents.length > 0 && (
+        <div className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
+          <span className="font-bold">{sandbaggerEvents.length} bracket{sandbaggerEvents.length !== 1 ? "s" : ""}</span>{" "}
+          with 20%+ players rated above the skill cap:{" "}
+          {sandbaggerEvents.map((e) => e.name).join(", ")}
+        </div>
+      )}
 
       <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
         <div>
