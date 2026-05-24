@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getCityBySlug, CITIES } from "@/lib/cities";
 import { getTournamentsByCity } from "@/lib/queries";
 import { getUser } from "@/lib/auth";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { Homepage } from "@/components/homepage";
 import { RecommendedTournamentsWrapper } from "@/components/recommended-tournaments-wrapper";
 
@@ -47,9 +48,15 @@ export default async function CityPage({ params }: PageProps) {
   const city = getCityBySlug(slug);
   if (!city) notFound();
 
-  const [tournamentsResult, user] = await Promise.all([
+  const supabase = getSupabaseAdmin();
+  const [tournamentsResult, user, subscriberResult] = await Promise.all([
     getTournamentsByCity(city.slug).catch(() => []),
     getUser().catch(() => null),
+    supabase
+      .from("email_subscribers")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "active")
+      .then((r: { count: number | null }) => r.count ?? 0),
   ]);
   const tournaments = tournamentsResult;
 
@@ -105,6 +112,7 @@ export default async function CityPage({ params }: PageProps) {
         tournaments={tournaments}
         city={city}
         user={user}
+        subscriberCount={subscriberResult}
         recommendations={
           <RecommendedTournamentsWrapper
             tournaments={tournaments}

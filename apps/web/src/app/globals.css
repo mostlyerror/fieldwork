@@ -1,1 +1,37 @@
 @import "tailwindcss";
+
+@theme {
+  --font-nunito: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  --color-cream: #FFFDF7;
+  --color-peach: #fdba74;
+  --color-peach-light: #fed7aa;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-cream);
+  }
+
+  :focus-visible {
+    outline: 2px solid #16a34a;
+    outline-offset: 2px;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+}
+
+@layer utilities {
+  .text-shadow-warm {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+}

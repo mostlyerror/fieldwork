@@ -22,21 +22,21 @@ export function TournamentCard({ tournament, citySlug }: { tournament: Tournamen
   return (
     <Link
       href={citySlug ? `/${citySlug}/tournaments/${id}` : `/tournaments/${id}`}
-      className="group block rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:ring-green-200"
+      className="group block rounded-2xl bg-gradient-to-br from-white to-amber-50/20 p-5 shadow-sm ring-1 ring-orange-100/60 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:shadow-orange-100/40 hover:ring-emerald-200"
     >
       <div className="mb-2 flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="mb-2 flex items-center gap-2">
-            <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+            <span className="rounded-full bg-gradient-to-r from-orange-100 to-orange-50 px-3 py-1 text-xs font-bold text-orange-600">
               {formatDateRange(date_start, date_end)}
             </span>
             {justAdded && (
-              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600">
+              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
                 Just added
               </span>
             )}
           </div>
-          <h3 className="font-bold leading-snug text-gray-900 group-hover:text-green-700">{name}</h3>
+          <h3 className="font-extrabold leading-snug text-gray-900 group-hover:text-emerald-600">{name}</h3>
         </div>
         <StatusBadge status={registration_status} />
       </div>
@@ -59,7 +59,7 @@ export function TournamentCard({ tournament, citySlug }: { tournament: Tournamen
           />
         </div>
         {entry_fee != null && (
-          <span className="text-sm font-bold text-green-600">
+          <span className="text-sm font-bold text-emerald-600">
             {formatCurrency(entry_fee)}
           </span>
         )}

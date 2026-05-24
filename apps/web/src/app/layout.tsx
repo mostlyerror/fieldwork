@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
+import { Nunito } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { DevIndicator } from "@/components/dev-indicator";
 import "./globals.css";
+
+const nunito = Nunito({
+  subsets: ["latin"],
+  variable: "--font-nunito",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://pickleradar.app"),
@@ -16,8 +23,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="font-sans text-gray-900 antialiased">
+    <html lang="en" className={nunito.variable}>
+      <body className="font-nunito text-gray-900 antialiased">
         {children}
         <Analytics />
         <DevIndicator />

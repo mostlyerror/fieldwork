@@ -89,7 +89,8 @@ export function TournamentBrowser({
           {userLocation && (
             <button
               onClick={() => setSortByDistance((d) => !d)}
-              className={`rounded-md border px-2.5 py-1.5 text-xs font-medium transition ${
+              aria-label="Sort by nearest tournament"
+              className={`rounded-xl border px-2.5 py-1.5 text-xs font-medium transition ${
                 sortByDistance
                   ? "border-green-600 bg-green-50 text-green-700"
                   : "border-gray-300 bg-white text-gray-600 hover:border-gray-400"

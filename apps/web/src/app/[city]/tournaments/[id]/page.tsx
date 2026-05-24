@@ -4,10 +4,11 @@ import type { Metadata } from "next";
 import { getTournament, getTournamentSources, getTournamentsByCity, getTournamentEvents } from "@/lib/queries";
 import { getCityBySlug, getDefaultCity } from "@/lib/cities";
 import { TournamentDetail } from "@/components/tournament-detail";
+import { TournamentCard } from "@/components/tournament-card";
 import { EventBreakdown } from "@/components/event-breakdown";
 import { MiniMapWrapper } from "@/components/mini-map-wrapper";
 import { ServerHeader } from "@/components/server-header";
-import { formatDateRange, formatCurrency, distanceMiles } from "@/lib/format";
+import { formatDateRange, distanceMiles } from "@/lib/format";
 import type { Tournament } from "@/lib/types";
 
 export const revalidate = 600;
@@ -94,13 +95,6 @@ export default async function TournamentPage({ params }: PageProps) {
 
   const related = getRelatedTournaments(tournament, cityTournaments);
 
-  const statusEmoji: Record<string, string> = {
-    open: "\u{1F7E2}",
-    filling: "\u{1F7E1}",
-    full: "\u{1F534}",
-    closed: "\u26AB",
-  };
-
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SportsEvent",
@@ -171,48 +165,7 @@ export default async function TournamentPage({ params }: PageProps) {
             </h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {related.map((t) => (
-                <Link
-                  key={t.id}
-                  href={`/${citySlug}/tournaments/${t.id}`}
-                  className="group block rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:ring-green-200"
-                >
-                  <div className="mb-3 flex items-center justify-between">
-                    <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-                      {formatDateRange(t.date_start, t.date_end)}
-                    </span>
-                    <span title={t.registration_status ?? "open"}>
-                      {statusEmoji[t.registration_status ?? "open"] ?? "\u{1F7E2}"}
-                    </span>
-                  </div>
-                  <h3 className="mb-1 text-lg font-bold text-gray-800 group-hover:text-green-700">
-                    {t.name}
-                  </h3>
-                  <p className="mb-3 flex items-center gap-1.5 text-sm text-gray-500">
-                    <span>{"\u{1F4CD}"}</span> {t.location_name}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-wrap gap-1">
-                      {t.skill_levels?.slice(0, 4).map((s) => (
-                        <span
-                          key={s}
-                          className="rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-medium text-green-700"
-                        >
-                          {s}
-                        </span>
-                      ))}
-                      {(t.skill_levels?.length ?? 0) > 4 && (
-                        <span className="rounded-full bg-gray-50 px-2 py-0.5 text-[11px] text-gray-400">
-                          +{(t.skill_levels?.length ?? 0) - 4}
-                        </span>
-                      )}
-                    </div>
-                    {t.entry_fee != null && (
-                      <span className="text-sm font-bold text-green-600">
-                        {formatCurrency(t.entry_fee)}
-                      </span>
-                    )}
-                  </div>
-                </Link>
+                <TournamentCard key={t.id} tournament={t} citySlug={citySlug} />
               ))}
             </div>
           </section>
@@ -241,7 +194,7 @@ export default async function TournamentPage({ params }: PageProps) {
 
       <footer className="mt-16 border-t border-gray-100 bg-white/60 py-8 text-center">
         <p className="text-sm text-gray-400">
-          Made with {"\u{1F49A}"} for the {city.name} pickleball community
+          Made with <span aria-hidden="true">{"\u{1F49A}"}</span><span className="sr-only">love</span> for the {city.name} pickleball community
         </p>
       </footer>
     </div>

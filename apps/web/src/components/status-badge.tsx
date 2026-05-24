@@ -1,8 +1,8 @@
 const STATUS_STYLES: Record<string, string> = {
-  open: "bg-green-100 text-green-800",
-  filling: "bg-amber-100 text-amber-800",
-  full: "bg-red-100 text-red-800",
-  closed: "bg-gray-100 text-gray-500",
+  open: "bg-green-50 text-green-700 ring-green-200",
+  filling: "bg-amber-50 text-amber-700 ring-amber-200",
+  full: "bg-red-50 text-red-700 ring-red-200",
+  closed: "bg-gray-100 text-gray-500 ring-gray-200",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -18,7 +18,9 @@ export function StatusBadge({ status }: { status: string | null }) {
   const label = STATUS_LABELS[s] ?? s;
   return (
     <span
-      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${style}`}
+      role="status"
+      aria-label={`Registration ${label.toLowerCase()}`}
+      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${style}`}
     >
       {label}
     </span>
