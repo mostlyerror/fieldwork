@@ -218,16 +218,6 @@ export function Homepage({
         </div>
       </section>
 
-      {/* Wavy divider above footer */}
-      <div className="relative">
-        <svg className="block w-full" viewBox="0 0 1440 50" preserveAspectRatio="none" aria-hidden="true">
-          <path
-            d="M0,20 C240,50 480,0 720,25 C960,50 1200,10 1440,30 L1440,50 L0,50 Z"
-            fill="#f0fdf4"
-          />
-        </svg>
-      </div>
-
       {seoContent}
 
       <footer className="bg-gradient-to-b from-green-50 to-emerald-50/50">
