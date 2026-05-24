@@ -352,9 +352,13 @@ A simple, mobile-optimized web page (can be a Next.js or static site hosted on V
 
 ---
 
-## Monetization (DEFERRED — not for v1)
+## Monetization
 
-Do not build any monetization into v1. The priority is community growth and tournament completeness. Future revenue opportunities documented for reference:
+Current strategy: monetize the web, email, and local community loop before investing heavily in the native app. The product has evolved from the original mobile-first plan into a web-first tournament discovery and intelligence surface with email digest, manual submissions, admin review, social workflow, and DUPR/event intelligence.
+
+See [`docs/PRODUCT_STRATEGY.md`](docs/PRODUCT_STRATEGY.md) for the current revenue plan.
+
+The priority remains community growth and tournament completeness, but lightweight monetization should now be tested through tournament director and facility distribution:
 
 1. **Sponsored facility placements** — local facilities pay for featured placement ($200-500/mo)
 2. **Gear affiliate links** — paddle/shoe recommendations with affiliate tracking
