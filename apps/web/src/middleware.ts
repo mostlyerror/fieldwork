@@ -14,10 +14,7 @@ const PROTECTED_ROUTES = ["/profile", "/admin"];
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Refresh auth session on every request (keeps cookies fresh)
-  const { supabaseResponse, user } = await updateSession(request);
-
-  // Geo-redirect: root path -> city slug
+  // Geo-redirect: root path -> city slug (no auth needed)
   if (pathname === "/") {
     const ipCity = request.headers.get("x-vercel-ip-city");
     const slug = ipCity ? matchCity(ipCity) : undefined;
@@ -27,13 +24,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 307);
   }
 
-  // Protect routes (Supabase auth — role gating happens in layout)
-  if (PROTECTED_ROUTES.some((route) => pathname.startsWith(route))) {
-    if (!user) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
+  // Only call Supabase for routes that need auth
+  const needsAuth = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
+  const { supabaseResponse, user } = await updateSession(request);
+
+  if (needsAuth && !user) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   return supabaseResponse;
