@@ -18,6 +18,7 @@ export function Homepage({
   recommendations,
   subscriberCount,
   tournamentCount,
+  seoContent,
 }: {
   tournaments: Tournament[];
   city?: City;
@@ -25,6 +26,7 @@ export function Homepage({
   recommendations?: React.ReactNode;
   subscriberCount?: number;
   tournamentCount?: number;
+  seoContent?: React.ReactNode;
 }) {
   const [emailState, setEmailState] = useState<EmailState>("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -225,6 +227,8 @@ export function Homepage({
           />
         </svg>
       </div>
+
+      {seoContent}
 
       <footer className="bg-gradient-to-b from-green-50 to-emerald-50/50">
         <div className="mx-auto max-w-6xl px-5">
