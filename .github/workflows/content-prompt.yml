@@ -1,0 +1,28 @@
+name: Daily IG Content Prompt
+
+on:
+  schedule:
+    - cron: "0 15 * * *" # 10 AM CT / 3 PM UTC — morning reminder
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  prompt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Send content prompt to Discord
+        run: npx tsx packages/scrapers/src/content-prompt.ts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
