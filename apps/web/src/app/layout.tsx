@@ -15,6 +15,9 @@ export const metadata: Metadata = {
   title: "PickleRadar — Houston Pickleball Tournaments",
   description:
     "Find and register for pickleball tournaments in the Houston area. Browse upcoming events, filter by skill level, and discover tournaments on the map.",
+  verification: {
+    google: "3nglgg09Wmul56aIjLPi4xogOSnKW0e36Yal2cQ_A-k",
+  },
 };
 
 export default function RootLayout({
