@@ -9,7 +9,8 @@
     "start:pickleballden": "tsx src/sources/pickleballden.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "snapshot": "tsx src/utils/capture-snapshot.ts"
+    "snapshot": "tsx src/utils/capture-snapshot.ts",
+    "health-check": "tsx src/health-check.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
