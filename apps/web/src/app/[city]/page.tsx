@@ -98,6 +98,10 @@ export default async function CityPage({ params }: PageProps) {
     })),
   };
 
+  const upcomingCount = tournaments.length;
+  const nextTournament = tournaments[0];
+  const venueCount = new Set(tournaments.map((t) => t.location_name)).size;
+
   return (
     <>
       <script
@@ -113,6 +117,7 @@ export default async function CityPage({ params }: PageProps) {
         city={city}
         user={user}
         subscriberCount={subscriberResult}
+        tournamentCount={upcomingCount}
         recommendations={
           <RecommendedTournamentsWrapper
             tournaments={tournaments}
@@ -120,6 +125,46 @@ export default async function CityPage({ params }: PageProps) {
           />
         }
       />
+      {/* Server-rendered SEO content — crawlable text that client components can't provide */}
+      <section className="mx-auto max-w-4xl px-5 py-16">
+        <h2 className="text-2xl font-extrabold text-gray-900">
+          {city.name} Pickleball Tournaments
+        </h2>
+        <p className="mt-3 text-sm leading-relaxed text-gray-500">
+          PickleRadar tracks every upcoming pickleball tournament in the {city.name} area.
+          {upcomingCount > 0
+            ? ` There are currently ${upcomingCount} upcoming tournaments across ${venueCount} venues.`
+            : ""}{" "}
+          {nextTournament
+            ? `The next event is ${nextTournament.name} at ${nextTournament.location_name} on ${new Date(nextTournament.date_start + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}.`
+            : ""}{" "}
+          We aggregate listings from PickleballBrackets, Pickleball Den, and community submissions so you
+          only need to check one place.
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-gray-500">
+          Filter by skill level, sort by distance, and view tournaments on a map. Every listing links
+          directly to the registration page. New tournaments are added daily, and our weekly email digest
+          keeps you up to date every Monday.
+        </p>
+        {upcomingCount > 0 && (
+          <div className="mt-6">
+            <h3 className="text-lg font-bold text-gray-800">Upcoming Tournaments</h3>
+            <ul className="mt-2 space-y-1">
+              {tournaments.slice(0, 8).map((t) => (
+                <li key={t.id} className="text-sm text-gray-500">
+                  <a
+                    href={`/${city.slug}/tournaments/${t.id}`}
+                    className="font-medium text-emerald-700 hover:text-emerald-800"
+                  >
+                    {t.name}
+                  </a>{" "}
+                  — {new Date(t.date_start + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })} at {t.location_name}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </section>
     </>
   );
 }

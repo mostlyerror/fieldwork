@@ -17,12 +17,14 @@ export function Homepage({
   user,
   recommendations,
   subscriberCount,
+  tournamentCount,
 }: {
   tournaments: Tournament[];
   city?: City;
   user?: User | null;
   recommendations?: React.ReactNode;
   subscriberCount?: number;
+  tournamentCount?: number;
 }) {
   const [emailState, setEmailState] = useState<EmailState>("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -89,7 +91,9 @@ export function Homepage({
             <span className="text-emerald-600">{city?.name ?? "Houston"}</span>
           </h1>
           <p className="mx-auto mt-4 max-w-md text-lg text-gray-500">
-            Every upcoming tournament, all in one place. Browse, filter, and never miss a match.
+            {tournamentCount && tournamentCount > 0
+              ? `${tournamentCount} upcoming tournaments. Browse, filter, and never miss a match.`
+              : "Every upcoming tournament, all in one place. Browse, filter, and never miss a match."}
           </p>
         </div>
 
