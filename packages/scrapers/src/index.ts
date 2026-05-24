@@ -6,7 +6,7 @@
  */
 
 import { startRun, completeRun, failRun } from "./utils/logger.js";
-import { upsertTournaments } from "./utils/upsert.js";
+import { upsertTournaments, upsertEvents } from "./utils/upsert.js";
 import { scrape as scrapePickleballBrackets } from "./sources/pickleballbrackets.js";
 import { scrape as scrapePickleballDen } from "./sources/pickleballden.js";
 import { sendDiscordAlert } from "./utils/discord.js";
@@ -105,6 +105,21 @@ async function main() {
     try {
       const tournaments = await source.scrape();
       const stats = await upsertTournaments(tournaments);
+
+      for (const t of tournaments) {
+        if (t.events && t.events.length > 0) {
+          const { data } = await supabase
+            .from("tournaments")
+            .select("id")
+            .eq("source_platform", t.sourcePlatform)
+            .eq("source_url", t.sourceUrl)
+            .maybeSingle();
+
+          if (data?.id) {
+            await upsertEvents(data.id, t.events);
+          }
+        }
+      }
 
       await completeRun(run, {
         tournamentsFound: tournaments.length,
