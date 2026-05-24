@@ -250,6 +250,33 @@ Deno.serve(async (req) => {
     { onConflict: "tournament_id,source_platform,source_url" },
   );
 
+  const discordUrl = Deno.env.get("DISCORD_WEBHOOK_URL");
+  if (discordUrl) {
+    try {
+      await fetch(discordUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          embeds: [
+            {
+              title: "📋 New Tournament Submitted",
+              description: body.name,
+              color: isDuplicate ? 0xeab308 : 0x2563eb,
+              fields: [
+                { name: "Date", value: body.dateStart!, inline: true },
+                { name: "Location", value: body.locationName!, inline: true },
+                { name: "Status", value: isDuplicate ? "Duplicate" : "Pending Review", inline: true },
+              ],
+              timestamp: new Date().toISOString(),
+            },
+          ],
+        }),
+      });
+    } catch {
+      // Never let alert failures break the main flow
+    }
+  }
+
   return new Response(
     JSON.stringify({
       id: data.id,

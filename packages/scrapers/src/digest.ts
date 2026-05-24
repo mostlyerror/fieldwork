@@ -8,6 +8,7 @@
 
 import { Resend } from "resend";
 import { supabase } from "./utils/supabase.js";
+import { sendDiscordAlert } from "./utils/discord.js";
 
 interface DigestTournament {
   id: string;
@@ -322,6 +323,21 @@ async function main() {
 
   // Send digest email to all active subscribers
   await sendDigestEmails(tournaments, appUrl, newThisWeekCount ?? 0, comingUpTournaments);
+
+  const { count: subscriberCount } = await supabase
+    .from("email_subscribers")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "active");
+
+  await sendDiscordAlert({
+    title: "📬 Weekly Digest Sent",
+    description: `${tournaments.length} weekend tournament(s) for ${friday} — ${sunday}`,
+    color: 0x8b5cf6,
+    fields: [
+      { name: "Subscribers", value: String(subscriberCount ?? 0), inline: true },
+      { name: "New This Week", value: String(newThisWeekCount ?? 0), inline: true },
+    ],
+  });
 }
 
 main().catch((err) => {

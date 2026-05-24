@@ -1,4 +1,5 @@
 import { supabase } from "./supabase.js";
+import { sendDiscordAlert } from "./discord.js";
 
 export interface RunLog {
   id: string;
@@ -60,6 +61,21 @@ export async function completeRun(
         `updated: ${stats.tournamentsUpdated}, deduped: ${stats.tournamentsDeduplicated}`
     );
   }
+
+  const hasNew = stats.tournamentsNew > 0;
+  await sendDiscordAlert({
+    title: `✅ Scraper — ${run.sourcePlatform}`,
+    description: hasNew
+      ? `Found **${stats.tournamentsNew}** new tournament(s)!`
+      : "No new tournaments this run.",
+    color: hasNew ? 0x16a34a : 0x6b7280,
+    fields: [
+      { name: "Found", value: String(stats.tournamentsFound), inline: true },
+      { name: "New", value: String(stats.tournamentsNew), inline: true },
+      { name: "Updated", value: String(stats.tournamentsUpdated), inline: true },
+      { name: "Deduped", value: String(stats.tournamentsDeduplicated), inline: true },
+    ],
+  });
 }
 
 /**
@@ -87,4 +103,10 @@ export async function failRun(
       `[${run.sourcePlatform}] Run ${run.id} failed: ${errorMessage}`
     );
   }
+
+  await sendDiscordAlert({
+    title: `🚨 Scraper FAILED — ${run.sourcePlatform}`,
+    description: errorMessage,
+    color: 0xdc2626,
+  });
 }

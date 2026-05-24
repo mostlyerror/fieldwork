@@ -2,6 +2,7 @@
 
 import { Resend } from "resend";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { sendDiscordAlert } from "@/lib/discord";
 
 type SubscribeResult =
   | { status: "success" }
@@ -57,6 +58,20 @@ export async function subscribeEmail(formData: FormData): Promise<SubscribeResul
     console.error("Failed to subscribe email:", error);
     return { status: "error", message: "Something went wrong. Please try again." };
   }
+
+  const { count } = await supabase
+    .from("email_subscribers")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "active");
+
+  await sendDiscordAlert({
+    title: "🎉 New Subscriber!",
+    description: normalizedEmail,
+    color: 0x16a34a,
+    fields: [
+      { name: "Total Active", value: String(count ?? "?"), inline: true },
+    ],
+  });
 
   await sendWelcomeDigest(normalizedEmail, supabase);
   return { status: "success" };
