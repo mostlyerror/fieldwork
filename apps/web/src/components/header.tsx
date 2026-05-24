@@ -31,7 +31,7 @@ export function Header({
           <Link
             href="/submit"
             aria-label="Submit a tournament"
-            className="rounded-full border border-emerald-200 bg-emerald-50/50 px-3 py-1 text-xs font-bold text-emerald-700 transition-all hover:bg-emerald-100 hover:border-emerald-300 sm:px-4 sm:py-1.5 sm:text-sm"
+            className="whitespace-nowrap rounded-full border border-emerald-200 bg-emerald-50/50 px-3 py-1 text-xs font-bold text-emerald-700 transition-all hover:bg-emerald-100 hover:border-emerald-300 sm:px-4 sm:py-1.5 sm:text-sm"
           >
             + Submit
           </Link>

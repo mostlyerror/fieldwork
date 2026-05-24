@@ -14,7 +14,7 @@ export function AuthNav({ user }: { user: User | null }) {
     return (
       <Link
         href="/login"
-        className="rounded-full bg-green-600 px-3 py-1 text-sm font-medium text-white transition hover:bg-green-700"
+        className="whitespace-nowrap rounded-full bg-emerald-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-emerald-700 sm:text-sm"
       >
         Log in
       </Link>
