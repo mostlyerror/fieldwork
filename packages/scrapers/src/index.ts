@@ -10,6 +10,7 @@ import { upsertTournaments, upsertEvents } from "./utils/upsert.js";
 import { scrape as scrapePickleballBrackets } from "./sources/pickleballbrackets.js";
 import { scrape as scrapePickleballDen } from "./sources/pickleballden.js";
 import { sendDiscordAlert } from "./utils/discord.js";
+import { scrapeDuprIds } from "./utils/scrape-dupr-ids.js";
 import { enrichDuprRatings } from "./utils/dupr-enrichment.js";
 import { fetchAllMatchHistory } from "./utils/match-history.js";
 import { supabase } from "./utils/supabase.js";
@@ -140,6 +141,16 @@ async function main() {
   }
 
   await runHealthCheck(results);
+
+  // Scrape DUPR IDs from pickleball.com for players missing them
+  try {
+    const idResult = await scrapeDuprIds();
+    if (idResult.found > 0) {
+      console.log(`[dupr-ids] Found ${idResult.found} new DUPR IDs from pickleball.com`);
+    }
+  } catch (err) {
+    console.error("[dupr-ids] DUPR ID scrape failed:", err);
+  }
 
   // DUPR enrichment: fetch live ratings for stale players
   let duprAccessToken: string | null = null;
