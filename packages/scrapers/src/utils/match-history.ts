@@ -179,7 +179,7 @@ async function fetchMatchHistory(
     body: JSON.stringify({
       filters: {},
       sort: { order: "DESC", parameter: "MATCH_DATE" },
-      limit: 50,
+      limit: 25,
       offset: 0,
     }),
   });
@@ -196,7 +196,8 @@ async function fetchMatchHistory(
   }
 
   if (!res.ok) {
-    console.error(`[match-history] History fetch failed for player ${numericId}: ${res.status}`);
+    const body = await res.text().catch(() => "");
+    console.error(`[match-history] History fetch failed for player ${numericId}: ${res.status} ${body.slice(0, 200)}`);
     return [];
   }
 
