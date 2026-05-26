@@ -5,6 +5,8 @@ import type { TournamentEvent } from "@/lib/types";
 import { FieldStrengthBadge } from "./field-strength-badge";
 import { PlayerList } from "./player-list";
 import { DuprDistribution } from "./dupr-distribution";
+import { effectiveAvgDupr, avgDuprPair } from "@/lib/dupr-utils";
+import { AvgDuprCell } from "./avg-dupr-cell";
 
 export function EventCard({
   event,
@@ -54,10 +56,8 @@ export function EventCard({
               {event.registered_count} {event.event_type === "singles" ? "players" : "teams"}
             </span>
           )}
-          {event.avg_dupr != null && (
-            <span className="font-semibold text-gray-700">
-              {event.avg_dupr.toFixed(2)}
-            </span>
+          {effectiveAvgDupr(event) != null && (
+            <AvgDuprCell pair={avgDuprPair(event)} size="sm" />
           )}
         </div>
       </button>

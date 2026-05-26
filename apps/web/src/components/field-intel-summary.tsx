@@ -1,5 +1,7 @@
 import type { TournamentEvent } from "@/lib/types";
 import { getFieldStrengthLevel } from "./field-strength-badge";
+import { effectiveAvgDupr, avgDuprPair } from "@/lib/dupr-utils";
+import { AvgDuprCell } from "./avg-dupr-cell";
 
 function getSandbaggerEvents(events: TournamentEvent[]): TournamentEvent[] {
   return events.filter(
@@ -8,12 +10,20 @@ function getSandbaggerEvents(events: TournamentEvent[]): TournamentEvent[] {
 }
 
 export function FieldIntelSummary({ events }: { events: TournamentEvent[] }) {
-  const withDupr = events.filter((e) => e.avg_dupr != null);
+  const eventAvgs = events.map((e) => ({ event: e, avg: effectiveAvgDupr(e) }));
+  const withDupr = eventAvgs.filter((ea) => ea.avg != null);
   if (withDupr.length === 0) return null;
 
   const totalRegistered = events.reduce((sum, e) => sum + e.registered_count, 0);
   const avgDupr =
-    withDupr.reduce((sum, e) => sum + e.avg_dupr!, 0) / withDupr.length;
+    withDupr.reduce((sum, ea) => sum + ea.avg!, 0) / withDupr.length;
+
+  const withListedDupr = events.filter((e) => e.avg_dupr != null);
+  const listedAvgDupr = withListedDupr.length > 0
+    ? Math.round((withListedDupr.reduce((sum, e) => sum + e.avg_dupr!, 0) / withListedDupr.length) * 100) / 100
+    : null;
+  const hasLiveData = events.some((e) => avgDuprPair(e).hasLiveData);
+  const summaryPair = { listed: listedAvgDupr, live: hasLiveData ? Math.round(avgDupr * 100) / 100 : null, hasLiveData };
 
   const fieldStrengths = events
     .map((e) => e.field_strength)
@@ -49,9 +59,9 @@ export function FieldIntelSummary({ events }: { events: TournamentEvent[] }) {
       )}
 
       <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
-        <div>
+        <div className="inline-flex items-center gap-1.5">
           <span className="text-gray-400">Avg DUPR </span>
-          <span className="font-bold text-gray-900">{avgDupr.toFixed(2)}</span>
+          <AvgDuprCell pair={summaryPair} size="md" />
         </div>
         <div>
           <span className="text-gray-400">Registered </span>

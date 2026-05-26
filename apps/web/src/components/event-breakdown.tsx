@@ -8,6 +8,8 @@ import { IntelSectionHeader } from "@/components/intel-section-header";
 import { DuprDistribution } from "./dupr-distribution";
 import { PlayerList } from "./player-list";
 import { FieldStrengthBadge } from "./field-strength-badge";
+import { effectiveAvgDupr, avgDuprPair } from "@/lib/dupr-utils";
+import { AvgDuprCell } from "./avg-dupr-cell";
 
 function categorizeEvent(event: TournamentEvent): string {
   const name = event.name.toLowerCase();
@@ -115,10 +117,8 @@ export function EventBreakdown({
                           {event.event_type === "singles" ? "players" : "teams"}
                         </span>
                       )}
-                      {event.avg_dupr != null && (
-                        <span className="font-semibold text-gray-600">
-                          {event.avg_dupr.toFixed(2)}
-                        </span>
+                      {effectiveAvgDupr(event) != null && (
+                        <AvgDuprCell pair={avgDuprPair(event)} size="sm" />
                       )}
                       {eventLiveCount > 0 && (
                         <span className="flex items-center gap-1 text-emerald-600">
@@ -153,12 +153,10 @@ export function EventBreakdown({
                 {selectedEvent.event_type === "singles" ? "players" : "teams"}
               </span>
             )}
-            {selectedEvent.avg_dupr != null && (
-              <span>
-                Avg DUPR{" "}
-                <span className="font-bold text-gray-900">
-                  {selectedEvent.avg_dupr.toFixed(2)}
-                </span>
+            {effectiveAvgDupr(selectedEvent) != null && (
+              <span className="inline-flex items-center gap-1.5">
+                <span className="text-gray-500">Avg DUPR</span>{" "}
+                <AvgDuprCell pair={avgDuprPair(selectedEvent)} size="md" />
               </span>
             )}
             {selectedEvent.skill_level_min != null &&

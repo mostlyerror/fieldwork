@@ -55,32 +55,35 @@ function winRate(wins: number, losses: number): string {
 
 function getMatchOpponents(match: Match, playerId: string): {
   partner: string | null;
+  partnerId: string | null;
   opp1: string;
+  opp1Id: string | null;
   opp2: string | null;
+  opp2Id: string | null;
 } {
   const onTeam1 =
     match.team1_player1_id === playerId ||
     match.team1_player2_id === playerId;
 
   if (onTeam1) {
-    const partner =
-      match.team1_player1_id === playerId
-        ? match.team1_player2_name
-        : match.team1_player1_name;
+    const isP1 = match.team1_player1_id === playerId;
     return {
-      partner: partner ?? null,
+      partner: (isP1 ? match.team1_player2_name : match.team1_player1_name) ?? null,
+      partnerId: (isP1 ? match.team1_player2_id : match.team1_player1_id) ?? null,
       opp1: match.team2_player1_name,
+      opp1Id: match.team2_player1_id ?? null,
       opp2: match.team2_player2_name ?? null,
+      opp2Id: match.team2_player2_id ?? null,
     };
   } else {
-    const partner =
-      match.team2_player1_id === playerId
-        ? match.team2_player2_name
-        : match.team2_player1_name;
+    const isP1 = match.team2_player1_id === playerId;
     return {
-      partner: partner ?? null,
+      partner: (isP1 ? match.team2_player2_name : match.team2_player1_name) ?? null,
+      partnerId: (isP1 ? match.team2_player2_id : match.team2_player1_id) ?? null,
       opp1: match.team1_player1_name,
+      opp1Id: match.team1_player1_id ?? null,
       opp2: match.team1_player2_name ?? null,
+      opp2Id: match.team1_player2_id ?? null,
     };
   }
 }
@@ -184,7 +187,7 @@ export default async function PlayerPage({ params }: PageProps) {
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
                       Singles
                     </p>
-                    <p className="text-2xl font-extrabold text-emerald-600 leading-none mt-0.5">
+                    <p className="text-3xl font-extrabold text-emerald-600 leading-none mt-0.5">
                       {player.dupr_singles.toFixed(2)}
                     </p>
                   </div>
@@ -284,7 +287,7 @@ export default async function PlayerPage({ params }: PageProps) {
             <div className="divide-y divide-gray-50 bg-white">
               {recentMatches.map((match) => {
                 const won = getMatchWon(match, id);
-                const { partner, opp1, opp2 } = getMatchOpponents(match, id);
+                const { partner, partnerId, opp1, opp1Id, opp2, opp2Id } = getMatchOpponents(match, id);
                 return (
                   <div key={match.id} className="flex items-start gap-3 px-4 py-3">
                     {/* W/L badge */}
@@ -317,15 +320,26 @@ export default async function PlayerPage({ params }: PageProps) {
                         {partner && (
                           <span>
                             <span className="text-gray-400">w/ </span>
-                            {partner}
+                            {partnerId ? (
+                              <Link href={`/players/${partnerId}`} className="hover:text-emerald-700 hover:underline">{partner}</Link>
+                            ) : partner}
                             <span className="text-gray-400"> vs </span>
                           </span>
                         )}
                         {!partner && (
                           <span className="text-gray-400">vs </span>
                         )}
-                        {opp1}
-                        {opp2 && ` + ${opp2}`}
+                        {opp1Id ? (
+                          <Link href={`/players/${opp1Id}`} className="hover:text-emerald-700 hover:underline">{opp1}</Link>
+                        ) : opp1}
+                        {opp2 && (
+                          <>
+                            {" + "}
+                            {opp2Id ? (
+                              <Link href={`/players/${opp2Id}`} className="hover:text-emerald-700 hover:underline">{opp2}</Link>
+                            ) : opp2}
+                          </>
+                        )}
                       </p>
                     </div>
 

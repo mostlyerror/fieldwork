@@ -8,7 +8,7 @@ export async function getTournaments(): Promise<Tournament[]> {
     .from("tournaments")
     .select("*")
     .eq("status", "active")
-    .gte("date_start", today)
+    .gte("date_end", today)
     .order("date_start", { ascending: true });
 
   if (error) {
@@ -408,12 +408,13 @@ export async function getPlayerUpcomingTournaments(
         tournaments!inner (
           id,
           name,
-          date_start
+          date_start,
+          date_end
         )
       )
     `)
     .eq("player_id", playerId)
-    .gte("tournament_events.tournaments.date_start", today)
+    .gte("tournament_events.tournaments.date_end", today)
     .order("tournament_events.tournaments.date_start", { ascending: true });
 
   if (error || !data) return [];
@@ -424,7 +425,8 @@ export async function getPlayerUpcomingTournaments(
     const tournament = event.tournaments as Record<string, unknown> | null;
     if (!tournament) return [];
     const dateStart = tournament.date_start as string;
-    if (dateStart < today) return [];
+    const dateEnd = (tournament.date_end as string) ?? dateStart;
+    if (dateEnd < today) return [];
     return [
       {
         tournamentId: tournament.id as string,

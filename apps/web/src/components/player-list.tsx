@@ -91,11 +91,11 @@ export function PlayerList({ players }: { players: EventPlayer[] }) {
             <th className="px-3 py-2 text-right">
               {hasAnyLiveDupr ? "DUPR" : "Listed DUPR"}
             </th>
+            <th className="hidden px-3 py-2 sm:table-cell">Partner</th>
+            <th className="hidden px-3 py-2 text-right sm:table-cell">Partner DUPR</th>
             {isDoubles && (
               <th className="hidden px-3 py-2 text-right sm:table-cell">Team</th>
             )}
-            <th className="hidden px-3 py-2 sm:table-cell">Partner</th>
-            <th className="hidden px-3 py-2 text-right sm:table-cell">Partner DUPR</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
@@ -112,6 +112,21 @@ export function PlayerList({ players }: { players: EventPlayer[] }) {
                 ) : (
                   player.player_name
                 )}
+                {isDoubles && player.partner_name && (
+                  <span className="block text-xs text-gray-400 sm:hidden">
+                    w/{" "}
+                    {player.partner_id ? (
+                      <Link
+                        href={`/players/${player.partner_id}`}
+                        className="text-emerald-600 hover:underline"
+                      >
+                        {player.partner_name}
+                      </Link>
+                    ) : (
+                      player.partner_name
+                    )}
+                  </span>
+                )}
               </td>
               <td className="px-3 py-1.5 text-right">
                 <DuprCell
@@ -120,17 +135,6 @@ export function PlayerList({ players }: { players: EventPlayer[] }) {
                   verified={player.live_dupr_verified}
                 />
               </td>
-              {isDoubles && (
-                <td className="hidden px-3 py-1.5 text-right sm:table-cell">
-                  {teamDupr(player) != null ? (
-                    <span className="font-bold text-gray-800">
-                      {teamDupr(player)!.toFixed(2)}
-                    </span>
-                  ) : (
-                    <span className="text-gray-300">--</span>
-                  )}
-                </td>
-              )}
               <td className="hidden px-3 py-1.5 text-gray-600 sm:table-cell">
                 {player.partner_id ? (
                   <Link
@@ -150,6 +154,17 @@ export function PlayerList({ players }: { players: EventPlayer[] }) {
                   verified={player.partner_live_dupr_verified}
                 />
               </td>
+              {isDoubles && (
+                <td className="hidden px-3 py-1.5 text-right sm:table-cell">
+                  {teamDupr(player) != null ? (
+                    <span className="font-bold text-gray-800">
+                      {teamDupr(player)!.toFixed(2)}
+                    </span>
+                  ) : (
+                    <span className="text-gray-300">--</span>
+                  )}
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
