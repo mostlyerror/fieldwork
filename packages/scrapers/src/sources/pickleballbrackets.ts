@@ -385,6 +385,7 @@ async function scrapeEvents(page: Page, slug: string): Promise<ScrapedEvent[]> {
         skillLevelMax: skillMax,
         maxTeams: raw.maxCapacity ?? undefined,
         registeredCount: raw.registeredCount,
+        sourceEventId: activityId,
         players,
       });
     }

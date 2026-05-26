@@ -23,12 +23,9 @@ export function avgDuprPair(event: TournamentEvent): AvgDuprPair {
   const players = event.players;
   if (!players || players.length === 0) return { listed, live: null, hasLiveData: false };
 
-  const liveRatings = players
-    .filter((p) => p.live_dupr != null && p.live_dupr_verified === true)
-    .map((p) => p.live_dupr!);
+  const hasLiveData = players.some((p) => p.live_dupr != null && p.live_dupr_verified === true);
+  if (!hasLiveData) return { listed, live: null, hasLiveData: false };
 
-  if (liveRatings.length === 0) return { listed, live: null, hasLiveData: false };
-
-  const live = Math.round((liveRatings.reduce((a, b) => a + b, 0) / liveRatings.length) * 100) / 100;
+  const live = effectiveAvgDupr(event);
   return { listed, live, hasLiveData: true };
 }

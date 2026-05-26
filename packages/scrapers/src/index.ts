@@ -13,6 +13,7 @@ import { sendDiscordAlert } from "./utils/discord.js";
 import { scrapeDuprIds } from "./utils/scrape-dupr-ids.js";
 import { enrichDuprRatings } from "./utils/dupr-enrichment.js";
 import { fetchAllMatchHistory } from "./utils/match-history.js";
+import { fetchLiveMatches } from "./utils/live-matches.js";
 import { supabase } from "./utils/supabase.js";
 import type { ScraperSource } from "./types.js";
 import type { UpsertStats } from "./utils/upsert.js";
@@ -198,6 +199,20 @@ async function main() {
     } catch (err) {
       console.error("[match-history] Match history step failed:", err);
     }
+  }
+
+  // Live match tracking: fetch bracket/match data for in-progress tournaments
+  try {
+    const liveResult = await fetchLiveMatches();
+    if (liveResult.matchesUpserted > 0) {
+      await sendDiscordAlert({
+        title: "🏆 Live Matches Updated",
+        description: `Checked ${liveResult.tournamentsChecked} tournament(s), ${liveResult.eventsChecked} events, upserted ${liveResult.matchesUpserted} matches`,
+        color: 0xf59e0b,
+      });
+    }
+  } catch (err) {
+    console.error("[live-matches] Live match fetch failed:", err);
   }
 
   console.log("All sources processed.");

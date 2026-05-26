@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import type { Tournament, TournamentSource, TournamentEvent, EventPlayer, Player, Match, PlayerRecord, FrequentPartner } from "./types";
+import type { Tournament, TournamentSource, TournamentEvent, TournamentMatch, EventPlayer, Player, Match, PlayerRecord, FrequentPartner } from "./types";
 import { getCityBySlug, getDefaultCity } from "./cities";
 
 export async function getTournaments(): Promise<Tournament[]> {
@@ -74,6 +74,23 @@ export async function getTournamentSources(
     return [];
   }
   return data ?? [];
+}
+
+export async function getTournamentMatches(
+  tournamentId: string
+): Promise<TournamentMatch[]> {
+  const { data, error } = await supabase
+    .from("tournament_matches")
+    .select("*")
+    .eq("tournament_id", tournamentId)
+    .order("round_number", { ascending: true })
+    .order("match_number", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching tournament matches:", error);
+    return [];
+  }
+  return (data ?? []) as TournamentMatch[];
 }
 
 export async function getTournamentEvents(

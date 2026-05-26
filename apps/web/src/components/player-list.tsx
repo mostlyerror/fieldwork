@@ -64,11 +64,17 @@ function DuprCell({ listed, live, verified }: {
   return <span className="text-gray-300">--</span>;
 }
 
-function teamDupr(player: EventPlayer): number | null {
-  if (player.live_dupr != null && player.partner_live_dupr != null) {
-    return (player.live_dupr + player.partner_live_dupr) / 2;
-  }
-  return player.team_avg_dupr;
+function teamDuprTotal(player: EventPlayer): number | null {
+  const p1 = player.live_dupr ?? player.dupr_rating;
+  const p2 = player.partner_live_dupr ?? player.partner_dupr_rating;
+  if (p1 != null && p2 != null) return Math.round((p1 + p2) * 100) / 100;
+  return null;
+}
+
+function teamDuprAvg(player: EventPlayer): number | null {
+  const total = teamDuprTotal(player);
+  if (total == null) return null;
+  return Math.round((total / 2) * 100) / 100;
 }
 
 export function PlayerList({ players }: { players: EventPlayer[] }) {
@@ -156,10 +162,15 @@ export function PlayerList({ players }: { players: EventPlayer[] }) {
               </td>
               {isDoubles && (
                 <td className="hidden px-3 py-1.5 text-right sm:table-cell">
-                  {teamDupr(player) != null ? (
-                    <span className="font-bold text-gray-800">
-                      {teamDupr(player)!.toFixed(2)}
-                    </span>
+                  {teamDuprTotal(player) != null ? (
+                    <div className="flex flex-col items-end gap-0.5">
+                      <span className="font-bold text-gray-800">
+                        {teamDuprTotal(player)!.toFixed(2)}
+                      </span>
+                      <span className="text-[10px] text-gray-400">
+                        avg {teamDuprAvg(player)!.toFixed(2)}
+                      </span>
+                    </div>
                   ) : (
                     <span className="text-gray-300">--</span>
                   )}

@@ -165,13 +165,13 @@ export default async function PlayerPage({ params }: PageProps) {
               )}
             </div>
 
-            {(player.dupr_doubles != null || player.dupr_singles != null) && (
-              <div className="flex shrink-0 items-start gap-4">
-                {player.dupr_doubles != null && (
-                  <div className="text-right">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                      Doubles
-                    </p>
+            <div className="flex shrink-0 items-start gap-4">
+              <div className="text-right">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                  Doubles
+                </p>
+                {player.dupr_doubles != null ? (
+                  <>
                     <p className="text-3xl font-extrabold text-emerald-600 leading-none mt-0.5">
                       {player.dupr_doubles.toFixed(2)}
                     </p>
@@ -180,20 +180,24 @@ export default async function PlayerPage({ params }: PageProps) {
                         Verified
                       </span>
                     )}
-                  </div>
-                )}
-                {player.dupr_singles != null && (
-                  <div className={`text-right${player.dupr_doubles != null ? " border-l border-gray-100 pl-4" : ""}`}>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                      Singles
-                    </p>
-                    <p className="text-3xl font-extrabold text-emerald-600 leading-none mt-0.5">
-                      {player.dupr_singles.toFixed(2)}
-                    </p>
-                  </div>
+                  </>
+                ) : (
+                  <p className="text-2xl font-extrabold text-gray-200 leading-none mt-0.5">--</p>
                 )}
               </div>
-            )}
+              <div className={`text-right border-l border-gray-100 pl-4`}>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                  Singles
+                </p>
+                {player.dupr_singles != null ? (
+                  <p className="text-3xl font-extrabold text-emerald-600 leading-none mt-0.5">
+                    {player.dupr_singles.toFixed(2)}
+                  </p>
+                ) : (
+                  <p className="text-2xl font-extrabold text-gray-200 leading-none mt-0.5">--</p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 

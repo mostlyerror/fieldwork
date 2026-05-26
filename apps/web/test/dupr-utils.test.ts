@@ -26,6 +26,8 @@ function makeEvent(overrides: Partial<TournamentEvent> = {}): TournamentEvent {
     tournament_id: "t1",
     name: "Men's Doubles 3.0",
     event_type: "doubles",
+    gender: null,
+    max_teams: null,
     skill_level_min: null,
     skill_level_max: null,
     registered_count: 0,
@@ -116,18 +118,19 @@ describe("avgDuprPair", () => {
     expect(pair.hasLiveData).toBe(false);
   });
 
-  it("computes live avg only from verified players", () => {
+  it("computes live avg from all players using live when available, listed as fallback", () => {
     const event = makeEvent({
       avg_dupr: 2.88,
       players: [
         makePlayer({ dupr_rating: 2.5, live_dupr: 3.2, live_dupr_verified: true }),
         makePlayer({ dupr_rating: 3.0, live_dupr: 3.4, live_dupr_verified: true }),
-        makePlayer({ dupr_rating: 3.0, live_dupr: 5.0, live_dupr_verified: false }),
+        makePlayer({ dupr_rating: 3.0, live_dupr: null }),
       ],
     });
     const pair = avgDuprPair(event);
     expect(pair.listed).toBe(2.88);
-    expect(pair.live).toBe(3.3);
+    // (3.2 + 3.4 + 3.0) / 3 = 3.2 — verified live for two, listed fallback for third
+    expect(pair.live).toBe(3.2);
     expect(pair.hasLiveData).toBe(true);
   });
 

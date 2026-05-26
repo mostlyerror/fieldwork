@@ -117,6 +117,34 @@ export interface FrequentPartner {
   losses: number;
 }
 
+export interface TournamentMatch {
+  id: string;
+  match_uuid: string;
+  tournament_id: string;
+  event_id: string | null;
+  team1_player1_name: string | null;
+  team1_player2_name: string | null;
+  team2_player1_name: string | null;
+  team2_player2_name: string | null;
+  team1_rating: number | null;
+  team2_rating: number | null;
+  team1_seed: number | null;
+  team2_seed: number | null;
+  team1_scores: number[];
+  team2_scores: number[];
+  winner: number;
+  match_status: number;
+  round_number: number;
+  match_number: number;
+  round_text: string | null;
+  bracket_type: string | null;
+  pool_id: string | null;
+  court_title: string | null;
+  planned_start: string | null;
+  match_start: string | null;
+  match_completed: string | null;
+}
+
 export type FieldStrengthFilter = "all" | "friendly" | "competitive" | "stacked";
 
 export interface TournamentFilters {
