@@ -62,7 +62,7 @@ export function Footer({ citySlug }: { citySlug?: string }) {
         <div className="mt-10 flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 pt-6 text-xs text-gray-400">
           <p>&copy; {new Date().getFullYear()} PickleRadar</p>
           <p>
-            Made in Houston with real DUPR data
+            Made in Houston with real player data
           </p>
         </div>
       </div>
