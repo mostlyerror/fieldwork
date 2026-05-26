@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FooterSubscribe } from "./footer-subscribe";
 
 export function Footer({ citySlug }: { citySlug?: string }) {
   const browseHref = citySlug ? `/${citySlug}` : "/houston";
@@ -45,16 +46,15 @@ export function Footer({ citySlug }: { citySlug?: string }) {
             <p className="mt-3 text-sm text-gray-500">
               Weekly tournament updates delivered to your inbox.
             </p>
-            <div className="mt-3 flex flex-col gap-2 text-sm">
-              <a
-                href="https://instagram.com/pickleradar"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-600 hover:text-emerald-700"
-              >
-                Instagram
-              </a>
-            </div>
+            <FooterSubscribe />
+            <a
+              href="https://instagram.com/pickleradar"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-block text-sm text-gray-600 hover:text-emerald-700"
+            >
+              Instagram
+            </a>
           </div>
         </div>
 
