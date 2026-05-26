@@ -64,6 +64,13 @@ function DuprCell({ listed, live, verified }: {
   return <span className="text-gray-300">--</span>;
 }
 
+function teamDupr(player: EventPlayer): number | null {
+  if (player.live_dupr != null && player.partner_live_dupr != null) {
+    return (player.live_dupr + player.partner_live_dupr) / 2;
+  }
+  return player.team_avg_dupr;
+}
+
 export function PlayerList({ players }: { players: EventPlayer[] }) {
   if (players.length === 0) {
     return (
@@ -72,6 +79,7 @@ export function PlayerList({ players }: { players: EventPlayer[] }) {
   }
 
   const hasAnyLiveDupr = players.some((p) => p.live_dupr != null);
+  const isDoubles = players.some((p) => p.partner_name != null);
 
   return (
     <div className="mt-2 overflow-hidden rounded-lg border border-gray-100">
@@ -83,6 +91,9 @@ export function PlayerList({ players }: { players: EventPlayer[] }) {
             <th className="px-3 py-2 text-right">
               {hasAnyLiveDupr ? "DUPR" : "Listed DUPR"}
             </th>
+            {isDoubles && (
+              <th className="hidden px-3 py-2 text-right sm:table-cell">Team</th>
+            )}
             <th className="hidden px-3 py-2 sm:table-cell">Partner</th>
             <th className="hidden px-3 py-2 text-right sm:table-cell">Partner DUPR</th>
           </tr>
@@ -109,6 +120,17 @@ export function PlayerList({ players }: { players: EventPlayer[] }) {
                   verified={player.live_dupr_verified}
                 />
               </td>
+              {isDoubles && (
+                <td className="hidden px-3 py-1.5 text-right sm:table-cell">
+                  {teamDupr(player) != null ? (
+                    <span className="font-bold text-gray-800">
+                      {teamDupr(player)!.toFixed(2)}
+                    </span>
+                  ) : (
+                    <span className="text-gray-300">--</span>
+                  )}
+                </td>
+              )}
               <td className="hidden px-3 py-1.5 text-gray-600 sm:table-cell">
                 {player.partner_id ? (
                   <Link
