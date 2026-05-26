@@ -155,6 +155,22 @@ async function attachIntelligenceAggregates(
 
   if (error || !events || events.length === 0) return tournaments;
 
+  // Query verified live DUPR player counts per tournament
+  const { data: liveCounts } = await supabase
+    .from("event_players")
+    .select("tournament_events!inner(tournament_id), player_id, players!event_players_player_id_fkey(dupr_verified)")
+    .in("tournament_events.tournament_id", ids)
+    .not("player_id", "is", null);
+
+  const liveByTournament = new Map<string, number>();
+  for (const row of (liveCounts ?? [])) {
+    const tid = (row as any).tournament_events?.tournament_id as string;
+    const verified = (row as any).players?.dupr_verified === true;
+    if (tid && verified) {
+      liveByTournament.set(tid, (liveByTournament.get(tid) ?? 0) + 1);
+    }
+  }
+
   // Aggregate per tournament
   const aggregates = new Map<string, {
     event_count: number;
@@ -192,6 +208,7 @@ async function attachIntelligenceAggregates(
       total_registered: agg.total_registered,
       avg_field_strength: avgFieldStrength != null ? Math.round(avgFieldStrength * 100) / 100 : undefined,
       max_sandbagger_pct: maxSandbaggerPct != null ? Math.round(maxSandbaggerPct * 100) / 100 : undefined,
+      total_live_dupr: liveByTournament.get(t.id) ?? 0,
     };
   });
 }

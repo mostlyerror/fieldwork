@@ -21,6 +21,7 @@ export interface Tournament {
   total_registered?: number;
   avg_field_strength?: number;
   max_sandbagger_pct?: number;
+  total_live_dupr?: number;
 }
 
 export interface TournamentSource {
