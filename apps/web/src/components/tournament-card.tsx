@@ -18,10 +18,10 @@ export function TournamentCard({
   return (
     <Link
       href={href}
-      className="block overflow-hidden rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition"
+      className="flex flex-col overflow-hidden rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition"
     >
       {/* Main card body */}
-      <div className="p-5">
+      <div className="flex-1 p-5">
         {/* Row 1: date + event count (left) + price (right) */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">
