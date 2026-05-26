@@ -106,7 +106,7 @@ export function PlayerList({ players }: { players: EventPlayer[] }) {
         </thead>
         <tbody className="divide-y divide-gray-50">
           {players.map((player) => (
-            <tr key={player.id} className="hover:bg-gray-50/50">
+            <tr key={player.id} className="hover:bg-gray-50/50 align-middle">
               <td className="px-3 py-1.5 font-medium text-gray-900">
                 {player.player_id ? (
                   <Link
