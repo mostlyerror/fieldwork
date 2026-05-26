@@ -11,6 +11,7 @@ import { scrape as scrapePickleballBrackets } from "./sources/pickleballbrackets
 import { scrape as scrapePickleballDen } from "./sources/pickleballden.js";
 import { sendDiscordAlert } from "./utils/discord.js";
 import { enrichDuprRatings } from "./utils/dupr-enrichment.js";
+import { fetchAllMatchHistory } from "./utils/match-history.js";
 import { supabase } from "./utils/supabase.js";
 import type { ScraperSource } from "./types.js";
 import type { UpsertStats } from "./utils/upsert.js";
@@ -141,6 +142,7 @@ async function main() {
   await runHealthCheck(results);
 
   // DUPR enrichment: fetch live ratings for stale players
+  let duprAccessToken: string | null = null;
   if (process.env.DUPR_EMAIL && process.env.DUPR_PASSWORD) {
     try {
       const enrichResult = await enrichDuprRatings();
@@ -151,8 +153,39 @@ async function main() {
           color: 0x22c55e,
         });
       }
+      // Capture the token that enrichDuprRatings used internally — re-authenticate for match history
+      const authRes = await fetch("https://api.dupr.gg/auth/v1.0/login/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: process.env.DUPR_EMAIL,
+          password: process.env.DUPR_PASSWORD,
+        }),
+      });
+      if (authRes.ok) {
+        const authData = await authRes.json();
+        if (authData.status === "SUCCESS") {
+          duprAccessToken = authData.result.accessToken;
+        }
+      }
     } catch (err) {
       console.error("[dupr-enrich] Enrichment step failed:", err);
+    }
+  }
+
+  // Match history: fetch and store recent matches for verified DUPR players
+  if (duprAccessToken) {
+    try {
+      const matchResult = await fetchAllMatchHistory(duprAccessToken);
+      if (matchResult.matchesInserted > 0) {
+        await sendDiscordAlert({
+          title: "🏓 Match History Updated",
+          description: `Checked ${matchResult.playersChecked} players, upserted ${matchResult.matchesInserted} matches`,
+          color: 0x3b82f6,
+        });
+      }
+    } catch (err) {
+      console.error("[match-history] Match history step failed:", err);
     }
   }
 
