@@ -172,11 +172,10 @@ CREATE INDEX idx_matches_date ON matches (event_date DESC);
 - Match history scraper (extends enrichment)
 - Player profile: record breakdown, frequent partners, recent matches
 
-**Phase 3 — "Players You Know"**
-- Update DUPR linker to store `dupr_id` on the `users` table (currently only stores rating)
-- On link, trigger match history fetch for that user's `dupr_id`
-- Cross-reference user match history with tournament registrations
-- "Players You Know" section on tournament detail page
+**Phase 3 — "Players You Know" (SHELVED)**
+- Requires profile claiming, which requires identity verification
+- DUPR doesn't offer OAuth or expose emails, so no reliable way to verify claims
+- Revisit if DUPR adds an OAuth flow or we find another verification method
 
 **Phase 4 — Hardening**
 - DUPR account rotation

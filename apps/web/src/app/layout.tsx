@@ -6,7 +6,7 @@ import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-jakarta",
+  variable: "--font-sans",
   display: "swap",
 });
 
@@ -27,7 +27,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={jakarta.variable}>
-      <body className="font-jakarta text-gray-900 antialiased">
+      <body className="font-sans text-foreground antialiased">
         {children}
         <Analytics />
         <DevIndicator />
