@@ -14,24 +14,23 @@ export function Header({
   const homeHref = city ? `/${city.slug}` : "/";
 
   return (
-    <nav className="bg-[#FFFDF7]/90 backdrop-blur-md border-b border-orange-100/50">
+    <nav className="bg-[#FFFDF7] border-b-2 border-[#1a1a1a]">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
-        <Link href={homeHref} className="flex items-center gap-2.5 group">
-          <span className="text-4xl transition-transform group-hover:rotate-12 group-hover:scale-110">{"\u{1F3D3}"}</span>
-          <div>
-            <span className="block text-xl font-extrabold text-emerald-600">
-              PickleRadar
-            </span>
-            <span className="block text-[11px] font-medium text-emerald-600/50">
-              Your {cityName} pickleball community
-            </span>
-          </div>
+        <Link
+          href={homeHref}
+          className="font-sans text-xl font-black text-[#1a1a1a] tracking-tight hover:opacity-80 transition-opacity"
+          style={{ letterSpacing: "-0.5px" }}
+        >
+          PickleRadar
         </Link>
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-6">
+          <span className="hidden sm:inline text-sm font-medium text-gray-400">
+            {cityName}
+          </span>
           <Link
             href="/submit"
-            aria-label="Submit a tournament"
-            className="whitespace-nowrap rounded-full border border-emerald-200 bg-emerald-50/50 px-3 py-1 text-xs font-bold text-emerald-700 transition-all hover:bg-emerald-100 hover:border-emerald-300 sm:px-4 sm:py-1.5 sm:text-sm"
+            className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors whitespace-nowrap"
           >
             + Submit
           </Link>

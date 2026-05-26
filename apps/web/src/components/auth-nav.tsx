@@ -14,13 +14,14 @@ export function AuthNav({ user }: { user: User | null }) {
     return (
       <Link
         href="/login"
-        className="whitespace-nowrap rounded-full bg-emerald-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-emerald-700 sm:text-sm"
+        className="whitespace-nowrap text-sm font-semibold text-emerald-700 hover:text-emerald-800 transition-colors"
       >
-        Log in
+        Sign in
       </Link>
     );
   }
 
+  const displayName = user.user_metadata?.full_name as string | undefined;
   const initial = (user.email?.[0] ?? "U").toUpperCase();
 
   async function handleLogout() {
@@ -34,9 +35,9 @@ export function AuthNav({ user }: { user: User | null }) {
     <div className="relative">
       <button
         onClick={() => setMenuOpen(!menuOpen)}
-        className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-sm font-bold text-green-700 transition hover:bg-green-200"
+        className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
       >
-        {initial}
+        {displayName ?? initial}
       </button>
 
       {menuOpen && (
@@ -45,8 +46,8 @@ export function AuthNav({ user }: { user: User | null }) {
             className="fixed inset-0 z-40"
             onClick={() => setMenuOpen(false)}
           />
-          <div className="absolute right-0 z-50 mt-2 w-48 rounded-xl bg-white py-2 shadow-lg ring-1 ring-gray-100">
-            <p className="border-b border-gray-100 px-4 pb-2 text-xs text-gray-400 truncate">
+          <div className="absolute right-0 z-50 mt-2 w-48 rounded-none border border-[#1a1a1a] bg-[#FFFDF7] py-2 shadow-md">
+            <p className="border-b border-gray-200 px-4 pb-2 text-xs text-gray-400 truncate">
               {user.email}
             </p>
             <Link
@@ -54,7 +55,7 @@ export function AuthNav({ user }: { user: User | null }) {
               onClick={() => setMenuOpen(false)}
               className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
             >
-              Profile & DUPR
+              Profile &amp; DUPR
             </Link>
             <button
               onClick={handleLogout}
