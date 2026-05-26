@@ -292,6 +292,8 @@ async function scrapeEvents(page: Page, slug: string): Promise<ScrapedEvent[]> {
     }
 
     // Click buttons with registered players (count > 0)
+    // Track which button index triggers which activityId
+    const buttonToActivityId = new Map<number, string>();
     const buttonsToClick = allButtonLocators.filter(b => b.count > 0);
     if (buttonsToClick.length > 0) {
       console.log(
@@ -300,28 +302,29 @@ async function scrapeEvents(page: Page, slug: string): Promise<ScrapedEvent[]> {
 
       for (const btn of buttonsToClick) {
         try {
-          // Re-query buttons each time since DOM may change after clicks
+          const beforeIds = new Set(playersByActivityId.keys());
           const freshButtons = await page.locator('button').all();
           if (btn.index < freshButtons.length) {
             await freshButtons[btn.index].click();
-            // Wait for the API response
             await page.waitForTimeout(800);
+          }
+          // Find the new activityId that appeared after this click
+          for (const id of playersByActivityId.keys()) {
+            if (!beforeIds.has(id)) {
+              buttonToActivityId.set(btn.index, id);
+              break;
+            }
           }
         } catch {
           // Button may have changed, skip
         }
       }
 
-      // Wait a bit for final API responses to settle
       await page.waitForTimeout(1000);
     }
 
-    // Map API responses back to events by order
-    // The API calls arrive in the same order we clicked the buttons
-    const activityIds = Array.from(playersByActivityId.keys());
-
     // Build events from DOM data + player API data
-    let playerApiIndex = 0;
+    // Match each event to its activityId via the button index
     for (const raw of rawEvents) {
       const parsed = parseEventName(raw.name);
 
@@ -341,12 +344,11 @@ async function scrapeEvents(page: Page, slug: string): Promise<ScrapedEvent[]> {
         }
       }
 
-      // Match this event to its API player data
+      // Match this event to its API player data via button index
       const players: ScrapedPlayer[] = [];
-      if (raw.registeredCount > 0 && playerApiIndex < activityIds.length) {
-        const activityId = activityIds[playerApiIndex];
+      const activityId = raw.allButtonIndex >= 0 ? buttonToActivityId.get(raw.allButtonIndex) : undefined;
+      if (activityId) {
         const apiPlayers = playersByActivityId.get(activityId) ?? [];
-        playerApiIndex++;
 
         for (const p of apiPlayers) {
           if (!p.isRegistered) continue; // skip waitlisted
