@@ -7,7 +7,6 @@ import { TournamentDetail } from "@/components/tournament-detail";
 import { TournamentCard } from "@/components/tournament-card";
 import { EventBreakdown } from "@/components/event-breakdown";
 import { FieldIntelSummary } from "@/components/field-intel-summary";
-import { MiniMapWrapper } from "@/components/mini-map-wrapper";
 import { ServerHeader } from "@/components/server-header";
 import { formatDateRange, distanceMiles } from "@/lib/format";
 import type { Tournament } from "@/lib/types";
@@ -86,14 +85,6 @@ export default async function TournamentPage({ params }: PageProps) {
 
   if (!tournament) notFound();
 
-  const miniMap =
-    tournament.latitude != null && tournament.longitude != null ? (
-      <MiniMapWrapper
-        latitude={tournament.latitude}
-        longitude={tournament.longitude}
-      />
-    ) : null;
-
   const related = getRelatedTournaments(tournament, cityTournaments);
 
   const jsonLd = {
@@ -140,7 +131,7 @@ export default async function TournamentPage({ params }: PageProps) {
       />
       <ServerHeader city={city} />
 
-      <main className="mx-auto max-w-5xl px-5 py-8">
+      <main className="mx-auto max-w-3xl px-5 py-8">
         <Link
           href={`/${citySlug}`}
           className="mb-6 inline-flex items-center text-sm text-gray-400 hover:text-green-700"
@@ -150,7 +141,6 @@ export default async function TournamentPage({ params }: PageProps) {
         <TournamentDetail
           tournament={tournament}
           sources={sources}
-          miniMap={miniMap}
         />
 
         {events.length > 0 && (
