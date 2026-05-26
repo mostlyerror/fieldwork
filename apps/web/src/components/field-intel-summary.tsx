@@ -1,5 +1,5 @@
 import type { TournamentEvent } from "@/lib/types";
-import { FieldStrengthBadge, getFieldStrengthLevel } from "./field-strength-badge";
+import { getFieldStrengthLevel } from "./field-strength-badge";
 
 function getSandbaggerEvents(events: TournamentEvent[]): TournamentEvent[] {
   return events.filter(
@@ -31,65 +31,46 @@ export function FieldIntelSummary({ events }: { events: TournamentEvent[] }) {
 
   const level = getFieldStrengthLevel(avgFieldStrength, maxSandbaggerPct);
   const sandbaggerEvents = getSandbaggerEvents(events);
+  const isSandbaggerAlert = level === "sandbagger" || (maxSandbaggerPct != null && maxSandbaggerPct > 0.3);
 
   const TAKEAWAYS: Record<string, string> = {
-    friendly: "Brackets are playing at or below listed skill levels — good for newer competitors",
-    competitive: "Brackets are playing close to the top of listed skill levels",
-    stacked: "Brackets are playing above listed skill levels — expect tough competition",
-    sandbagger: "High percentage of players rated above bracket limits",
+    friendly: "Brackets are playing at or below listed skill levels — good for newer competitors.",
+    competitive: "Brackets are playing close to the top of listed skill levels.",
+    stacked: "Brackets are playing above listed skill levels — expect tough competition.",
+    sandbagger: "High percentage of players rated above bracket limits.",
   };
 
-  const isSandbaggerAlert = level === "sandbagger" || (maxSandbaggerPct != null && maxSandbaggerPct > 0.3);
-  const borderClass = isSandbaggerAlert
-    ? "border-red-200 bg-gradient-to-r from-red-50/80 via-white to-red-50/40"
-    : "border-emerald-100 bg-gradient-to-r from-emerald-50/80 via-white to-emerald-50/40";
-
   return (
-    <div className={`rounded-xl border p-5 ${borderClass}`}>
-      <div className="flex flex-wrap items-center gap-3">
-        <h3 className={`text-sm font-bold uppercase tracking-wide ${isSandbaggerAlert ? "text-red-700" : "text-emerald-700"}`}>
-          {isSandbaggerAlert ? "⚠️ Sandbagger Radar" : "Field Intel"}
-        </h3>
-        {avgFieldStrength != null && (
-          <FieldStrengthBadge
-            avgFieldStrength={avgFieldStrength}
-            maxSandbaggerPct={maxSandbaggerPct}
-            size="md"
-          />
-        )}
-      </div>
-
+    <div className="border-b border-gray-100 bg-white px-5 py-4">
       {isSandbaggerAlert && sandbaggerEvents.length > 0 && (
-        <div className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
-          <span className="font-bold">{sandbaggerEvents.length} bracket{sandbaggerEvents.length !== 1 ? "s" : ""}</span>{" "}
-          with 20%+ players rated above the skill cap:{" "}
-          {sandbaggerEvents.map((e) => e.name).join(", ")}
-        </div>
+        <p className="mb-3 text-sm font-semibold text-red-700">
+          ⚠ {sandbaggerEvents.length} bracket{sandbaggerEvents.length !== 1 ? "s" : ""} with 20%+ players rated above the skill cap
+        </p>
       )}
 
-      <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+      <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
         <div>
-          <span className="text-gray-500">Avg DUPR </span>
+          <span className="text-gray-400">Avg DUPR </span>
           <span className="font-bold text-gray-900">{avgDupr.toFixed(2)}</span>
         </div>
         <div>
-          <span className="text-gray-500">Registered </span>
+          <span className="text-gray-400">Registered </span>
           <span className="font-bold text-gray-900">{totalRegistered}</span>
         </div>
         <div>
-          <span className="text-gray-500">Events w/ data </span>
+          <span className="text-gray-400">Events w/ data </span>
           <span className="font-bold text-gray-900">{withDupr.length}/{events.length}</span>
         </div>
         {maxSandbaggerPct != null && maxSandbaggerPct > 0 && (
           <div>
-            <span className="text-gray-500">Sandbagger % </span>
+            <span className="text-gray-400">Sandbagger % </span>
             <span className="font-bold text-red-600">{Math.round(maxSandbaggerPct * 100)}%</span>
           </div>
         )}
       </div>
 
       {level && (
-        <p className="mt-2 text-xs text-gray-500">
+        <p className="mt-2 text-xs text-gray-400 italic">
           {TAKEAWAYS[level]}
         </p>
       )}

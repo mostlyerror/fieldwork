@@ -6,7 +6,6 @@ import { getCityBySlug, getDefaultCity } from "@/lib/cities";
 import { TournamentDetail } from "@/components/tournament-detail";
 import { TournamentCard } from "@/components/tournament-card";
 import { EventBreakdown } from "@/components/event-breakdown";
-import { FieldIntelSummary } from "@/components/field-intel-summary";
 import { ServerHeader } from "@/components/server-header";
 import { formatDateRange, distanceMiles } from "@/lib/format";
 import type { Tournament } from "@/lib/types";
@@ -144,8 +143,7 @@ export default async function TournamentPage({ params }: PageProps) {
         />
 
         {events.length > 0 && (
-          <section className="mt-12 space-y-6">
-            <FieldIntelSummary events={events} />
+          <section className="mt-10">
             <EventBreakdown events={events} />
           </section>
         )}
