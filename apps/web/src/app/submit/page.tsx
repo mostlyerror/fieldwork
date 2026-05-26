@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
 import { VenueSearch, type VenueSelection } from "@/components/venue-search";
 import { SKILL_LEVELS } from "@/lib/constants";
 import {
@@ -128,11 +129,10 @@ export default function SubmitTournamentPage() {
 
   if (state === "success") {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50/50 via-white to-amber-50/30">
+      <div className="min-h-screen bg-background">
         <Header />
         <main className="mx-auto max-w-3xl px-5 py-16 text-center">
-          <div className="text-5xl mb-4">{"\u2705"}</div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 mb-2">
             Thanks for submitting!
           </h1>
           <p className="text-gray-500 mb-8">
@@ -141,37 +141,38 @@ export default function SubmitTournamentPage() {
           <div className="flex items-center justify-center gap-3">
             <button
               onClick={resetForm}
-              className="rounded-xl border border-green-200 px-6 py-3 text-sm font-semibold text-green-700 transition hover:bg-green-50"
+              className="rounded-lg border border-gray-200 px-6 py-3 text-sm font-bold text-gray-700 transition hover:bg-gray-50"
             >
               Submit another
             </button>
             <Link
               href="/"
-              className="inline-block rounded-xl bg-green-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-green-700"
+              className="inline-block rounded-lg bg-emerald-700 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-800"
             >
               Back to tournaments
             </Link>
           </div>
         </main>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50/50 via-white to-amber-50/30">
+    <div className="min-h-screen bg-background">
       <Header />
 
       <main className="mx-auto max-w-3xl px-5 py-8">
         <Link
           href="/"
-          className="mb-6 inline-flex items-center text-sm text-gray-400 hover:text-green-700"
+          className="mb-6 inline-flex items-center text-sm text-gray-400 hover:text-emerald-700"
         >
           &larr; Back to tournaments
         </Link>
 
         {step === 1 && (
           <div>
-            <h1 className="mb-2 text-2xl font-bold text-gray-800">
+            <h1 className="mb-2 text-2xl font-extrabold tracking-tight text-gray-900">
               Spotted a tournament?
             </h1>
             <p className="mb-8 text-gray-500">
@@ -193,7 +194,7 @@ export default function SubmitTournamentPage() {
                   required
                   autoFocus
                   defaultValue={sourceUrl}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-3 text-base focus:border-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-700"
                   placeholder="Instagram post, registration page, Facebook event..."
                 />
                 <p className="mt-1.5 text-xs text-gray-400">
@@ -204,7 +205,7 @@ export default function SubmitTournamentPage() {
 
               <button
                 type="submit"
-                className="w-full rounded-xl bg-green-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-green-700"
+                className="w-full rounded-lg bg-emerald-700 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-800"
               >
                 Next
               </button>
@@ -214,7 +215,7 @@ export default function SubmitTournamentPage() {
 
         {step === "extracting" && (
           <div className="py-16 text-center">
-            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-green-200 border-t-green-600" />
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-emerald-700" />
             <p className="text-sm font-medium text-gray-600">
               Analyzing page...
             </p>
@@ -226,18 +227,18 @@ export default function SubmitTournamentPage() {
 
         {step === 2 && (
           <div>
-            <h1 className="mb-2 text-2xl font-bold text-gray-800">
+            <h1 className="mb-2 text-2xl font-extrabold tracking-tight text-gray-900">
               {extracted ? "Review what we found" : "Fill in what you know"}
             </h1>
             <p className="mb-6 text-sm text-gray-500">
               {extracted
                 ? "We pre-filled what we could. Fix anything that looks off."
-                : "It\u2019s okay if you don\u2019t know everything \u2014 we\u2019ll fill in the gaps."}
+                : "It’s okay if you don’t know everything — we’ll fill in the gaps."}
             </p>
 
             {/* Source link chip */}
             <div className="mb-6 flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-sm text-green-700">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
                 <svg
                   className="h-3.5 w-3.5"
                   fill="none"
@@ -261,7 +262,7 @@ export default function SubmitTournamentPage() {
                   setLatitude(null);
                   setLongitude(null);
                 }}
-                className="text-xs text-gray-400 hover:text-green-700"
+                className="text-xs text-gray-400 hover:text-emerald-700"
               >
                 Edit
               </button>
@@ -297,7 +298,7 @@ export default function SubmitTournamentPage() {
                   required
                   autoFocus
                   defaultValue={extracted?.name ?? ""}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-700"
                   placeholder="e.g. Houston Summer Smash 2026"
                 />
               </div>
@@ -317,7 +318,7 @@ export default function SubmitTournamentPage() {
                     type="date"
                     required
                     defaultValue={extracted?.dateStart ?? ""}
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                    className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-700"
                   />
                 </div>
                 <div>
@@ -332,7 +333,7 @@ export default function SubmitTournamentPage() {
                     name="dateEnd"
                     type="date"
                     defaultValue={extracted?.dateEnd ?? ""}
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                    className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-700"
                   />
                 </div>
               </div>
@@ -369,7 +370,7 @@ export default function SubmitTournamentPage() {
                   name="registrationUrl"
                   type="url"
                   defaultValue={extracted?.registrationUrl ?? sourceUrl}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-700"
                   placeholder="https://..."
                 />
                 <p className="mt-1 text-xs text-gray-400">
@@ -393,7 +394,7 @@ export default function SubmitTournamentPage() {
                   min="0"
                   step="1"
                   defaultValue={extracted?.entryFee ?? ""}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-700"
                   placeholder="0 for free"
                 />
               </div>
@@ -407,7 +408,7 @@ export default function SubmitTournamentPage() {
                   {SKILL_LEVELS.map((level) => (
                     <label
                       key={level}
-                      className="flex items-center gap-1.5 rounded-full border border-gray-200 px-3 py-1 text-xs font-medium text-gray-700 transition has-[:checked]:border-green-500 has-[:checked]:bg-green-50 has-[:checked]:text-green-700"
+                      className="flex items-center gap-1.5 rounded-full border border-gray-200 px-3 py-1 text-xs font-medium text-gray-700 transition has-[:checked]:border-emerald-700 has-[:checked]:bg-emerald-50 has-[:checked]:text-emerald-800"
                     >
                       <input
                         type="checkbox"
@@ -434,7 +435,7 @@ export default function SubmitTournamentPage() {
                   id="format"
                   name="format"
                   defaultValue={extracted?.format ?? ""}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-700"
                 >
                   <option value="">Select format</option>
                   <option value="round_robin">Round Robin</option>
@@ -457,13 +458,13 @@ export default function SubmitTournamentPage() {
                   name="description"
                   rows={3}
                   defaultValue={extracted?.description ?? ""}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-700"
                   placeholder="Any additional details about the tournament..."
                 />
               </div>
 
               {state === "error" && (
-                <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
                   {errorMsg}
                 </p>
               )}
@@ -477,14 +478,14 @@ export default function SubmitTournamentPage() {
                     setLatitude(null);
                     setLongitude(null);
                   }}
-                  className="rounded-xl border border-gray-200 px-6 py-3 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
+                  className="rounded-lg border border-gray-200 px-6 py-3 text-sm font-bold text-gray-600 transition hover:bg-gray-50"
                 >
                   Back
                 </button>
                 <button
                   type="submit"
                   disabled={state === "submitting"}
-                  className="flex-1 rounded-xl bg-green-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
+                  className="flex-1 rounded-lg bg-emerald-700 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50"
                 >
                   {state === "submitting"
                     ? "Submitting..."
@@ -495,6 +496,8 @@ export default function SubmitTournamentPage() {
           </div>
         )}
       </main>
+
+      <Footer />
     </div>
   );
 }
