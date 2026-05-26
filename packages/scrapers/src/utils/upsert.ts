@@ -221,43 +221,61 @@ async function upsertPlayers(
   for (let i = 0; i < entries.length; i += BATCH_SIZE) {
     const batch = entries.slice(i, i + BATCH_SIZE);
     const sourceIds = batch.map(([sid]) => sid);
+
+    // Fetch existing players to split into insert vs update
     const { data: existing } = await supabase
       .from("players")
-      .select("source_player_id, dupr_verified, dupr_doubles")
+      .select("id, source_player_id")
       .in("source_player_id", sourceIds);
 
-    const verifiedMap = new Map(
-      (existing ?? [])
-        .filter((r) => r.dupr_verified)
-        .map((r) => [r.source_player_id, r.dupr_doubles as number | null])
+    const existingMap = new Map(
+      (existing ?? []).map((r) => [r.source_player_id, r.id as string])
     );
 
-    const rows = batch.map(([sourcePlayerId, p]) => ({
-      source_player_id: sourcePlayerId,
-      source_platform: "pickleballbrackets" as const,
-      name: p.name,
-      slug: p.sourceSlug ?? null,
-      location: p.location ?? null,
-      gender: p.gender ?? null,
-      dupr_doubles: verifiedMap.has(sourcePlayerId)
-        ? verifiedMap.get(sourcePlayerId) ?? null
-        : (p.duprRating ?? null),
-    }));
+    // New players: full insert with dupr_doubles from PBB
+    const newRows = batch
+      .filter(([sid]) => !existingMap.has(sid))
+      .map(([sourcePlayerId, p]) => ({
+        source_player_id: sourcePlayerId,
+        source_platform: "pickleballbrackets" as const,
+        name: p.name,
+        slug: p.sourceSlug ?? null,
+        location: p.location ?? null,
+        gender: p.gender ?? null,
+        dupr_doubles: p.duprRating ?? null,
+      }));
 
-    const { data, error } = await supabase
-      .from("players")
-      .upsert(rows, { onConflict: "source_player_id" })
-      .select("id, source_player_id");
+    if (newRows.length > 0) {
+      const { data: inserted, error } = await supabase
+        .from("players")
+        .insert(newRows)
+        .select("id, source_player_id");
 
-    if (error) {
-      console.error(`[upsert-players] Error upserting player batch:`, error);
-      continue;
+      if (error) {
+        console.error(`[upsert-players] Error inserting new players:`, error);
+      } else if (inserted) {
+        for (const row of inserted) {
+          idMap.set(row.source_player_id, row.id);
+        }
+      }
     }
 
-    if (data) {
-      for (const row of data) {
-        idMap.set(row.source_player_id, row.id);
-      }
+    // Existing players: update only scraper-owned fields (name, slug, location, gender)
+    // Never touch dupr_* or matches_* columns — those are owned by enrichment
+    for (const [sourcePlayerId, p] of batch) {
+      const existingId = existingMap.get(sourcePlayerId);
+      if (!existingId) continue;
+      idMap.set(sourcePlayerId, existingId);
+
+      await supabase
+        .from("players")
+        .update({
+          name: p.name,
+          slug: p.sourceSlug ?? null,
+          location: p.location ?? null,
+          gender: p.gender ?? null,
+        })
+        .eq("id", existingId);
     }
   }
 
