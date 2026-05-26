@@ -131,10 +131,10 @@ export default async function TournamentPage({ params }: PageProps) {
       />
       <ServerHeader city={city} />
 
-      <main className="mx-auto max-w-3xl px-5 py-8">
+      <main className="mx-auto max-w-3xl px-5 py-10">
         <Link
           href={`/${citySlug}`}
-          className="mb-6 inline-flex items-center text-sm text-gray-400 hover:text-green-700"
+          className="mb-8 inline-flex items-center text-sm text-gray-400 hover:text-emerald-700"
         >
           &larr; Back to tournaments
         </Link>
@@ -144,7 +144,7 @@ export default async function TournamentPage({ params }: PageProps) {
         />
 
         {events.length > 0 && (
-          <section className="mt-8 space-y-6">
+          <section className="mt-12 space-y-6">
             <FieldIntelSummary events={events} />
             <EventBreakdown events={events} />
           </section>

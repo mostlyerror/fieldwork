@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Nunito } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { DevIndicator } from "@/components/dev-indicator";
 import "./globals.css";
 
-const nunito = Nunito({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-nunito",
+  variable: "--font-jakarta",
   display: "swap",
 });
 
@@ -26,8 +26,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={nunito.variable}>
-      <body className="font-nunito text-gray-900 antialiased">
+    <html lang="en" className={jakarta.variable}>
+      <body className="font-jakarta text-gray-900 antialiased">
         {children}
         <Analytics />
         <DevIndicator />

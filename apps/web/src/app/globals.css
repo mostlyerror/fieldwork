@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-nunito: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  --font-jakarta: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
   --color-cream: #FFFDF7;
   --color-peach: #fdba74;
   --color-peach-light: #fed7aa;
