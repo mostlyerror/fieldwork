@@ -105,7 +105,7 @@ export function TournamentDetail({
 
       {/* Main header */}
       <div className="py-10 sm:py-12">
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 leading-tight">
+        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900 leading-tight">
           {tournament.name}
         </h1>
 
