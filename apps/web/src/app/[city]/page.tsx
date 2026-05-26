@@ -125,44 +125,58 @@ export default async function CityPage({ params }: PageProps) {
           />
         }
         seoContent={
-          <section className="mx-auto max-w-4xl px-5 py-16">
-            <h2 className="text-2xl font-extrabold text-gray-900">
-              {city.name} Pickleball Tournaments
-            </h2>
-            <p className="mt-3 text-sm leading-relaxed text-gray-500">
-              PickleRadar tracks every upcoming pickleball tournament in the {city.name} area.
-              {upcomingCount > 0
-                ? ` There are currently ${upcomingCount} upcoming tournaments across ${venueCount} venues.`
-                : ""}{" "}
-              {nextTournament
-                ? `The next event is ${nextTournament.name} at ${nextTournament.location_name} on ${new Date(nextTournament.date_start + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}.`
-                : ""}{" "}
-              We aggregate listings from PickleballBrackets, Pickleball Den, and community submissions so you
-              only need to check one place.
-            </p>
-            <p className="mt-3 text-sm leading-relaxed text-gray-500">
-              Filter by skill level, sort by distance, and view tournaments on a map. Every listing links
-              directly to the registration page. New tournaments are added daily, and our weekly email digest
-              keeps you up to date every Monday.
-            </p>
-            {upcomingCount > 0 && (
-              <div className="mt-6">
-                <h3 className="text-lg font-bold text-gray-800">Upcoming Tournaments</h3>
-                <ul className="mt-2 space-y-1">
-                  {tournaments.slice(0, 8).map((t) => (
-                    <li key={t.id} className="text-sm text-gray-500">
-                      <a
-                        href={`/${city.slug}/tournaments/${t.id}`}
-                        className="font-medium text-emerald-700 hover:text-emerald-800"
-                      >
-                        {t.name}
-                      </a>{" "}
-                      — {new Date(t.date_start + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })} at {t.location_name}
-                    </li>
-                  ))}
-                </ul>
+          <section className="border-t-2 border-gray-900">
+            <div className="mx-auto max-w-6xl px-5 py-16">
+              <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">
+                Why {city.name} Players Use PickleRadar
+              </h2>
+
+              {/* Feature cards */}
+              <div className="mt-8 grid gap-6 sm:grid-cols-3">
+                <div className="rounded-xl border border-gray-200 bg-white p-6">
+                  <h3 className="text-lg font-extrabold text-gray-900">Every Tournament</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-gray-500">
+                    We aggregate from PBBrackets, Pickleball Den, and community submissions.
+                    {upcomingCount > 0 ? ` ${upcomingCount} upcoming across ${venueCount} venues.` : ""}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-gray-200 bg-white p-6">
+                  <h3 className="text-lg font-extrabold text-gray-900">Real DUPR Intel</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-gray-500">
+                    Live DUPR ratings verified from the source. See who&apos;s really in each bracket
+                    before you register. Sandbagger alerts included.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-gray-200 bg-white p-6">
+                  <h3 className="text-lg font-extrabold text-gray-900">Never Miss a Match</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-gray-500">
+                    Filter by skill level, view on a map, or subscribe to our weekly email digest
+                    every Monday. New tournaments added daily.
+                  </p>
+                </div>
               </div>
-            )}
+
+              {/* Tournament list */}
+              {upcomingCount > 0 && (
+                <div className="mt-12">
+                  <h3 className="text-lg font-extrabold text-gray-900">Upcoming in {city.name}</h3>
+                  <div className="mt-4 grid gap-x-8 gap-y-2 sm:grid-cols-2">
+                    {tournaments.slice(0, 8).map((t) => (
+                      <a
+                        key={t.id}
+                        href={`/${city.slug}/tournaments/${t.id}`}
+                        className="-mx-2 flex items-baseline justify-between gap-2 rounded border-b border-gray-100 px-2 py-2 text-sm hover:bg-gray-50"
+                      >
+                        <span className="font-semibold text-emerald-800">{t.name}</span>
+                        <span className="shrink-0 text-gray-400">
+                          {new Date(t.date_start + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </section>
         }
       />
