@@ -92,11 +92,11 @@ export async function getTournamentEvents(
 
   if (!events || events.length === 0) return [];
 
-  // Fetch players for all events
+  // Fetch players for all events, joining live DUPR from the players table
   const eventIds = events.map((e: TournamentEvent) => e.id);
   const { data: players, error: playersError } = await supabase
     .from("event_players")
-    .select("*")
+    .select("*, players!event_players_player_id_fkey(dupr_rating, dupr_verified), partner:players!event_players_partner_id_fkey(dupr_rating, dupr_verified)")
     .in("event_id", eventIds)
     .order("dupr_rating", { ascending: false, nullsFirst: false });
 
@@ -104,10 +104,26 @@ export async function getTournamentEvents(
     console.error("Error fetching event players:", playersError);
   }
 
-  // Group players by event
+  // Group players by event, flattening the joined player data
   const playersByEvent = new Map<string, EventPlayer[]>();
-  for (const p of (players ?? []) as EventPlayer[]) {
-    const eventId = (p as EventPlayer & { event_id: string }).event_id;
+  for (const raw of (players ?? [])) {
+    const eventId = (raw as Record<string, unknown>).event_id as string;
+    const joined = (raw as Record<string, unknown>).players as { dupr_rating: number | null; dupr_verified: boolean | null } | null;
+    const partnerJoined = (raw as Record<string, unknown>).partner as { dupr_rating: number | null; dupr_verified: boolean | null } | null;
+    const p: EventPlayer = {
+      id: raw.id as string,
+      player_name: raw.player_name as string,
+      dupr_rating: raw.dupr_rating as number | null,
+      partner_name: raw.partner_name as string | null,
+      partner_dupr_rating: raw.partner_dupr_rating as number | null,
+      team_avg_dupr: raw.team_avg_dupr as number | null,
+      player_id: raw.player_id as string | null,
+      partner_id: raw.partner_id as string | null,
+      live_dupr: joined?.dupr_rating ?? null,
+      live_dupr_verified: joined?.dupr_verified ?? null,
+      partner_live_dupr: partnerJoined?.dupr_rating ?? null,
+      partner_live_dupr_verified: partnerJoined?.dupr_verified ?? null,
+    };
     if (!playersByEvent.has(eventId)) {
       playersByEvent.set(eventId, []);
     }

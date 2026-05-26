@@ -154,11 +154,8 @@ export default async function TournamentPage({ params }: PageProps) {
         />
 
         {events.length > 0 && (
-          <section className="mt-8 space-y-4">
+          <section className="mt-8 space-y-6">
             <FieldIntelSummary events={events} />
-            <h2 className="text-lg font-bold text-gray-800">
-              Who&apos;s Playing?
-            </h2>
             <EventBreakdown events={events} />
           </section>
         )}

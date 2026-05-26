@@ -57,6 +57,11 @@ export interface EventPlayer {
   team_avg_dupr: number | null;
   player_id: string | null;
   partner_id: string | null;
+  // Live DUPR from enrichment (joined from players table)
+  live_dupr: number | null;
+  live_dupr_verified: boolean | null;
+  partner_live_dupr: number | null;
+  partner_live_dupr_verified: boolean | null;
 }
 
 export interface Player {
@@ -67,6 +72,8 @@ export interface Player {
   location: string | null;
   gender: string | null;
   dupr_rating: number | null;
+  dupr_verified: boolean | null;
+  dupr_last_checked: string | null;
   user_id: string | null;
   created_at: string;
   updated_at: string;

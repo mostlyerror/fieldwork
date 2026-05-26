@@ -67,6 +67,20 @@ export default async function PlayerPage({ params }: PageProps) {
                 <p className="text-3xl font-extrabold text-emerald-600">
                   {player.dupr_rating.toFixed(2)}
                 </p>
+                {player.dupr_verified && (
+                  <span className="mt-0.5 inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-600">
+                    Verified
+                  </span>
+                )}
+                {player.dupr_last_checked && (
+                  <p className="mt-1 text-[10px] text-gray-400">
+                    Updated {new Date(player.dupr_last_checked).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </p>
+                )}
               </div>
             )}
           </div>

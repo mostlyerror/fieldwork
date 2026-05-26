@@ -10,6 +10,7 @@ import { upsertTournaments, upsertEvents } from "./utils/upsert.js";
 import { scrape as scrapePickleballBrackets } from "./sources/pickleballbrackets.js";
 import { scrape as scrapePickleballDen } from "./sources/pickleballden.js";
 import { sendDiscordAlert } from "./utils/discord.js";
+import { enrichDuprRatings } from "./utils/dupr-enrichment.js";
 import { supabase } from "./utils/supabase.js";
 import type { ScraperSource } from "./types.js";
 import type { UpsertStats } from "./utils/upsert.js";
@@ -138,6 +139,23 @@ async function main() {
   }
 
   await runHealthCheck(results);
+
+  // DUPR enrichment: fetch live ratings for stale players
+  if (process.env.DUPR_EMAIL && process.env.DUPR_PASSWORD) {
+    try {
+      const enrichResult = await enrichDuprRatings();
+      if (enrichResult.updated > 0) {
+        await sendDiscordAlert({
+          title: "📊 DUPR Enrichment Complete",
+          description: `Checked ${enrichResult.checked} players, updated ${enrichResult.updated} ratings`,
+          color: 0x22c55e,
+        });
+      }
+    } catch (err) {
+      console.error("[dupr-enrich] Enrichment step failed:", err);
+    }
+  }
+
   console.log("All sources processed.");
 }
 
