@@ -6,6 +6,7 @@ import { getCityBySlug, getDefaultCity } from "@/lib/cities";
 import { TournamentDetail } from "@/components/tournament-detail";
 import { TournamentCard } from "@/components/tournament-card";
 import { EventBreakdown } from "@/components/event-breakdown";
+import { Footer } from "@/components/footer";
 import { ServerHeader } from "@/components/server-header";
 import { formatDateRange, distanceMiles } from "@/lib/format";
 import type { Tournament } from "@/lib/types";
@@ -182,11 +183,7 @@ export default async function TournamentPage({ params }: PageProps) {
         </div>
       </main>
 
-      <footer className="mt-16 border-t border-gray-100 bg-white/60 py-8 text-center">
-        <p className="text-sm text-gray-400">
-          Made with <span aria-hidden="true">{"\u{1F49A}"}</span><span className="sr-only">love</span> for the {city.name} pickleball community
-        </p>
-      </footer>
+      <Footer citySlug={citySlug} />
     </div>
   );
 }

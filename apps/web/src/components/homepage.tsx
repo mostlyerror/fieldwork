@@ -8,6 +8,7 @@ import type { User } from "@supabase/supabase-js";
 import { subscribeEmail } from "@/app/actions";
 import { Header } from "./header";
 import { TournamentBrowser } from "./tournament-browser";
+import { Footer } from "./footer";
 
 type EmailState = "idle" | "submitting" | "success" | "already_subscribed" | "error";
 
@@ -143,43 +144,7 @@ export function Homepage({
 
       {seoContent}
 
-      <footer className="border-t border-gray-100 bg-background">
-        <div className="mx-auto max-w-6xl px-5 py-10">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-            <p className="text-sm text-gray-500">
-              Made with 💚 for the {city?.name ?? "Houston"} pickleball community
-            </p>
-            <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500">
-              <Link
-                href={city ? `/${city.slug}` : "/"}
-                className="transition-colors hover:text-emerald-700"
-              >
-                Browse tournaments
-              </Link>
-              <Link
-                href="/submit"
-                className="transition-colors hover:text-emerald-700"
-              >
-                Submit a tournament
-              </Link>
-              <a
-                href="mailto:hello@pickleradar.app"
-                className="transition-colors hover:text-emerald-700"
-              >
-                hello@pickleradar.app
-              </a>
-              <a
-                href="https://instagram.com/pickleradar"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="transition-colors hover:text-emerald-700"
-              >
-                Instagram
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer citySlug={city?.slug} />
     </div>
   );
 }
