@@ -9,6 +9,7 @@ import {
   computeFrequentPartners,
 } from "@/lib/queries";
 import { IntelSectionHeader } from "@/components/intel-section-header";
+import { BackButton } from "@/components/back-button";
 import { ServerHeader } from "@/components/server-header";
 import { getDefaultCity } from "@/lib/cities";
 import type { Match } from "@/lib/types";
@@ -135,13 +136,9 @@ export default async function PlayerPage({ params }: PageProps) {
       <ServerHeader city={city} />
 
       <main className="mx-auto max-w-3xl px-5 py-8">
-        {/* Back link */}
-        <Link
-          href={`/${city.slug}`}
-          className="mb-6 inline-flex items-center text-sm text-gray-400 hover:text-emerald-700"
-        >
-          &larr; Back to tournaments
-        </Link>
+        {/* Back link — uses browser history so it returns to the referring page
+             (e.g. a specific tournament) instead of always going to the list */}
+        <BackButton fallbackHref={`/${city.slug}`} label="Back" />
 
         {/* Player header card */}
         <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
