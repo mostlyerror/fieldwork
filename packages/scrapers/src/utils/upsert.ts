@@ -220,6 +220,16 @@ async function upsertPlayers(
 
   for (let i = 0; i < entries.length; i += BATCH_SIZE) {
     const batch = entries.slice(i, i + BATCH_SIZE);
+    const sourceIds = batch.map(([sid]) => sid);
+    const { data: existing } = await supabase
+      .from("players")
+      .select("source_player_id, dupr_verified")
+      .in("source_player_id", sourceIds);
+
+    const verifiedSet = new Set(
+      (existing ?? []).filter((r) => r.dupr_verified).map((r) => r.source_player_id)
+    );
+
     const rows = batch.map(([sourcePlayerId, p]) => ({
       source_player_id: sourcePlayerId,
       source_platform: "pickleballbrackets" as const,
@@ -227,7 +237,8 @@ async function upsertPlayers(
       slug: p.sourceSlug ?? null,
       location: p.location ?? null,
       gender: p.gender ?? null,
-      dupr_rating: p.duprRating ?? null,
+      // Don't overwrite live DUPR with stale PBB rating
+      ...(verifiedSet.has(sourcePlayerId) ? {} : { dupr_rating: p.duprRating ?? null }),
     }));
 
     const { data, error } = await supabase
