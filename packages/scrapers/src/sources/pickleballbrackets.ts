@@ -291,37 +291,19 @@ async function scrapeEvents(page: Page, slug: string): Promise<ScrapedEvent[]> {
       }
     }
 
-    // Click buttons with registered players (count > 0)
-    // Track the order of activityIds as they arrive
-    const activityIdOrder: string[] = [];
-    page.on("response", async (res) => {
-      const resUrl = res.url();
-      if (resUrl.includes("eventPlayers")) {
-        const urlObj = new URL(resUrl);
-        const activityId = urlObj.searchParams.get("activityId") || "";
-        if (activityId && !activityIdOrder.includes(activityId)) {
-          activityIdOrder.push(activityId);
-        }
-      }
-    });
-
-    // Build a map: allButtonIndex → position in click order
-    const buttonClickOrder = new Map<number, number>();
+    // Click buttons with registered players to trigger the eventPlayers API
     const buttonsToClick = allButtonLocators.filter(b => b.count > 0);
     if (buttonsToClick.length > 0) {
       console.log(
         `[pickleballbrackets] Clicking ${buttonsToClick.length} event buttons for player data...`
       );
 
-      let clickIdx = 0;
       for (const btn of buttonsToClick) {
         try {
           const freshButtons = await page.locator('button').all();
           if (btn.index < freshButtons.length) {
-            buttonClickOrder.set(btn.index, clickIdx);
             await freshButtons[btn.index].click();
             await page.waitForTimeout(800);
-            clickIdx++;
           }
         } catch {
           // Button may have changed, skip
@@ -331,8 +313,23 @@ async function scrapeEvents(page: Page, slug: string): Promise<ScrapedEvent[]> {
       await page.waitForTimeout(1500);
     }
 
+    // Map: allAllButton position → activityId
+    // raw.allButtonIndex is the position in allAllButtons (only "All N" buttons)
+    // allButtonLocators[j] corresponds to allAllButtons[j]
+    // buttonsToClick is a filtered subset of allButtonLocators (count > 0)
+    // We need: allAllButton position → activityId
+    const activityIds = Array.from(playersByActivityId.keys());
+    const allButtonPosToActivityId = new Map<number, string>();
+    let apiIdx = 0;
+    for (let j = 0; j < allButtonLocators.length; j++) {
+      if (allButtonLocators[j].count > 0 && apiIdx < activityIds.length) {
+        allButtonPosToActivityId.set(j, activityIds[apiIdx]);
+        apiIdx++;
+      }
+    }
+    console.log(`[pickleballbrackets] Mapping: ${buttonsToClick.length} buttons clicked, ${activityIds.length} API responses, ${allButtonPosToActivityId.size} mapped`);
+
     // Build events from DOM data + player API data
-    // Match each event to its activityId via its button's click order position
     for (const raw of rawEvents) {
       const parsed = parseEventName(raw.name);
 
@@ -352,10 +349,12 @@ async function scrapeEvents(page: Page, slug: string): Promise<ScrapedEvent[]> {
         }
       }
 
-      // Match this event to its API player data via button click order
+      // Match this event to its player data via its button's activityId
       const players: ScrapedPlayer[] = [];
-      const clickPos = raw.allButtonIndex >= 0 ? buttonClickOrder.get(raw.allButtonIndex) : undefined;
-      const activityId = clickPos != null ? activityIdOrder[clickPos] : undefined;
+      const activityId = raw.allButtonIndex >= 0 ? allButtonPosToActivityId.get(raw.allButtonIndex) : undefined;
+      if (raw.registeredCount > 0 && !activityId) {
+        console.log(`[pickleballbrackets] MISS: "${raw.name}" btnIdx=${raw.allButtonIndex} reg=${raw.registeredCount} — no activityId mapped`);
+      }
       if (activityId) {
         const apiPlayers = playersByActivityId.get(activityId) ?? [];
 
