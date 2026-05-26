@@ -1,14 +1,11 @@
 import Link from "next/link";
 import type { City } from "@/lib/cities";
-import type { User } from "@supabase/supabase-js";
-import { AuthNav } from "./auth-nav";
 
 export function Header({
   city,
-  user,
 }: {
   city?: City;
-  user?: User | null;
+  user?: unknown;
 }) {
   const cityName = city?.name ?? "Houston";
   const homeHref = city ? `/${city.slug}` : "/";
@@ -34,7 +31,6 @@ export function Header({
           >
             + Submit
           </Link>
-          {user !== undefined && <AuthNav user={user} />}
         </div>
       </div>
     </nav>
