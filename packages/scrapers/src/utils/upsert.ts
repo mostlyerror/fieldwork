@@ -223,11 +223,13 @@ async function upsertPlayers(
     const sourceIds = batch.map(([sid]) => sid);
     const { data: existing } = await supabase
       .from("players")
-      .select("source_player_id, dupr_verified")
+      .select("source_player_id, dupr_verified, dupr_doubles")
       .in("source_player_id", sourceIds);
 
-    const verifiedSet = new Set(
-      (existing ?? []).filter((r) => r.dupr_verified).map((r) => r.source_player_id)
+    const verifiedMap = new Map(
+      (existing ?? [])
+        .filter((r) => r.dupr_verified)
+        .map((r) => [r.source_player_id, r.dupr_doubles as number | null])
     );
 
     const rows = batch.map(([sourcePlayerId, p]) => ({
@@ -237,8 +239,9 @@ async function upsertPlayers(
       slug: p.sourceSlug ?? null,
       location: p.location ?? null,
       gender: p.gender ?? null,
-      // Don't overwrite live DUPR with stale PBB rating
-      ...(verifiedSet.has(sourcePlayerId) ? {} : { dupr_doubles: p.duprRating ?? null }),
+      dupr_doubles: verifiedMap.has(sourcePlayerId)
+        ? verifiedMap.get(sourcePlayerId) ?? null
+        : (p.duprRating ?? null),
     }));
 
     const { data, error } = await supabase
