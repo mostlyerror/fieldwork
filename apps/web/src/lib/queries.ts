@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import type { Tournament, TournamentSource, TournamentEvent, EventPlayer, Player } from "./types";
+import type { Tournament, TournamentSource, TournamentEvent, EventPlayer, Player, Match, PlayerRecord, FrequentPartner } from "./types";
 import { getCityBySlug, getDefaultCity } from "./cities";
 
 export async function getTournaments(): Promise<Tournament[]> {
@@ -268,5 +268,171 @@ export async function getPlayerTournamentHistory(
       duprRating: row.dupr_rating as number | null,
       partnerName: row.partner_name as string | null,
     };
+  });
+}
+
+export async function getPlayerMatches(
+  playerId: string,
+  limit = 20,
+): Promise<Match[]> {
+  const { data, error } = await supabase
+    .from("matches")
+    .select("*")
+    .or(
+      `team1_player1_id.eq.${playerId},team1_player2_id.eq.${playerId},team2_player1_id.eq.${playerId},team2_player2_id.eq.${playerId}`,
+    )
+    .order("event_date", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("Error fetching player matches:", error);
+    return [];
+  }
+
+  return (data ?? []) as Match[];
+}
+
+export function computePlayerRecord(
+  matches: Match[],
+  playerId: string,
+): PlayerRecord[] {
+  const formatMap = new Map<string, { wins: number; losses: number }>();
+
+  for (const match of matches) {
+    const onTeam1 =
+      match.team1_player1_id === playerId ||
+      match.team1_player2_id === playerId;
+    const won = onTeam1 ? match.team1_won : !match.team1_won;
+    const fmt = match.event_format ?? "Unknown";
+
+    if (!formatMap.has(fmt)) {
+      formatMap.set(fmt, { wins: 0, losses: 0 });
+    }
+    const rec = formatMap.get(fmt)!;
+    if (won) {
+      rec.wins++;
+    } else {
+      rec.losses++;
+    }
+  }
+
+  return Array.from(formatMap.entries()).map(([format, { wins, losses }]) => ({
+    format,
+    wins,
+    losses,
+  }));
+}
+
+export function computeFrequentPartners(
+  matches: Match[],
+  playerId: string,
+): FrequentPartner[] {
+  const partnerMap = new Map<
+    string,
+    { playerId: string | null; name: string; wins: number; losses: number }
+  >();
+
+  for (const match of matches) {
+    const onTeam1 =
+      match.team1_player1_id === playerId ||
+      match.team1_player2_id === playerId;
+    const won = onTeam1 ? match.team1_won : !match.team1_won;
+
+    let partnerName: string | null = null;
+    let partnerId: string | null = null;
+
+    if (onTeam1) {
+      if (match.team1_player1_id === playerId) {
+        partnerName = match.team1_player2_name ?? null;
+        partnerId = match.team1_player2_id ?? null;
+      } else {
+        partnerName = match.team1_player1_name ?? null;
+        partnerId = match.team1_player1_id ?? null;
+      }
+    } else {
+      if (match.team2_player1_id === playerId) {
+        partnerName = match.team2_player2_name ?? null;
+        partnerId = match.team2_player2_id ?? null;
+      } else {
+        partnerName = match.team2_player1_name ?? null;
+        partnerId = match.team2_player1_id ?? null;
+      }
+    }
+
+    if (!partnerName) continue;
+
+    const key = partnerId ?? partnerName;
+    if (!partnerMap.has(key)) {
+      partnerMap.set(key, { playerId: partnerId, name: partnerName, wins: 0, losses: 0 });
+    }
+    const rec = partnerMap.get(key)!;
+    if (won) {
+      rec.wins++;
+    } else {
+      rec.losses++;
+    }
+  }
+
+  return Array.from(partnerMap.entries())
+    .map(([, v]) => ({
+      playerId: v.playerId,
+      name: v.name,
+      matchCount: v.wins + v.losses,
+      wins: v.wins,
+      losses: v.losses,
+    }))
+    .sort((a, b) => b.matchCount - a.matchCount)
+    .slice(0, 3);
+}
+
+export interface PlayerUpcomingTournament {
+  tournamentId: string;
+  tournamentName: string;
+  eventName: string;
+  dateStart: string;
+  listedDupr: number | null;
+}
+
+export async function getPlayerUpcomingTournaments(
+  playerId: string,
+): Promise<PlayerUpcomingTournament[]> {
+  const today = new Date().toISOString().split("T")[0];
+
+  const { data, error } = await supabase
+    .from("event_players")
+    .select(`
+      dupr_rating,
+      tournament_events!inner (
+        name,
+        tournament_id,
+        tournaments!inner (
+          id,
+          name,
+          date_start
+        )
+      )
+    `)
+    .eq("player_id", playerId)
+    .gte("tournament_events.tournaments.date_start", today)
+    .order("tournament_events.tournaments.date_start", { ascending: true });
+
+  if (error || !data) return [];
+
+  return (data as Record<string, unknown>[]).flatMap((row) => {
+    const event = row.tournament_events as Record<string, unknown> | null;
+    if (!event) return [];
+    const tournament = event.tournaments as Record<string, unknown> | null;
+    if (!tournament) return [];
+    const dateStart = tournament.date_start as string;
+    if (dateStart < today) return [];
+    return [
+      {
+        tournamentId: tournament.id as string,
+        tournamentName: tournament.name as string,
+        eventName: event.name as string,
+        dateStart,
+        listedDupr: row.dupr_rating as number | null,
+      },
+    ];
   });
 }

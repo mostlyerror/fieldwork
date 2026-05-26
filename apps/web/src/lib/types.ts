@@ -81,6 +81,42 @@ export interface Player {
   updated_at: string;
 }
 
+export interface Match {
+  id: string;
+  event_date: string;
+  event_format: string;
+  league: string | null;
+  team1_player1_name: string;
+  team1_player2_name: string | null;
+  team2_player1_name: string;
+  team2_player2_name: string | null;
+  team1_player1_id: string | null;
+  team1_player2_id: string | null;
+  team2_player1_id: string | null;
+  team2_player2_id: string | null;
+  game1_team1: number | null;
+  game1_team2: number | null;
+  game2_team1: number | null;
+  game2_team2: number | null;
+  game3_team1: number | null;
+  game3_team2: number | null;
+  team1_won: boolean;
+}
+
+export interface PlayerRecord {
+  format: string;
+  wins: number;
+  losses: number;
+}
+
+export interface FrequentPartner {
+  playerId: string | null;
+  name: string;
+  matchCount: number;
+  wins: number;
+  losses: number;
+}
+
 export type FieldStrengthFilter = "all" | "friendly" | "competitive" | "stacked";
 
 export interface TournamentFilters {
