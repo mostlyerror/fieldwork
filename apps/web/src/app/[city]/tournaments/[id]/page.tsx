@@ -124,7 +124,7 @@ export default async function TournamentPage({ params }: PageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50/50 via-white to-amber-50/30">
+    <div className="min-h-screen bg-background">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

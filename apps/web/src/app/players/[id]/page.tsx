@@ -131,7 +131,7 @@ export default async function PlayerPage({ params }: PageProps) {
   const recentMatches = matches.slice(0, 10);
 
   return (
-    <div className="min-h-screen bg-[#FFFDF7]">
+    <div className="min-h-screen bg-background">
       <ServerHeader city={city} />
 
       <main className="mx-auto max-w-3xl px-5 py-8">
