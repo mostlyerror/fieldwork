@@ -71,7 +71,8 @@ export interface Player {
   slug: string | null;
   location: string | null;
   gender: string | null;
-  dupr_rating: number | null;
+  dupr_doubles: number | null;
+  dupr_singles: number | null;
   dupr_verified: boolean | null;
   dupr_last_checked: string | null;
   user_id: string | null;

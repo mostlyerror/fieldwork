@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const player = await getPlayer(id);
   if (!player) return { title: "Player Not Found" };
 
-  const duprStr = player.dupr_rating != null ? ` — DUPR ${player.dupr_rating.toFixed(2)}` : "";
+  const duprStr = player.dupr_doubles != null ? ` — DUPR ${player.dupr_doubles.toFixed(2)}` : "";
   return {
     title: `${player.name}${duprStr} — PickleRadar`,
     description: `View ${player.name}'s pickleball tournament history and DUPR rating on PickleRadar.`,
@@ -59,16 +59,30 @@ export default async function PlayerPage({ params }: PageProps) {
                 </p>
               )}
             </div>
-            {player.dupr_rating != null && (
+            {(player.dupr_doubles != null || player.dupr_singles != null) && (
               <div className="text-right">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                  DUPR
-                </p>
-                <p className="text-3xl font-extrabold text-emerald-600">
-                  {player.dupr_rating.toFixed(2)}
-                </p>
+                {player.dupr_doubles != null && (
+                  <>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                      Doubles
+                    </p>
+                    <p className="text-3xl font-extrabold text-emerald-600">
+                      {player.dupr_doubles.toFixed(2)}
+                    </p>
+                  </>
+                )}
+                {player.dupr_singles != null && (
+                  <div className={player.dupr_doubles != null ? "mt-2" : ""}>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                      Singles
+                    </p>
+                    <p className="text-2xl font-extrabold text-emerald-600">
+                      {player.dupr_singles.toFixed(2)}
+                    </p>
+                  </div>
+                )}
                 {player.dupr_verified && (
-                  <span className="mt-0.5 inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-600">
+                  <span className="mt-1 inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-600">
                     Verified
                   </span>
                 )}

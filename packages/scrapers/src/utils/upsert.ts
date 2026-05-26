@@ -238,7 +238,7 @@ async function upsertPlayers(
       location: p.location ?? null,
       gender: p.gender ?? null,
       // Don't overwrite live DUPR with stale PBB rating
-      ...(verifiedSet.has(sourcePlayerId) ? {} : { dupr_rating: p.duprRating ?? null }),
+      ...(verifiedSet.has(sourcePlayerId) ? {} : { dupr_doubles: p.duprRating ?? null }),
     }));
 
     const { data, error } = await supabase

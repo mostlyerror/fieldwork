@@ -10,10 +10,10 @@ export async function searchPlayers(query: string) {
   const admin = getSupabaseAdmin();
   const { data, error } = await admin
     .from("players")
-    .select("id, name, dupr_rating, location")
+    .select("id, name, dupr_doubles, location")
     .ilike("name", `%${query}%`)
-    .not("dupr_rating", "is", null)
-    .order("dupr_rating", { ascending: false })
+    .not("dupr_doubles", "is", null)
+    .order("dupr_doubles", { ascending: false })
     .limit(10);
 
   if (error) {
@@ -24,7 +24,7 @@ export async function searchPlayers(query: string) {
   return (data ?? []).map((p) => ({
     id: p.id,
     player_name: p.name,
-    dupr_rating: p.dupr_rating as number,
+    dupr_rating: p.dupr_doubles as number,
     location: p.location as string | null,
   }));
 }

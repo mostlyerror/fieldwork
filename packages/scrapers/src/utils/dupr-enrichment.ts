@@ -28,14 +28,17 @@ interface DuprAuthResult {
 
 interface DuprPlayerResult {
   id: number;
+  duprId?: string;
   fullName: string;
   shortAddress?: string;
   gender?: string;
   ratings?: {
     doubles?: string;
     doublesProvisional?: boolean;
+    doublesVerified?: string;
     singles?: string;
     singlesProvisional?: boolean;
+    singlesVerified?: string;
   };
 }
 
@@ -131,7 +134,7 @@ async function searchPlayer(
     return [];
   }
 
-  const data: DuprSearchResponse = await res.json();
+  const data = await res.json() as DuprSearchResponse;
   return data.result?.hits ?? [];
 }
 
@@ -222,7 +225,8 @@ interface StalePlayer {
   name: string;
   location: string | null;
   gender: string | null;
-  dupr_rating: number | null;
+  dupr_doubles: number | null;
+  dupr_id: string | null;
 }
 
 async function getStalePlayers(limit: number): Promise<StalePlayer[]> {
@@ -231,7 +235,7 @@ async function getStalePlayers(limit: number): Promise<StalePlayer[]> {
 
   const { data, error } = await supabase
     .from("players")
-    .select("id, name, location, gender, dupr_rating")
+    .select("id, name, location, gender, dupr_doubles, dupr_id")
     .or(`dupr_last_checked.is.null,dupr_last_checked.lt.${staleDate.toISOString()}`)
     .order("dupr_last_checked", { ascending: true, nullsFirst: true })
     .limit(limit);
@@ -264,20 +268,45 @@ export async function enrichDuprRatings(): Promise<{
 
   for (const player of players) {
     try {
-      const results = await searchPlayer(player.name, auth.accessToken);
-      const match = pickBestMatch(results, player.name, player.location, player.gender, player.dupr_rating);
+      let match: DuprPlayerResult | null = null;
+
+      if (player.dupr_id) {
+        // Direct lookup by DUPR ID — no ambiguity
+        const results = await searchPlayer(player.dupr_id, auth.accessToken);
+        match = results.find((r) => r.duprId === player.dupr_id) ?? results[0] ?? null;
+      } else {
+        // Name-based search with fuzzy matching
+        const results = await searchPlayer(player.name, auth.accessToken);
+        match = pickBestMatch(results, player.name, player.location, player.gender, player.dupr_doubles);
+      }
 
       const now = new Date().toISOString();
 
       if (match?.ratings?.doubles) {
         const liveRating = parseFloat(match.ratings.doubles);
         if (!isNaN(liveRating) && liveRating > 0) {
+          const doublesVerified = match.ratings.doublesVerified && match.ratings.doublesVerified !== "NR"
+            ? parseFloat(match.ratings.doublesVerified)
+            : null;
+          const singles = match.ratings.singles && match.ratings.singles !== "NR"
+            ? parseFloat(match.ratings.singles)
+            : null;
+          const singlesVerified = match.ratings.singlesVerified && match.ratings.singlesVerified !== "NR"
+            ? parseFloat(match.ratings.singlesVerified)
+            : null;
+
           const { error } = await supabase
             .from("players")
             .update({
-              dupr_rating: liveRating,
+              dupr_doubles: liveRating,
+              dupr_doubles_verified: doublesVerified,
+              dupr_doubles_provisional: match.ratings.doublesProvisional ?? null,
+              dupr_singles: singles,
+              dupr_singles_verified: singlesVerified,
+              dupr_singles_provisional: match.ratings.singlesProvisional ?? null,
               dupr_verified: !match.ratings.doublesProvisional,
               dupr_last_checked: now,
+              ...(match.duprId ? { dupr_id: match.duprId } : {}),
             })
             .eq("id", player.id);
 
@@ -285,11 +314,12 @@ export async function enrichDuprRatings(): Promise<{
             console.error(`[dupr-enrich] Update failed for "${player.name}":`, error);
             failed++;
           } else {
-            const delta = player.dupr_rating
-              ? (liveRating - player.dupr_rating).toFixed(2)
+            const delta = player.dupr_doubles
+              ? (liveRating - player.dupr_doubles).toFixed(2)
               : "new";
+            const via = player.dupr_id ? "ID" : "name";
             console.log(
-              `[dupr-enrich] ✓ ${player.name}: ${liveRating} (Δ ${delta})`
+              `[dupr-enrich] ✓ ${player.name}: ${liveRating} (Δ ${delta}, via ${via})`
             );
             updated++;
           }
@@ -300,7 +330,6 @@ export async function enrichDuprRatings(): Promise<{
             .eq("id", player.id);
         }
       } else {
-        // No match found — still mark as checked so we don't retry every run
         await supabase
           .from("players")
           .update({ dupr_last_checked: now })
