@@ -161,27 +161,25 @@ export default async function TournamentPage({ params }: PageProps) {
             </div>
           </section>
         )}
-        <div className="mt-12 rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 px-6 py-5 text-center">
-          <p className="text-sm text-gray-500">
+      </main>
+
+      {/* Pre-footer CTA */}
+      <div className="border-t border-gray-200 bg-gray-50">
+        <div className="mx-auto max-w-6xl px-5 py-10 text-center">
+          <p className="text-base font-semibold text-gray-700">
             Something missing or incorrect?{" "}
-            <Link
-              href="/submit"
-              className="font-medium text-green-600 hover:text-green-700"
-            >
+            <Link href="/submit" className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2">
               Let us know
             </Link>
           </p>
-          <p className="mt-1 text-sm text-gray-400">
+          <p className="mt-1 text-sm text-gray-500">
             Know about another tournament?{" "}
-            <Link
-              href="/submit"
-              className="font-medium text-green-600 hover:text-green-700"
-            >
+            <Link href="/submit" className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2">
               Submit it
             </Link>
           </p>
         </div>
-      </main>
+      </div>
 
       <Footer citySlug={citySlug} />
     </div>
