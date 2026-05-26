@@ -1,17 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { devLogin } from "./actions";
 
 export function DevQuickLogin() {
-  const isDev =
-    process.env.NEXT_PUBLIC_SUPABASE_URL !==
-    process.env.NEXT_PUBLIC_SUPABASE_PROD_URL;
-
+  const [isLocal, setIsLocal] = useState(false);
   const [pending, setPending] = useState<"admin" | "user" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  if (!isDev) return null;
+  useEffect(() => {
+    const host = window.location.hostname;
+    setIsLocal(host === "localhost" || host === "127.0.0.1");
+  }, []);
+
+  if (!isLocal) return null;
 
   async function handleClick(role: "admin" | "user") {
     setPending(role);
