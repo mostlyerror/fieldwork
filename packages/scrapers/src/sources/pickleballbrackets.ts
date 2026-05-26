@@ -292,39 +292,47 @@ async function scrapeEvents(page: Page, slug: string): Promise<ScrapedEvent[]> {
     }
 
     // Click buttons with registered players (count > 0)
-    // Track which button index triggers which activityId
-    const buttonToActivityId = new Map<number, string>();
+    // Track the order of activityIds as they arrive
+    const activityIdOrder: string[] = [];
+    page.on("response", async (res) => {
+      const resUrl = res.url();
+      if (resUrl.includes("eventPlayers")) {
+        const urlObj = new URL(resUrl);
+        const activityId = urlObj.searchParams.get("activityId") || "";
+        if (activityId && !activityIdOrder.includes(activityId)) {
+          activityIdOrder.push(activityId);
+        }
+      }
+    });
+
+    // Build a map: allButtonIndex → position in click order
+    const buttonClickOrder = new Map<number, number>();
     const buttonsToClick = allButtonLocators.filter(b => b.count > 0);
     if (buttonsToClick.length > 0) {
       console.log(
         `[pickleballbrackets] Clicking ${buttonsToClick.length} event buttons for player data...`
       );
 
+      let clickIdx = 0;
       for (const btn of buttonsToClick) {
         try {
-          const beforeIds = new Set(playersByActivityId.keys());
           const freshButtons = await page.locator('button').all();
           if (btn.index < freshButtons.length) {
+            buttonClickOrder.set(btn.index, clickIdx);
             await freshButtons[btn.index].click();
             await page.waitForTimeout(800);
-          }
-          // Find the new activityId that appeared after this click
-          for (const id of playersByActivityId.keys()) {
-            if (!beforeIds.has(id)) {
-              buttonToActivityId.set(btn.index, id);
-              break;
-            }
+            clickIdx++;
           }
         } catch {
           // Button may have changed, skip
         }
       }
 
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(1500);
     }
 
     // Build events from DOM data + player API data
-    // Match each event to its activityId via the button index
+    // Match each event to its activityId via its button's click order position
     for (const raw of rawEvents) {
       const parsed = parseEventName(raw.name);
 
@@ -344,9 +352,10 @@ async function scrapeEvents(page: Page, slug: string): Promise<ScrapedEvent[]> {
         }
       }
 
-      // Match this event to its API player data via button index
+      // Match this event to its API player data via button click order
       const players: ScrapedPlayer[] = [];
-      const activityId = raw.allButtonIndex >= 0 ? buttonToActivityId.get(raw.allButtonIndex) : undefined;
+      const clickPos = raw.allButtonIndex >= 0 ? buttonClickOrder.get(raw.allButtonIndex) : undefined;
+      const activityId = clickPos != null ? activityIdOrder[clickPos] : undefined;
       if (activityId) {
         const apiPlayers = playersByActivityId.get(activityId) ?? [];
 
