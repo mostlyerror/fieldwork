@@ -63,6 +63,7 @@ export interface EventPlayer {
   live_dupr_verified: boolean | null;
   partner_live_dupr: number | null;
   partner_live_dupr_verified: boolean | null;
+  placement: number | null;
 }
 
 export interface Player {

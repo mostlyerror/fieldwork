@@ -7,6 +7,7 @@ import { TournamentDetail } from "@/components/tournament-detail";
 import { TournamentCard } from "@/components/tournament-card";
 import { EventBreakdown } from "@/components/event-breakdown";
 import { LiveBracket } from "@/components/live-bracket";
+import { TournamentPodium } from "@/components/tournament-podium";
 import { Footer } from "@/components/footer";
 import { ServerHeader } from "@/components/server-header";
 import { formatDateRange, distanceMiles } from "@/lib/format";
@@ -154,6 +155,12 @@ export default async function TournamentPage({ params }: PageProps) {
         {matches.length > 0 && (
           <section className="mt-6">
             <LiveBracket matches={matches} events={events} />
+          </section>
+        )}
+
+        {events.length > 0 && (
+          <section className="mt-6">
+            <TournamentPodium events={events} />
           </section>
         )}
 

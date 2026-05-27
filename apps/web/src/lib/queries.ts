@@ -207,6 +207,7 @@ export async function getTournamentEvents(
       live_dupr_verified: ((raw as Record<string, unknown>).enriched_dupr_verified as boolean | null) ?? joined?.dupr_verified ?? null,
       partner_live_dupr: ((raw as Record<string, unknown>).partner_enriched_dupr as number | null) ?? partnerJoined?.dupr_doubles ?? null,
       partner_live_dupr_verified: ((raw as Record<string, unknown>).partner_enriched_dupr_verified as boolean | null) ?? partnerJoined?.dupr_verified ?? null,
+      placement: (raw as Record<string, unknown>).placement as number | null,
     };
     if (!playersByEvent.has(eventId)) {
       playersByEvent.set(eventId, []);
