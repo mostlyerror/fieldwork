@@ -14,6 +14,7 @@ import { scrapeDuprIds } from "./utils/scrape-dupr-ids.js";
 import { enrichDuprRatings } from "./utils/dupr-enrichment.js";
 import { fetchAllMatchHistory } from "./utils/match-history.js";
 import { fetchLiveMatches } from "./utils/live-matches.js";
+import { writePlacements } from "./utils/placements.js";
 import { snapshotEnrichedDupr } from "./utils/snapshot-dupr.js";
 import { supabase } from "./utils/supabase.js";
 import type { ScraperSource } from "./types.js";
@@ -262,6 +263,19 @@ async function main() {
     }
   } catch (err) {
     console.error("[live-matches] Live match fetch failed:", err);
+  }
+
+  // Write placements for completed tournaments
+  try {
+    const placed = await writePlacements();
+    if (placed > 0) {
+      await sendDiscordAlert({
+        title: "🏆 Placements recorded",
+        description: `${placed} medalists written`,
+      });
+    }
+  } catch (err) {
+    console.error("[placements] Placement scrape failed:", err);
   }
 
   console.log("All sources processed.");
