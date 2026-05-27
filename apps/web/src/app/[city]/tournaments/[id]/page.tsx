@@ -1,12 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getTournament, getTournamentSources, getTournamentsByCity, getTournamentEvents, getTournamentMatches } from "@/lib/queries";
+import { getTournament, getTournamentSources, getTournamentsByCity, getTournamentEvents } from "@/lib/queries";
 import { getCityBySlug, getDefaultCity } from "@/lib/cities";
 import { TournamentDetail } from "@/components/tournament-detail";
 import { TournamentCard } from "@/components/tournament-card";
 import { EventBreakdown } from "@/components/event-breakdown";
-import { LiveBracket } from "@/components/live-bracket";
 import { Footer } from "@/components/footer";
 import { ServerHeader } from "@/components/server-header";
 import { formatDateRange, distanceMiles } from "@/lib/format";
@@ -77,12 +76,11 @@ export default async function TournamentPage({ params }: PageProps) {
   const city = getCityBySlug(citySlug);
   if (!city) notFound();
 
-  const [tournament, sources, cityTournaments, events, matches] = await Promise.all([
+  const [tournament, sources, cityTournaments, events] = await Promise.all([
     getTournament(id),
     getTournamentSources(id),
     getTournamentsByCity(citySlug),
     getTournamentEvents(id),
-    getTournamentMatches(id),
   ]);
 
   if (!tournament) notFound();
@@ -148,12 +146,6 @@ export default async function TournamentPage({ params }: PageProps) {
         {events.length > 0 && (
           <section className="mt-6">
             <EventBreakdown events={events} />
-          </section>
-        )}
-
-        {matches.length > 0 && (
-          <section className="mt-6">
-            <LiveBracket matches={matches} events={events} />
           </section>
         )}
 
