@@ -9,6 +9,8 @@ export interface UpsertStats {
   tournamentsUpdated: number;
   tournamentsDeduplicated: number;
   newTournamentIds: string[];
+  newTournamentNames: string[];
+  updatedTournamentNames: string[];
 }
 
 /**
@@ -49,6 +51,8 @@ export async function upsertTournaments(
   let tournamentsUpdated = 0;
   let tournamentsDeduplicated = 0;
   const newTournamentIds: string[] = [];
+  const newTournamentNames: string[] = [];
+  const updatedTournamentNames: string[] = [];
 
   for (const t of tournaments) {
     if (!hasPlausibleDates(t)) continue;
@@ -103,6 +107,7 @@ export async function upsertTournaments(
             );
           } else {
             tournamentsUpdated++;
+            updatedTournamentNames.push(t.name);
             console.log(`[upsert] UPDATED: "${t.name}" (${t.dateStart})`);
           }
         } else {
@@ -167,6 +172,7 @@ export async function upsertTournaments(
       } else {
         tournamentsNew++;
         newTournamentIds.push(inserted.id);
+        newTournamentNames.push(t.name);
         console.log(`[upsert] NEW: "${t.name}" (${t.dateStart})`);
         // Record this source for the new canonical tournament
         await addTournamentSource(
@@ -181,7 +187,7 @@ export async function upsertTournaments(
     }
   }
 
-  return { tournamentsNew, tournamentsUpdated, tournamentsDeduplicated, newTournamentIds };
+  return { tournamentsNew, tournamentsUpdated, tournamentsDeduplicated, newTournamentIds, newTournamentNames, updatedTournamentNames };
 }
 
 /**

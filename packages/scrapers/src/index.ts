@@ -130,6 +130,19 @@ async function main() {
         ...stats,
       });
 
+      if (stats.newTournamentNames.length > 0) {
+        await sendDiscordAlert({
+          title: "🆕 New tournaments",
+          description: stats.newTournamentNames.join(", "),
+        });
+      }
+      if (stats.updatedTournamentNames.length > 0) {
+        await sendDiscordAlert({
+          title: "✏️ Tournaments updated",
+          description: stats.updatedTournamentNames.join(", "),
+        });
+      }
+
       results.push({ name: source.name, ok: true, found: tournaments.length, stats });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -142,6 +155,37 @@ async function main() {
   }
 
   await runHealthCheck(results);
+
+  // Check for active tournaments that weren't seen in this scrape (may have been cancelled)
+  try {
+    const successfulSources = results.filter((r) => r.ok).map((r) => r.name);
+    if (successfulSources.length > 0) {
+      const today = new Date().toISOString().split("T")[0];
+      const { data: activeInDb } = await supabase
+        .from("tournaments")
+        .select("id, name, source_platform, updated_at")
+        .eq("status", "active")
+        .gte("date_end", today)
+        .in("source_platform", successfulSources);
+
+      if (activeInDb) {
+        const stale = activeInDb.filter((t) => {
+          const updated = new Date(t.updated_at as string);
+          const hoursSinceUpdate = (Date.now() - updated.getTime()) / (1000 * 60 * 60);
+          return hoursSinceUpdate > 48;
+        });
+
+        if (stale.length > 0 && stale.length <= 10) {
+          await sendDiscordAlert({
+            title: "👻 Tournaments not seen in 48h",
+            description: stale.map((t) => t.name as string).join(", "),
+          });
+        }
+      }
+    }
+  } catch (err) {
+    console.error("[stale-check] Error checking for removed tournaments:", err);
+  }
 
   // Scrape DUPR IDs from pickleball.com for players missing them
   try {
