@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import type { Tournament, TournamentSource, TournamentEvent, TournamentMatch, EventPlayer, Player, Match, PlayerRecord, FrequentPartner } from "./types";
+import type { Tournament, TournamentSource, TournamentEvent, TournamentMatch, EventPlayer, Player, Match, PlayerRecord, FrequentPartner, ResultCardData } from "./types";
 import { getCityBySlug, getDefaultCity } from "./cities";
 
 export async function getTournaments(): Promise<Tournament[]> {
@@ -91,6 +91,73 @@ export async function getTournamentMatches(
     return [];
   }
   return (data ?? []) as TournamentMatch[];
+}
+
+export async function getResultCardData(
+  eventId: string,
+  playerId: string,
+): Promise<ResultCardData | null> {
+  const { data: ep, error } = await supabase
+    .from("event_players")
+    .select("player_name, partner_name, placement, enriched_dupr, partner_enriched_dupr, dupr_rating, partner_dupr_rating, event_id, player_id")
+    .eq("event_id", eventId)
+    .eq("player_id", playerId)
+    .not("placement", "is", null)
+    .maybeSingle();
+
+  if (error || !ep || !ep.placement) return null;
+
+  const { data: event } = await supabase
+    .from("tournament_events")
+    .select("name, tournament_id")
+    .eq("id", eventId)
+    .single();
+
+  if (!event) return null;
+
+  const { data: tournament } = await supabase
+    .from("tournaments")
+    .select("name, date_start, date_end, location_name")
+    .eq("id", event.tournament_id)
+    .single();
+
+  if (!tournament) return null;
+
+  const { data: medalists } = await supabase
+    .from("event_players")
+    .select("player_name, partner_name, placement")
+    .eq("event_id", eventId)
+    .not("placement", "is", null)
+    .order("placement", { ascending: true });
+
+  function teamName(row: { player_name: string; partner_name: string | null }): string {
+    return [row.player_name, row.partner_name].filter(Boolean).join(" & ");
+  }
+
+  const gold = medalists?.find((m) => m.placement === 1);
+  const silver = medalists?.find((m) => m.placement === 2);
+  const bronze = medalists?.find((m) => m.placement === 3);
+
+  const dateStr = tournament.date_start === tournament.date_end
+    ? new Date(tournament.date_start + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    : `${new Date(tournament.date_start + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}–${new Date(tournament.date_end + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+
+  return {
+    playerName: ep.player_name as string,
+    partnerName: ep.partner_name as string | null,
+    placement: ep.placement as number,
+    dupr: (ep.enriched_dupr as number | null) ?? (ep.dupr_rating as number | null),
+    partnerDupr: (ep.partner_enriched_dupr as number | null) ?? (ep.partner_dupr_rating as number | null),
+    eventName: event.name as string,
+    eventId,
+    tournamentName: tournament.name as string,
+    tournamentDate: dateStr,
+    venue: tournament.location_name as string,
+    playerId,
+    goldTeam: gold ? teamName(gold as { player_name: string; partner_name: string | null }) : null,
+    silverTeam: silver ? teamName(silver as { player_name: string; partner_name: string | null }) : null,
+    bronzeTeam: bronze ? teamName(bronze as { player_name: string; partner_name: string | null }) : null,
+  };
 }
 
 export async function getTournamentEvents(

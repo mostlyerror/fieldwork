@@ -145,6 +145,23 @@ export interface TournamentMatch {
   match_completed: string | null;
 }
 
+export interface ResultCardData {
+  playerName: string;
+  partnerName: string | null;
+  placement: number;
+  dupr: number | null;
+  partnerDupr: number | null;
+  eventName: string;
+  eventId: string;
+  tournamentName: string;
+  tournamentDate: string;
+  venue: string;
+  playerId: string;
+  goldTeam: string | null;
+  silverTeam: string | null;
+  bronzeTeam: string | null;
+}
+
 export type FieldStrengthFilter = "all" | "friendly" | "competitive" | "stacked";
 
 export interface TournamentFilters {
