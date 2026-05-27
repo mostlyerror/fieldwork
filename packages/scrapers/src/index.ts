@@ -14,6 +14,7 @@ import { scrapeDuprIds } from "./utils/scrape-dupr-ids.js";
 import { enrichDuprRatings } from "./utils/dupr-enrichment.js";
 import { fetchAllMatchHistory } from "./utils/match-history.js";
 import { fetchLiveMatches } from "./utils/live-matches.js";
+import { snapshotEnrichedDupr } from "./utils/snapshot-dupr.js";
 import { supabase } from "./utils/supabase.js";
 import type { ScraperSource } from "./types.js";
 import type { UpsertStats } from "./utils/upsert.js";
@@ -208,6 +209,10 @@ async function main() {
           description: `Checked ${enrichResult.checked} players, updated ${enrichResult.updated} ratings`,
           color: 0x22c55e,
         });
+        const snapshotted = await snapshotEnrichedDupr();
+        if (snapshotted > 0) {
+          console.log(`[dupr-enrich] Snapshotted ${snapshotted} event_players with enriched ratings`);
+        }
       }
       // Capture the token that enrichDuprRatings used internally — re-authenticate for match history
       const authRes = await fetch("https://api.dupr.gg/auth/v1.0/login/", {

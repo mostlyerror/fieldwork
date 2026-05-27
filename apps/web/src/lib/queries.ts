@@ -136,10 +136,10 @@ export async function getTournamentEvents(
       team_avg_dupr: raw.team_avg_dupr as number | null,
       player_id: raw.player_id as string | null,
       partner_id: raw.partner_id as string | null,
-      live_dupr: joined?.dupr_doubles ?? null,
-      live_dupr_verified: joined?.dupr_verified ?? null,
-      partner_live_dupr: partnerJoined?.dupr_doubles ?? null,
-      partner_live_dupr_verified: partnerJoined?.dupr_verified ?? null,
+      live_dupr: ((raw as Record<string, unknown>).enriched_dupr as number | null) ?? joined?.dupr_doubles ?? null,
+      live_dupr_verified: ((raw as Record<string, unknown>).enriched_dupr_verified as boolean | null) ?? joined?.dupr_verified ?? null,
+      partner_live_dupr: ((raw as Record<string, unknown>).partner_enriched_dupr as number | null) ?? partnerJoined?.dupr_doubles ?? null,
+      partner_live_dupr_verified: ((raw as Record<string, unknown>).partner_enriched_dupr_verified as boolean | null) ?? partnerJoined?.dupr_verified ?? null,
     };
     if (!playersByEvent.has(eventId)) {
       playersByEvent.set(eventId, []);
