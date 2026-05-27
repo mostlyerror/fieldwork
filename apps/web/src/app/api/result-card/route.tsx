@@ -2,8 +2,6 @@ import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-export const runtime = "edge";
-
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
@@ -23,27 +21,30 @@ interface CardData {
 }
 
 const MEDAL: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
-const PLACEMENT_LABEL: Record<number, string> = { 1: "GOLD MEDAL", 2: "SILVER MEDAL", 3: "BRONZE MEDAL" };
-const PLACEMENT_ORDINAL: Record<number, string> = { 1: "1ST PLACE", 2: "2ND PLACE", 3: "3RD PLACE" };
+const LABEL: Record<number, string> = { 1: "GOLD MEDAL", 2: "SILVER MEDAL", 3: "BRONZE MEDAL" };
+const ORD: Record<number, string> = { 1: "1ST PLACE", 2: "2ND PLACE", 3: "3RD PLACE" };
+
+function duprStr(d: CardData): string {
+  return [d.dupr, d.partnerDupr].filter((r): r is number => r != null).map((r) => r.toFixed(2)).join(" / ");
+}
 
 function DarkStyle({ d }: { d: CardData }) {
-  const names = [d.playerName, d.partnerName].filter(Boolean).join("\n& ");
-  const duprText = [d.dupr, d.partnerDupr].filter((r): r is number => r != null).map((r) => r.toFixed(2)).join(" / ");
-
+  const names = [d.playerName, d.partnerName].filter(Boolean).join(" & ");
+  const dr = duprStr(d);
   return (
     <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", background: "linear-gradient(145deg, #065f46 0%, #064e3b 50%, #1a1a1a 100%)", padding: "60px 48px", fontFamily: "system-ui, sans-serif", color: "white" }}>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
-        <div style={{ fontSize: "80px" }}>{MEDAL[d.placement]}</div>
-        <div style={{ fontSize: "16px", letterSpacing: "4px", textTransform: "uppercase", color: "#d4af37", fontWeight: 800 }}>{PLACEMENT_LABEL[d.placement]}</div>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div style={{ fontSize: "80px", display: "flex" }}>{MEDAL[d.placement]}</div>
+        <div style={{ fontSize: "16px", letterSpacing: "4px", color: "#d4af37", fontWeight: 800, marginTop: "8px", display: "flex" }}>{LABEL[d.placement]}</div>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-        <div style={{ fontSize: "44px", fontWeight: 900, lineHeight: 1.2, whiteSpace: "pre-line" }}>{names}</div>
-        {duprText && <div style={{ fontSize: "20px", color: "rgba(255,255,255,0.5)", marginTop: "12px" }}>DUPR {duprText}</div>}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div style={{ fontSize: "44px", fontWeight: 900, lineHeight: 1.2, textAlign: "center", display: "flex" }}>{names}</div>
+        <div style={{ fontSize: "20px", color: "rgba(255,255,255,0.5)", marginTop: "12px", display: "flex" }}>{dr ? `DUPR ${dr}` : ""}</div>
       </div>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "rgba(255,255,255,0.08)", borderRadius: "16px", padding: "24px" }}>
-        <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "2px" }}>{d.eventName}</div>
-        <div style={{ fontSize: "22px", fontWeight: 700, marginTop: "6px" }}>{d.tournamentName}</div>
-        <div style={{ fontSize: "15px", color: "rgba(255,255,255,0.5)", marginTop: "4px" }}>{d.tournamentDate} · {d.venue}</div>
+        <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.4)", letterSpacing: "2px", display: "flex" }}>{d.eventName}</div>
+        <div style={{ fontSize: "22px", fontWeight: 700, marginTop: "6px", display: "flex" }}>{d.tournamentName}</div>
+        <div style={{ fontSize: "15px", color: "rgba(255,255,255,0.5)", marginTop: "4px", display: "flex" }}>{d.tournamentDate} · {d.venue}</div>
       </div>
       <div style={{ display: "flex", justifyContent: "center", fontSize: "13px", color: "rgba(255,255,255,0.2)", letterSpacing: "3px" }}>PICKLERADAR.APP</div>
     </div>
@@ -52,71 +53,69 @@ function DarkStyle({ d }: { d: CardData }) {
 
 function EditorialStyle({ d }: { d: CardData }) {
   const names = [d.playerName, d.partnerName].filter(Boolean).join(" & ");
-  const duprText = [d.dupr, d.partnerDupr].filter((r): r is number => r != null).map((r) => r.toFixed(2)).join(" / ");
-
+  const dr = duprStr(d);
   return (
     <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", background: "#FFFDF7", padding: "60px 48px", fontFamily: "system-ui, sans-serif" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-        <div style={{ background: "#065f46", color: "white", fontSize: "13px", fontWeight: 800, padding: "6px 14px", borderRadius: "6px", letterSpacing: "3px" }}>{PLACEMENT_ORDINAL[d.placement]}</div>
-        <div style={{ fontSize: "13px", color: "#9ca3af", letterSpacing: "2px", textTransform: "uppercase" }}>{d.eventName}</div>
+        <div style={{ background: "#065f46", color: "white", fontSize: "13px", fontWeight: 800, padding: "6px 14px", borderRadius: "6px", letterSpacing: "3px", display: "flex" }}>{ORD[d.placement]}</div>
+        <div style={{ fontSize: "13px", color: "#9ca3af", letterSpacing: "2px", display: "flex" }}>{d.eventName}</div>
+      </div>
+      <div style={{ display: "flex" }}>
+        <div style={{ fontSize: "52px", fontWeight: 900, color: "#1a1a1a", lineHeight: 1.1, display: "flex" }}>{names}</div>
       </div>
       <div style={{ display: "flex", flexDirection: "column" }}>
-        <div style={{ fontSize: "52px", fontWeight: 900, color: "#1a1a1a", lineHeight: 1.1 }}>{names}</div>
-      </div>
-      <div style={{ display: "flex", flexDirection: "column" }}>
-        <div style={{ borderTop: "3px solid #1a1a1a", paddingTop: "20px" }}>
-          <div style={{ fontSize: "24px", fontWeight: 800, color: "#1a1a1a" }}>{d.tournamentName}</div>
-          <div style={{ fontSize: "16px", color: "#6b7280", marginTop: "6px" }}>{d.tournamentDate} · {d.venue}</div>
+        <div style={{ display: "flex", flexDirection: "column", borderTop: "3px solid #1a1a1a", paddingTop: "20px" }}>
+          <div style={{ fontSize: "24px", fontWeight: 800, color: "#1a1a1a", display: "flex" }}>{d.tournamentName}</div>
+          <div style={{ fontSize: "16px", color: "#6b7280", marginTop: "6px", display: "flex" }}>{d.tournamentDate} · {d.venue}</div>
         </div>
-        {duprText && (
+        {dr ? (
           <div style={{ display: "flex", gap: "16px", marginTop: "20px" }}>
             <div style={{ background: "#f0fdf4", borderRadius: "12px", padding: "12px 20px", display: "flex", flexDirection: "column" }}>
-              <div style={{ fontSize: "11px", color: "#065f46", textTransform: "uppercase", letterSpacing: "2px", fontWeight: 700 }}>DUPR</div>
-              <div style={{ fontSize: "28px", fontWeight: 900, color: "#065f46" }}>{duprText}</div>
+              <div style={{ fontSize: "11px", color: "#065f46", letterSpacing: "2px", fontWeight: 700, display: "flex" }}>DUPR</div>
+              <div style={{ fontSize: "28px", fontWeight: 900, color: "#065f46", display: "flex" }}>{dr}</div>
             </div>
           </div>
-        )}
+        ) : <div style={{ display: "flex" }} />}
       </div>
-      <div style={{ fontSize: "13px", color: "#d1d5db", fontWeight: 700, letterSpacing: "3px" }}>PICKLERADAR.APP</div>
+      <div style={{ display: "flex", fontSize: "13px", color: "#d1d5db", fontWeight: 700, letterSpacing: "3px" }}>PICKLERADAR.APP</div>
     </div>
   );
 }
 
 function PodiumStyle({ d }: { d: CardData }) {
   const names = [d.playerName, d.partnerName].filter(Boolean).join(" & ");
-  const duprText = [d.dupr, d.partnerDupr].filter((r): r is number => r != null).map((r) => r.toFixed(2)).join(" / ");
-
+  const dr = duprStr(d);
   return (
     <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", background: "linear-gradient(180deg, #FFFDF7 0%, #f0fdf4 100%)", padding: "48px 40px", fontFamily: "system-ui, sans-serif" }}>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <div style={{ fontSize: "13px", color: "#9ca3af", letterSpacing: "3px", textTransform: "uppercase", fontWeight: 700 }}>{d.tournamentName}</div>
-        <div style={{ fontSize: "14px", color: "#6b7280", marginTop: "4px" }}>{d.eventName}</div>
+        <div style={{ fontSize: "13px", color: "#9ca3af", letterSpacing: "3px", fontWeight: 700, display: "flex" }}>{d.tournamentName}</div>
+        <div style={{ fontSize: "14px", color: "#6b7280", marginTop: "4px", display: "flex" }}>{d.eventName}</div>
       </div>
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: "6px" }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "200px" }}>
-          <div style={{ fontSize: "14px", fontWeight: 700, color: "#6b7280", textAlign: "center", marginBottom: "8px" }}>{d.silverTeam || "—"}</div>
+          <div style={{ fontSize: "14px", fontWeight: 700, color: "#6b7280", textAlign: "center", marginBottom: "8px", display: "flex" }}>{d.silverTeam || "—"}</div>
           <div style={{ background: "#d1d5db", width: "100%", height: "120px", borderRadius: "10px 10px 0 0", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <span style={{ fontSize: "36px", fontWeight: 900, color: "white" }}>2nd</span>
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "220px" }}>
-          <div style={{ fontSize: "16px", fontWeight: 900, color: "#1a1a1a", textAlign: "center", marginBottom: "8px" }}>{d.goldTeam || "—"}</div>
+          <div style={{ fontSize: "16px", fontWeight: 900, color: "#1a1a1a", textAlign: "center", marginBottom: "8px", display: "flex" }}>{d.goldTeam || "—"}</div>
           <div style={{ background: "#065f46", width: "100%", height: "170px", borderRadius: "10px 10px 0 0", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <span style={{ fontSize: "48px" }}>🥇</span>
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "200px" }}>
-          <div style={{ fontSize: "14px", fontWeight: 700, color: "#6b7280", textAlign: "center", marginBottom: "8px" }}>{d.bronzeTeam || "—"}</div>
+          <div style={{ fontSize: "14px", fontWeight: 700, color: "#6b7280", textAlign: "center", marginBottom: "8px", display: "flex" }}>{d.bronzeTeam || "—"}</div>
           <div style={{ background: "#ca8a04", width: "100%", height: "80px", borderRadius: "10px 10px 0 0", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <span style={{ fontSize: "36px", fontWeight: 900, color: "white" }}>3rd</span>
           </div>
         </div>
       </div>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", border: "3px solid #065f46", borderRadius: "16px", padding: "20px", background: "white" }}>
-        <div style={{ fontSize: "12px", color: "#065f46", textTransform: "uppercase", letterSpacing: "3px", fontWeight: 800 }}>Your Result</div>
-        <div style={{ fontSize: "36px", fontWeight: 900, color: "#065f46", marginTop: "4px" }}>{MEDAL[d.placement]} {PLACEMENT_ORDINAL[d.placement]}</div>
-        <div style={{ fontSize: "20px", fontWeight: 700, color: "#1a1a1a", marginTop: "4px" }}>{names}</div>
-        {duprText && <div style={{ fontSize: "15px", color: "#6b7280", marginTop: "4px" }}>DUPR {duprText}</div>}
+        <div style={{ fontSize: "12px", color: "#065f46", letterSpacing: "3px", fontWeight: 800, display: "flex" }}>Your Result</div>
+        <div style={{ fontSize: "36px", fontWeight: 900, color: "#065f46", marginTop: "4px", display: "flex" }}>{MEDAL[d.placement]} {ORD[d.placement]}</div>
+        <div style={{ fontSize: "20px", fontWeight: 700, color: "#1a1a1a", marginTop: "4px", display: "flex" }}>{names}</div>
+        <div style={{ fontSize: "15px", color: "#6b7280", marginTop: "4px", display: "flex" }}>{dr ? `DUPR ${dr}` : ""}</div>
       </div>
       <div style={{ display: "flex", justifyContent: "center", fontSize: "13px", color: "#d1d5db", fontWeight: 700, letterSpacing: "3px" }}>PICKLERADAR.APP</div>
     </div>
