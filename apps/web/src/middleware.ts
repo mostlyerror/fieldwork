@@ -10,6 +10,8 @@ function matchCity(name: string): string | undefined {
 }
 
 const PROTECTED_ROUTES = ["/profile", "/admin"];
+// Subroutes under /profile that explicitly do NOT need auth (email-confirm flows etc.)
+const PROFILE_PUBLIC_PREFIXES = ["/profile/find", "/profile/claim"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -25,7 +27,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // Only call Supabase for routes that need auth
-  const needsAuth = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
+  const isPublicProfile = PROFILE_PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
+  const needsAuth = !isPublicProfile && PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
   const { supabaseResponse, user } = await updateSession(request);
 
   if (needsAuth && !user) {

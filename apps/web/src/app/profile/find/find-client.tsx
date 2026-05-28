@@ -1,0 +1,180 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { searchPlayers, requestClaim, type PlayerCandidate } from "./actions";
+
+type SendState =
+  | { status: "idle" }
+  | { status: "sending" }
+  | { status: "sent" }
+  | { status: "no_subscriber" }
+  | { status: "already_claimed_by_another" }
+  | { status: "error"; message: string };
+
+export function FindClient({ initialEmail }: { initialEmail: string }) {
+  const [email, setEmail] = useState(initialEmail);
+  const [query, setQuery] = useState("");
+  const [candidates, setCandidates] = useState<PlayerCandidate[] | null>(null);
+  const [pickedId, setPickedId] = useState<string | null>(null);
+  const [searching, startSearch] = useTransition();
+  const [send, setSend] = useState<SendState>({ status: "idle" });
+
+  function handleSearch() {
+    if (!query.trim()) return;
+    startSearch(async () => {
+      const results = await searchPlayers(query);
+      setCandidates(results);
+      setPickedId(null);
+    });
+  }
+
+  async function handleConfirm() {
+    if (!pickedId || !email) return;
+    setSend({ status: "sending" });
+    const r = await requestClaim(email, pickedId);
+    setSend(r);
+  }
+
+  if (send.status === "sent") {
+    return (
+      <div className="animate-fade-up rounded-xl border-2 border-emerald-700 bg-white p-6 text-center">
+        <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-700 text-white animate-pop">
+          <span className="text-2xl">✓</span>
+        </div>
+        <h2 className="mt-4 text-xl font-extrabold text-gray-900">Check your inbox</h2>
+        <p className="mt-2 text-sm text-gray-500">
+          We sent a confirmation link to <strong>{email}</strong>. Click it to finish claiming your profile.
+        </p>
+        <p className="mt-4 text-xs text-gray-400">The link expires in 7 days.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Email */}
+      <div>
+        <label htmlFor="email" className="block text-xs font-bold uppercase tracking-widest text-gray-500">
+          Subscriber email
+        </label>
+        <input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@email.com"
+          className="mt-2 w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-base focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+        />
+        <p className="mt-1 text-xs text-gray-400">Must match the email you subscribed with.</p>
+      </div>
+
+      {/* Search */}
+      <div>
+        <label htmlFor="q" className="block text-xs font-bold uppercase tracking-widest text-gray-500">
+          Your name
+        </label>
+        <div className="mt-2 flex gap-2">
+          <input
+            id="q"
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            placeholder="Ben Poon"
+            className="flex-1 rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-base focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+          />
+          <button
+            type="button"
+            onClick={handleSearch}
+            disabled={searching || !query.trim()}
+            className="shrink-0 rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50"
+          >
+            {searching ? "Searching..." : "Search"}
+          </button>
+        </div>
+      </div>
+
+      {/* Candidates */}
+      {candidates !== null && (
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest text-gray-500">
+            {candidates.length === 0 ? "No matches" : `${candidates.length} match${candidates.length === 1 ? "" : "es"}`}
+          </p>
+          {candidates.length === 0 ? (
+            <p className="mt-3 text-sm text-gray-500">
+              Try a different spelling, or add a last name / last initial.
+            </p>
+          ) : (
+            <ul className="mt-3 divide-y divide-gray-100 rounded-xl border border-gray-200 bg-white">
+              {candidates.map((c) => {
+                const picked = c.id === pickedId;
+                return (
+                  <li key={c.id}>
+                    <button
+                      type="button"
+                      onClick={() => setPickedId(c.id)}
+                      className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition ${
+                        picked ? "bg-emerald-50" : "hover:bg-gray-50"
+                      }`}
+                    >
+                      <div>
+                        <p className="font-semibold text-gray-900">{c.name}</p>
+                        <p className="text-xs text-gray-500">
+                          {c.location ?? "Location unknown"}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {c.dupr_doubles != null && (
+                          <span className="text-sm font-bold text-emerald-700">
+                            {c.dupr_doubles.toFixed(2)}
+                          </span>
+                        )}
+                        <span
+                          className={`inline-flex h-5 w-5 items-center justify-center rounded-full border-2 ${
+                            picked ? "border-emerald-700 bg-emerald-700 text-white" : "border-gray-300"
+                          }`}
+                        >
+                          {picked ? "✓" : ""}
+                        </span>
+                      </div>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {/* Confirm */}
+      {pickedId && (
+        <div className="rounded-xl border-2 border-gray-200 bg-white p-4">
+          <p className="text-sm text-gray-700">
+            We&apos;ll email a confirmation link to <strong>{email || "your email"}</strong>. Click it to finish.
+          </p>
+          <button
+            type="button"
+            onClick={handleConfirm}
+            disabled={!email || send.status === "sending"}
+            className="mt-3 w-full rounded-lg bg-emerald-700 px-5 py-3 text-base font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50"
+          >
+            {send.status === "sending" ? "Sending..." : "Send confirmation email"}
+          </button>
+          {send.status === "no_subscriber" && (
+            <p className="mt-2 text-xs text-red-600">
+              We don&apos;t have an active subscription for that email. Subscribe first, then come back.
+            </p>
+          )}
+          {send.status === "already_claimed_by_another" && (
+            <p className="mt-2 text-xs text-red-600">
+              That player is already claimed by someone else. If that&apos;s wrong, email us.
+            </p>
+          )}
+          {send.status === "error" && (
+            <p className="mt-2 text-xs text-red-600">{send.message}</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
