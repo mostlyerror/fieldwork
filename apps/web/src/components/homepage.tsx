@@ -109,13 +109,13 @@ export function Homepage({
                   >
                     {emailState === "submitting" ? "..." : "Subscribe"}
                   </button>
+                  {emailState === "already_subscribed" && (
+                    <span className="text-xs font-medium text-amber-600">Already subscribed!</span>
+                  )}
+                  {emailState === "error" && (
+                    <span className="text-xs font-medium text-red-500">{errorMsg}</span>
+                  )}
                 </form>
-                {emailState === "already_subscribed" && (
-                  <p className="mt-1 text-xs text-amber-600">Already subscribed!</p>
-                )}
-                {emailState === "error" && (
-                  <p className="mt-1 text-xs text-red-500">{errorMsg}</p>
-                )}
               </>
             )}
           </div>
