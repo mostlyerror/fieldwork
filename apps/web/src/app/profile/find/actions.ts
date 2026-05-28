@@ -4,6 +4,7 @@ import crypto from "node:crypto";
 import { Resend } from "resend";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { nameMatches } from "@/lib/player-linker";
+import { posthogServer } from "@/lib/posthog-server";
 
 export interface PlayerCandidate {
   id: string;
@@ -129,6 +130,15 @@ export async function requestClaim(
   } else {
     console.log(`[claim] Would send confirm email to ${normalizedEmail} for token ${token}`);
   }
+
+  posthogServer?.capture({
+    distinctId: subscriber.id,
+    event: "player_claim_requested",
+    properties: {
+      player_id: playerId,
+      $set: { email: normalizedEmail },
+    },
+  });
 
   return { status: "sent" };
 }

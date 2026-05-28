@@ -9,6 +9,7 @@
 import { Resend } from "resend";
 import { supabase } from "./utils/supabase.js";
 import { sendDiscordAlert } from "./utils/discord.js";
+import { posthog, SCRAPER_ID } from "./utils/posthog.js";
 
 const APP_URL = process.env.APP_URL ?? "https://pickleradar.app";
 const SCORE_THRESHOLD = 15;
@@ -411,10 +412,23 @@ export async function sendSmartAlerts(opts: SmartAlertOptions = {}): Promise<Sma
       });
 
       result.alertsSent++;
+      posthog?.capture({
+        distinctId: sub.id,
+        event: "smart_alert_sent",
+        properties: {
+          tournament_id: best.tournament.id,
+          tournament_name: best.tournament.name,
+          score: best.score.total,
+          reasons: best.score.reasons,
+          matched_event_name: best.score.matchedEventName ?? null,
+          matched_partner_name: best.score.matchedPartnerName ?? null,
+        },
+      });
       console.log(
         `[smart-alerts] ✓ ${sub.email} → ${best.tournament.name} (score=${best.score.total}, reasons=${best.score.reasons.join(",")})`,
       );
     } catch (err) {
+      posthog?.captureException(err, SCRAPER_ID, { subscriber_id: sub.id });
       console.error(`[smart-alerts] Send failed for ${sub.email}:`, err);
     }
   }

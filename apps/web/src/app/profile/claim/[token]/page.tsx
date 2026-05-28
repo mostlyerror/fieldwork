@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { ServerHeader } from "@/components/server-header";
 import { getDefaultCity } from "@/lib/cities";
+import { TrackConfirmed } from "./track-confirmed";
 
 export const dynamic = "force-dynamic";
 
@@ -72,6 +73,7 @@ export default async function ClaimPage({ params }: PageProps) {
       <main className="mx-auto max-w-md px-5 py-16 text-center">
         {result.status === "ok" && (
           <>
+            <TrackConfirmed playerId={result.playerName ? result.playerName : null} />
             <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-700 text-white animate-pop">
               <span className="text-3xl">✓</span>
             </div>

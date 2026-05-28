@@ -9,6 +9,7 @@
 import { Resend } from "resend";
 import { supabase } from "./utils/supabase.js";
 import { sendDiscordAlert } from "./utils/discord.js";
+import { posthog, SCRAPER_ID, shutdownPostHog } from "./utils/posthog.js";
 
 interface DigestTournament {
   id: string;
@@ -329,6 +330,18 @@ async function main() {
     .select("*", { count: "exact", head: true })
     .eq("status", "active");
 
+  posthog?.capture({
+    distinctId: SCRAPER_ID,
+    event: "digest_sent",
+    properties: {
+      weekend_start: friday,
+      weekend_end: sunday,
+      tournament_count: tournaments.length,
+      subscriber_count: subscriberCount ?? 0,
+      new_this_week: newThisWeekCount ?? 0,
+    },
+  });
+
   await sendDiscordAlert({
     title: "📬 Weekly Digest Sent",
     description: `${tournaments.length} weekend tournament(s) for ${friday} — ${sunday}`,
@@ -338,9 +351,13 @@ async function main() {
       { name: "New This Week", value: String(newThisWeekCount ?? 0), inline: true },
     ],
   });
+
+  await shutdownPostHog();
 }
 
-main().catch((err) => {
+main().catch(async (err) => {
   console.error("Fatal error in digest:", err);
+  posthog?.captureException(err, SCRAPER_ID);
+  await shutdownPostHog();
   process.exit(1);
 });

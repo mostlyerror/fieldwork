@@ -2,6 +2,7 @@ import { supabase } from "./supabase.js";
 import { findCanonicalMatch, addTournamentSource } from "./dedup.js";
 import { parseEventName } from "./parse-event-name.js";
 import { computeFieldStrength, computeSandbaggerPct, computeAvgDupr } from "./intelligence.js";
+import { posthog, SCRAPER_ID } from "./posthog.js";
 import type { ScrapedTournament, ScrapedEvent, ScrapedPlayer } from "../types.js";
 
 export interface UpsertStats {
@@ -177,6 +178,17 @@ export async function upsertTournaments(
         newTournamentIds.push(inserted.id);
         newTournamentNames.push(t.name);
         console.log(`[upsert] NEW: "${t.name}" (${t.dateStart})`);
+        posthog?.capture({
+          distinctId: SCRAPER_ID,
+          event: "tournament_discovered",
+          properties: {
+            tournament_id: inserted.id,
+            tournament_name: t.name,
+            source_platform: t.sourcePlatform,
+            date_start: t.dateStart,
+            location_name: t.locationName,
+          },
+        });
         // Record this source for the new canonical tournament
         await addTournamentSource(
           inserted.id,

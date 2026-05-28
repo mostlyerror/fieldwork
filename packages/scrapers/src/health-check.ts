@@ -8,6 +8,7 @@
 
 import { supabase } from "./utils/supabase.js";
 import { sendDiscordAlert } from "./utils/discord.js";
+import { posthog, SCRAPER_ID, shutdownPostHog } from "./utils/posthog.js";
 
 const STALE_THRESHOLD_HOURS = 18;
 
@@ -25,15 +26,22 @@ async function main() {
 
   if (error) {
     console.error("[health-check] Error querying scraper_runs:", error);
+    posthog?.captureException(new Error(error.message), SCRAPER_ID, { context: "health_check_query" });
     await sendDiscordAlert({
       title: "🚨 Health Check Failed",
       description: `Could not query scraper_runs: ${error.message}`,
       color: 0xdc2626,
     });
+    await shutdownPostHog();
     process.exit(1);
   }
 
   if (!recentRuns || recentRuns.length === 0) {
+    posthog?.capture({
+      distinctId: SCRAPER_ID,
+      event: "health_check_stale",
+      properties: { stale_threshold_hours: STALE_THRESHOLD_HOURS },
+    });
     await sendDiscordAlert({
       title: "🚨 Scraper Data is STALE",
       description: `No successful scraper run in the last ${STALE_THRESHOLD_HOURS} hours. The tournament feed may be outdated.`,
@@ -49,6 +57,7 @@ async function main() {
     console.error(
       `[health-check] STALE: No successful runs in ${STALE_THRESHOLD_HOURS}h`
     );
+    await shutdownPostHog();
     process.exit(1);
   }
 
@@ -59,9 +68,12 @@ async function main() {
   console.log(
     `[health-check] OK: ${recentRuns.length} successful run(s) in last ${STALE_THRESHOLD_HOURS}h from [${sourcesWithRuns.join(", ")}]`
   );
+  await shutdownPostHog();
 }
 
-main().catch((err) => {
+main().catch(async (err) => {
   console.error("Fatal error in health check:", err);
+  posthog?.captureException(err, SCRAPER_ID);
+  await shutdownPostHog();
   process.exit(1);
 });

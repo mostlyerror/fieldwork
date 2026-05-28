@@ -2,6 +2,7 @@
 
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { requireAdmin } from "@/lib/auth";
+import { posthogServer } from "@/lib/posthog-server";
 
 export async function approveTournament(id: string) {
   await requireAdmin();
@@ -10,6 +11,11 @@ export async function approveTournament(id: string) {
     .update({ status: "active" })
     .eq("id", id);
   if (error) throw new Error("Failed to approve tournament");
+  posthogServer?.capture({
+    distinctId: "pickleradar-admin",
+    event: "tournament_approved",
+    properties: { tournament_id: id },
+  });
   return { success: true };
 }
 

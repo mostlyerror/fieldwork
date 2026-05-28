@@ -17,6 +17,7 @@ import { fetchLiveMatches } from "./utils/live-matches.js";
 import { writePlacements } from "./utils/placements.js";
 import { snapshotEnrichedDupr } from "./utils/snapshot-dupr.js";
 import { supabase } from "./utils/supabase.js";
+import { posthog, SCRAPER_ID, shutdownPostHog } from "./utils/posthog.js";
 import type { ScraperSource } from "./types.js";
 import type { UpsertStats } from "./utils/upsert.js";
 
@@ -132,6 +133,18 @@ async function main() {
         ...stats,
       });
 
+      posthog?.capture({
+        distinctId: SCRAPER_ID,
+        event: "scraper_run_completed",
+        properties: {
+          source: source.name,
+          tournaments_found: tournaments.length,
+          tournaments_new: stats.tournamentsNew,
+          tournaments_updated: stats.tournamentsUpdated,
+          tournaments_deduplicated: stats.tournamentsDeduplicated,
+        },
+      });
+
       if (stats.newTournamentNames.length > 0) {
         await sendDiscordAlert({
           title: "🆕 New tournaments",
@@ -149,6 +162,12 @@ async function main() {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       await failRun(run, message);
+      posthog?.captureException(err, SCRAPER_ID, { source: source.name });
+      posthog?.capture({
+        distinctId: SCRAPER_ID,
+        event: "scraper_run_failed",
+        properties: { source: source.name, error: message },
+      });
       console.error(`[${source.name}] Source failed, continuing to next...`);
       results.push({ name: source.name, ok: false, found: 0, error: message });
     }
@@ -204,6 +223,14 @@ async function main() {
   if (process.env.DUPR_EMAIL && process.env.DUPR_PASSWORD) {
     try {
       const enrichResult = await enrichDuprRatings();
+      posthog?.capture({
+        distinctId: SCRAPER_ID,
+        event: "dupr_enrichment_completed",
+        properties: {
+          players_checked: enrichResult.checked,
+          players_updated: enrichResult.updated,
+        },
+      });
       if (enrichResult.updated > 0) {
         await sendDiscordAlert({
           title: "📊 DUPR Enrichment Complete",
@@ -239,6 +266,14 @@ async function main() {
   if (duprAccessToken) {
     try {
       const matchResult = await fetchAllMatchHistory(duprAccessToken);
+      posthog?.capture({
+        distinctId: SCRAPER_ID,
+        event: "match_history_updated",
+        properties: {
+          players_checked: matchResult.playersChecked,
+          matches_inserted: matchResult.matchesInserted,
+        },
+      });
       if (matchResult.matchesInserted > 0) {
         await sendDiscordAlert({
           title: "🏓 Match History Updated",
@@ -268,6 +303,11 @@ async function main() {
   // Write placements for completed tournaments
   try {
     const placed = await writePlacements();
+    posthog?.capture({
+      distinctId: SCRAPER_ID,
+      event: "placements_recorded",
+      properties: { placements_written: placed },
+    });
     if (placed > 0) {
       await sendDiscordAlert({
         title: "🏆 Placements recorded",
@@ -279,9 +319,12 @@ async function main() {
   }
 
   console.log("All sources processed.");
+  await shutdownPostHog();
 }
 
-main().catch((err) => {
+main().catch(async (err) => {
   console.error("Fatal error in scraper runner:", err);
+  posthog?.captureException(err, SCRAPER_ID);
+  await shutdownPostHog();
   process.exit(1);
 });

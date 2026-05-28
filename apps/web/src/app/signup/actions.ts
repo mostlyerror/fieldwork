@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { posthogServer } from "@/lib/posthog-server";
 
 export async function signup(formData: FormData) {
   const email = formData.get("email") as string;
@@ -34,6 +35,14 @@ export async function signup(formData: FormData) {
       },
       { onConflict: "id" },
     );
+    posthogServer?.capture({
+      distinctId: data.user.id,
+      event: "user_signed_up",
+      properties: {
+        $set: { email: data.user.email, name: name ?? null },
+        $set_once: { first_seen: new Date().toISOString() },
+      },
+    });
   }
 
   redirect(redirectTo);

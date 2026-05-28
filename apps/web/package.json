@@ -22,6 +22,7 @@
     "maplibre-gl": "^4.7.1",
     "next": "^15.5.12",
     "posthog-js": "^1.376.3",
+    "posthog-node": "^5.35.5",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-map-gl": "^7.1.8",

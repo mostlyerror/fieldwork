@@ -3,6 +3,7 @@
 import { Resend } from "resend";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { sendDiscordAlert } from "@/lib/discord";
+import { posthogServer } from "@/lib/posthog-server";
 
 type SubscribeResult =
   | { status: "success" }
@@ -67,6 +68,16 @@ export async function subscribeEmail(formData: FormData): Promise<SubscribeResul
     .from("email_subscribers")
     .select("*", { count: "exact", head: true })
     .eq("status", "active");
+
+  posthogServer?.capture({
+    distinctId: normalizedEmail,
+    event: "email_subscribed",
+    properties: {
+      has_name: !!name,
+      total_active_subscribers: count ?? null,
+      $set: { email: normalizedEmail, name: name || null },
+    },
+  });
 
   await sendDiscordAlert({
     title: "🎉 New Subscriber!",

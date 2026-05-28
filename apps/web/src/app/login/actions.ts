@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { posthogServer } from "@/lib/posthog-server";
 
 function isDevEnvironment() {
   return (
@@ -82,6 +83,14 @@ export async function login(formData: FormData) {
       { id: user.id, email: user.email },
       { onConflict: "id" },
     );
+
+    posthogServer?.capture({
+      distinctId: user.id,
+      event: "user_logged_in",
+      properties: {
+        $set: { email: user.email },
+      },
+    });
 
     // Check role for admin redirect
     const { data: profile } = await admin
