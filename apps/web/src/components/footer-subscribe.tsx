@@ -32,8 +32,7 @@ export function FooterSubscribe() {
       <input
         type="text"
         name="name"
-        placeholder="First + last name"
-        title="A first + last name lets us match you to your tournaments"
+        placeholder="Your name (optional)"
         className="w-full min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
       />
       <div className="flex gap-2">

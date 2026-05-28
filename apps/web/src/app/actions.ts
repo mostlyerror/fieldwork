@@ -3,7 +3,6 @@
 import { Resend } from "resend";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { sendDiscordAlert } from "@/lib/discord";
-import { linkSubscriberToPlayer } from "@/lib/player-linker";
 
 type SubscribeResult =
   | { status: "success" }
@@ -38,10 +37,8 @@ export async function subscribeEmail(formData: FormData): Promise<SubscribeResul
 
   if (existing) {
     if (existing.status === "active") {
-      // If they're providing a name we didn't have, link them
       if (name && !existing.name) {
         await supabase.from("email_subscribers").update({ name }).eq("id", existing.id);
-        await linkSubscriberToPlayer(existing.id, name);
       }
       return { status: "already_subscribed" };
     }
@@ -49,18 +46,13 @@ export async function subscribeEmail(formData: FormData): Promise<SubscribeResul
     const update: Record<string, unknown> = { status: "active" };
     if (name && !existing.name) update.name = name;
     await supabase.from("email_subscribers").update(update).eq("id", existing.id);
-    if (name && !existing.name) {
-      await linkSubscriberToPlayer(existing.id, name);
-    }
     await sendWelcomeDigest(normalizedEmail, supabase);
     return { status: "success" };
   }
 
-  const { data: inserted, error } = await supabase
+  const { error } = await supabase
     .from("email_subscribers")
-    .insert({ email: normalizedEmail, name: name || null })
-    .select("id")
-    .single();
+    .insert({ email: normalizedEmail, name: name || null });
 
   if (error) {
     // Unique constraint violation = already subscribed
@@ -71,20 +63,14 @@ export async function subscribeEmail(formData: FormData): Promise<SubscribeResul
     return { status: "error", message: "Something went wrong. Please try again." };
   }
 
-  let linkStatus = "no_match";
-  if (inserted?.id && name) {
-    linkStatus = await linkSubscriberToPlayer(inserted.id as string, name);
-  }
-
   const { count } = await supabase
     .from("email_subscribers")
     .select("*", { count: "exact", head: true })
     .eq("status", "active");
 
-  const linkBadge = linkStatus === "linked" ? " · 🔗 player linked" : linkStatus === "ambiguous" ? " · ⚠ ambiguous" : "";
   await sendDiscordAlert({
     title: "🎉 New Subscriber!",
-    description: `${normalizedEmail}${name ? ` (${name})` : ""}${linkBadge}`,
+    description: `${normalizedEmail}${name ? ` (${name})` : ""}`,
     color: 0x16a34a,
     fields: [
       { name: "Total Active", value: String(count ?? "?"), inline: true },
