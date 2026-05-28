@@ -165,14 +165,14 @@ export default async function PlayerPage({ params }: PageProps) {
               )}
             </div>
 
-            <div className="flex shrink-0 items-start gap-4">
+            <div className="flex shrink-0 flex-col items-stretch gap-3 sm:flex-row sm:items-start sm:gap-4">
               <div className="text-right">
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
                   Doubles
                 </p>
                 {player.dupr_doubles != null ? (
                   <>
-                    <p className="text-3xl font-extrabold text-emerald-600 leading-none mt-0.5">
+                    <p className="text-2xl sm:text-3xl font-extrabold text-emerald-600 leading-none mt-0.5">
                       {player.dupr_doubles.toFixed(2)}
                     </p>
                     {player.dupr_verified && (
@@ -185,12 +185,12 @@ export default async function PlayerPage({ params }: PageProps) {
                   <p className="text-2xl font-extrabold text-gray-200 leading-none mt-0.5">--</p>
                 )}
               </div>
-              <div className={`text-right border-l border-gray-100 pl-4`}>
+              <div className="text-right border-t border-gray-100 pt-3 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-4">
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
                   Singles
                 </p>
                 {player.dupr_singles != null ? (
-                  <p className="text-3xl font-extrabold text-emerald-600 leading-none mt-0.5">
+                  <p className="text-2xl sm:text-3xl font-extrabold text-emerald-600 leading-none mt-0.5">
                     {player.dupr_singles.toFixed(2)}
                   </p>
                 ) : (
@@ -206,8 +206,8 @@ export default async function PlayerPage({ params }: PageProps) {
           <section className="mt-6">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {/* Overall */}
-              <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-100">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+              <div className="rounded-xl bg-white p-3 sm:p-4 shadow-sm ring-1 ring-gray-100">
+                <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide text-gray-400">
                   Overall
                 </p>
                 <p className="mt-1 text-xl font-extrabold text-gray-900">
@@ -222,9 +222,9 @@ export default async function PlayerPage({ params }: PageProps) {
               {records.map((r) => (
                 <div
                   key={r.format}
-                  className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-100"
+                  className="rounded-xl bg-white p-3 sm:p-4 shadow-sm ring-1 ring-gray-100"
                 >
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                  <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide text-gray-400">
                     {r.format}
                   </p>
                   <p className="mt-1 text-xl font-extrabold text-gray-900">
@@ -257,12 +257,12 @@ export default async function PlayerPage({ params }: PageProps) {
                     {p.playerId ? (
                       <Link
                         href={`/players/${p.playerId}`}
-                        className="font-semibold text-gray-900 hover:text-emerald-700 text-sm"
+                        className="block truncate font-semibold text-gray-900 hover:text-emerald-700 text-sm"
                       >
                         {p.name}
                       </Link>
                     ) : (
-                      <span className="font-semibold text-gray-900 text-sm">
+                      <span className="block truncate font-semibold text-gray-900 text-sm">
                         {p.name}
                       </span>
                     )}
@@ -307,13 +307,15 @@ export default async function PlayerPage({ params }: PageProps) {
 
                     {/* Match details */}
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs text-gray-400">
-                          {formatDate(match.event_date)}
-                        </span>
-                        <span className="text-[10px] font-medium uppercase tracking-wide text-gray-400 bg-gray-50 rounded px-1.5 py-0.5">
-                          {match.event_format}
-                        </span>
+                      <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-400">
+                            {formatDate(match.event_date)}
+                          </span>
+                          <span className="text-[10px] font-medium uppercase tracking-wide text-gray-400 bg-gray-50 rounded px-1.5 py-0.5">
+                            {match.event_format}
+                          </span>
+                        </div>
                         {match.league && (
                           <span className="text-xs text-gray-400 truncate">
                             {match.league}
