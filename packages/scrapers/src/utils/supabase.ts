@@ -1,11 +1,61 @@
 import { createClient } from "@supabase/supabase-js";
+import { readFileSync, existsSync } from "node:fs";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const supabaseUrl = process.env.SUPABASE_URL;
+/**
+ * Auto-load env from the repo's .env files for local CLI use.
+ * In CI / GitHub Actions, env vars are passed in directly and this is a no-op
+ * for any var the workflow sets.
+ *
+ * Precedence (highest wins):
+ *   1. Existing shell env (set before invocation)
+ *   2. apps/web/.env.local
+ *   3. apps/web/.env
+ *   4. repo/.env.local
+ *   5. repo/.env
+ */
+function loadLocalEnv() {
+  const here = dirname(fileURLToPath(import.meta.url));
+  // packages/scrapers/src/utils/ → up four levels to repo root
+  const repoRoot = resolve(here, "..", "..", "..", "..");
+
+  // Snapshot what was in the real shell env before any file loading
+  const shellEnv = new Set(Object.keys(process.env));
+
+  // Load files in INCREASING precedence order; later files override earlier ones.
+  const files = [
+    resolve(repoRoot, ".env"),
+    resolve(repoRoot, ".env.local"),
+    resolve(repoRoot, "apps", "web", ".env"),
+    resolve(repoRoot, "apps", "web", ".env.local"),
+  ];
+
+  for (const path of files) {
+    if (!existsSync(path)) continue;
+    const text = readFileSync(path, "utf8");
+    for (const line of text.split("\n")) {
+      const m = line.match(/^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.*)\s*$/);
+      if (!m) continue;
+      const key = m[1];
+      // Never override what was actually in the shell environment
+      if (shellEnv.has(key)) continue;
+      let val = m[2].trim();
+      if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1);
+      if (val.startsWith("'") && val.endsWith("'")) val = val.slice(1, -1);
+      process.env[key] = val;
+    }
+  }
+}
+
+loadLocalEnv();
+
+const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
   throw new Error(
-    "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables"
+    "Missing SUPABASE_URL/NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables",
   );
 }
 
