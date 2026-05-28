@@ -417,7 +417,7 @@ function Style_hybrid({ d }: { d: CardData }) {
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const id = searchParams.get("id");
-  const style = searchParams.get("style") || "editorial";
+  const style = searchParams.get("style") || "hybrid";
 
   if (!id) {
     return new Response("Missing id", { status: 400 });
@@ -438,5 +438,5 @@ export async function GET(request: NextRequest) {
     hybrid: <Style_hybrid d={d} />,
   };
 
-  return new ImageResponse(map[style] ?? map.editorial, { width: 1200, height: 630 });
+  return new ImageResponse(map[style] ?? map.hybrid, { width: 1200, height: 630 });
 }
