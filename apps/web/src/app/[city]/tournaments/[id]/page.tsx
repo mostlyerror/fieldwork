@@ -9,6 +9,7 @@ import { EventBreakdown } from "@/components/event-breakdown";
 import { LiveBracket } from "@/components/live-bracket";
 import { TournamentPodium } from "@/components/tournament-podium";
 import { Footer } from "@/components/footer";
+import { ReportIssue } from "@/components/report-issue";
 import { ServerHeader } from "@/components/server-header";
 import { formatDateRange, distanceMiles } from "@/lib/format";
 import type { Tournament } from "@/lib/types";
@@ -176,13 +177,8 @@ export default async function TournamentPage({ params }: PageProps) {
       {/* Pre-footer CTA */}
       <div className="border-t border-gray-200 bg-gray-50">
         <div className="mx-auto max-w-6xl px-3 sm:px-5 py-10 text-center">
-          <p className="text-base font-semibold text-gray-700">
-            Something missing or incorrect?{" "}
-            <Link href="/submit" className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2">
-              Let us know
-            </Link>
-          </p>
-          <p className="mt-1 text-sm text-gray-500">
+          <ReportIssue tournamentId={tournament.id} tournamentName={tournament.name} />
+          <p className="mt-4 text-sm text-gray-500">
             Know about another tournament?{" "}
             <Link href="/submit" className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2">
               Submit it

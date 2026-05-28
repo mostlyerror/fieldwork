@@ -133,6 +133,61 @@ async function sendWelcomeDigest(
   }
 }
 
+type ReportResult =
+  | { status: "success" }
+  | { status: "error"; message: string };
+
+export async function reportTournamentIssue(formData: FormData): Promise<ReportResult> {
+  const tournamentId = formData.get("tournamentId");
+  const tournamentName = formData.get("tournamentName");
+  const message = formData.get("message");
+  const emailRaw = formData.get("email");
+
+  if (typeof tournamentId !== "string" || !tournamentId) {
+    return { status: "error", message: "Missing tournament reference." };
+  }
+  if (typeof tournamentName !== "string" || !tournamentName) {
+    return { status: "error", message: "Missing tournament name." };
+  }
+  if (typeof message !== "string" || !message.trim()) {
+    return { status: "error", message: "Please describe what's wrong." };
+  }
+  if (message.length > 2000) {
+    return { status: "error", message: "Report is too long (max 2000 chars)." };
+  }
+
+  const email = typeof emailRaw === "string" ? emailRaw.trim() : "";
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { status: "error", message: "That email doesn't look right." };
+  }
+
+  const appUrl = process.env.APP_URL ?? "https://pickleradar.app";
+  const tournamentUrl = `${appUrl}/houston/tournaments/${tournamentId}`;
+
+  posthogServer?.capture({
+    distinctId: email || `anon-${tournamentId}`,
+    event: "tournament_issue_reported",
+    properties: {
+      tournamentId,
+      tournamentName,
+      has_email: !!email,
+      message_length: message.length,
+    },
+  });
+
+  await sendDiscordAlert({
+    title: "🚩 Tournament report",
+    description: `**${tournamentName}**\n${message.trim()}`,
+    color: 0xd97706,
+    fields: [
+      { name: "Tournament", value: tournamentUrl },
+      ...(email ? [{ name: "From", value: email, inline: true }] : []),
+    ],
+  });
+
+  return { status: "success" };
+}
+
 function buildWelcomeEmailHtml(
   tournaments: WelcomeTournament[],
   appUrl: string,
