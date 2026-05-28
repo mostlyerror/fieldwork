@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { City } from "@/lib/cities";
-import { PaddleIcon } from "./paddle-icon";
+import { LogoMark } from "./logo-mark";
 
 export function Header({
   city,
@@ -19,7 +19,7 @@ export function Header({
           className="group inline-flex items-center gap-2 font-sans text-xl font-black text-[#1a1a1a] tracking-tight transition-opacity hover:opacity-80"
           style={{ letterSpacing: "-0.5px" }}
         >
-          <PaddleIcon size={26} className="transition-transform duration-300 group-hover:-rotate-12" />
+          <LogoMark size={28} className="transition-transform duration-500 group-hover:rotate-45" />
           PickleRadar
         </Link>
 
