@@ -137,7 +137,7 @@ export function DuprDistribution({ players }: { players: EventPlayer[] }) {
   };
 
   return (
-    <div className="my-4 rounded-lg bg-gray-50/80 p-4">
+    <div className="my-4 max-w-full rounded-lg bg-gray-50/80 p-4">
       {/* Header */}
       <div className="mb-2.5 flex items-center justify-between">
         <p className="text-sm font-bold uppercase tracking-wide text-gray-500">
@@ -164,7 +164,7 @@ export function DuprDistribution({ players }: { players: EventPlayer[] }) {
       </p>
 
       {/* Dot plot */}
-      <div className="relative w-full select-none">
+      <div className="relative w-full max-w-full select-none overflow-hidden">
         {/* Dots area */}
         <div
           className="relative w-full"

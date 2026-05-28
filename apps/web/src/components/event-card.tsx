@@ -42,15 +42,22 @@ export function EventCard({
           </svg>
         )}
 
-        <div className="flex min-w-0 flex-1 items-center gap-2">
-          <span className="font-bold text-gray-900">{event.name}</span>
-          <FieldStrengthBadge
-            avgFieldStrength={event.field_strength ?? undefined}
-            maxSandbaggerPct={event.sandbagger_pct ?? undefined}
-          />
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="min-w-0 truncate font-bold text-gray-900">{event.name}</span>
+            <FieldStrengthBadge
+              avgFieldStrength={event.field_strength ?? undefined}
+              maxSandbaggerPct={event.sandbagger_pct ?? undefined}
+            />
+          </div>
+          {event.registered_count > 0 && (
+            <span className="text-xs text-gray-400 sm:hidden">
+              {event.registered_count} {event.event_type === "singles" ? "players" : "teams"}
+            </span>
+          )}
         </div>
 
-        <div className="flex flex-shrink-0 items-center gap-3 text-sm text-gray-400">
+        <div className="flex max-w-[45%] flex-shrink-0 flex-wrap items-center justify-end gap-x-3 gap-y-1 text-sm text-gray-400 sm:max-w-none">
           {event.registered_count > 0 && (
             <span className="hidden sm:inline">
               {event.registered_count} {event.event_type === "singles" ? "players" : "teams"}
