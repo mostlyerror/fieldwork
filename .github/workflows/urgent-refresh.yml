@@ -1,0 +1,29 @@
+name: Urgent Refresh
+
+on:
+  schedule:
+    # Hourly during typical waking hours (Houston time zone). Adjust if needed.
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: urgent-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Run urgent refresh
+        run: npx tsx packages/scrapers/src/run-urgent-refresh.ts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}

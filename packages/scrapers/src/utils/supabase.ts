@@ -1,7 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync, existsSync } from "node:fs";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 
 /**
  * Auto-load env from the repo's .env files for local CLI use.
@@ -14,11 +13,14 @@ import { fileURLToPath } from "node:url";
  *   3. apps/web/.env
  *   4. repo/.env.local
  *   5. repo/.env
+ *
+ * Assumes the script is run from the repo root (which is the case for both
+ * `npx tsx packages/scrapers/src/...` and GitHub Actions). If run from a
+ * subdirectory, the auto-loader won't find the files but the script will
+ * still work via passed-in env vars.
  */
 function loadLocalEnv() {
-  const here = dirname(fileURLToPath(import.meta.url));
-  // packages/scrapers/src/utils/ → up four levels to repo root
-  const repoRoot = resolve(here, "..", "..", "..", "..");
+  const repoRoot = process.cwd();
 
   // Snapshot what was in the real shell env before any file loading
   const shellEnv = new Set(Object.keys(process.env));
