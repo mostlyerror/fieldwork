@@ -28,12 +28,7 @@ export async function generateMetadata({
   const cityName = city?.name ?? getDefaultCity().name;
   const description = `${formatDateRange(tournament.date_start, tournament.date_end)} at ${tournament.location_name}. Find details and register for this ${cityName}-area pickleball tournament.`;
 
-  const ogImageParams = new URLSearchParams({
-    title: tournament.name,
-    date: formatDateRange(tournament.date_start, tournament.date_end),
-    venue: tournament.location_name,
-  });
-  const ogImageUrl = `https://pickleradar.app/api/og?${ogImageParams.toString()}`;
+  const ogImageUrl = `https://pickleradar.app/api/og?id=${id}`;
 
   return {
     title: `${tournament.name} — PickleRadar`,

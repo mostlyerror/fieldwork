@@ -79,9 +79,14 @@ export function TournamentDetail({
           <div className="flex items-center gap-3 shrink-0">
             {primarySource && (
               regStatus.isClosed ? (
-                <span className="inline-flex items-center gap-1.5 rounded-lg bg-gray-200 px-4 py-1.5 text-sm font-bold text-gray-500 whitespace-nowrap cursor-not-allowed">
-                  Registration Closed
-                </span>
+                <a
+                  href={primarySource.registration_url!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-gray-200 px-4 py-1.5 text-sm font-bold text-gray-600 transition hover:bg-gray-300 whitespace-nowrap"
+                >
+                  View on {SOURCE_DISPLAY_NAMES[primarySource.source_platform] ?? "source"} ↗
+                </a>
               ) : (
                 <a
                   href={primarySource.registration_url!}
@@ -156,12 +161,15 @@ export function TournamentDetail({
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
           {withUrl.map((source) => (
             regStatus.isClosed ? (
-              <span
+              <a
                 key={source.id}
-                className="inline-flex items-center gap-2 rounded-xl bg-gray-200 px-8 py-4 text-lg font-bold text-gray-500 cursor-not-allowed"
+                href={source.registration_url!}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-gray-200 px-8 py-4 text-lg font-bold text-gray-600 transition hover:bg-gray-300"
               >
-                Registration Closed
-              </span>
+                View on {SOURCE_DISPLAY_NAMES[source.source_platform] ?? source.source_platform} ↗
+              </a>
             ) : (
               <a
                 key={source.id}
