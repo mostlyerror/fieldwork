@@ -10,7 +10,9 @@
     "build:web": "npm run build --workspace=apps/web",
     "scrape": "npm run start --workspace=packages/scrapers",
     "scrape:pickleballbrackets": "npm run start:pickleballbrackets --workspace=packages/scrapers",
-    "scrape:cloud": "gh workflow run scrape.yml && echo 'Scraper triggered! Check progress: gh run list --workflow=scrape.yml -L 1'"
+    "scrape:cloud": "gh workflow run scrape.yml && echo 'Scraper triggered! Check progress: gh run list --workflow=scrape.yml -L 1'",
+    "clean": "rm -rf apps/web/.next packages/scrapers/dist logs/*.log && echo '✓ cleared .next, scraper dist, logs'",
+    "clean:all": "npm run clean && rm -rf node_modules apps/*/node_modules packages/*/node_modules && echo '✓ also removed node_modules. run npm install next.'"
   },
   "devDependencies": {
     "react": "19.1.0",
