@@ -6,6 +6,7 @@ import type { Tournament } from "@/lib/types";
 import type { City } from "@/lib/cities";
 import type { User } from "@supabase/supabase-js";
 import { subscribeEmail } from "@/app/actions";
+import { track } from "@/lib/analytics";
 import { Header } from "./header";
 import { TournamentBrowser } from "./tournament-browser";
 import { Footer } from "./footer";
@@ -36,6 +37,7 @@ export function Homepage({
   async function handleEmailSubmit(formData: FormData) {
     setEmailState("submitting");
     setErrorMsg("");
+    track("subscribe_form_submitted", { source: "homepage_inline" });
     const result = await subscribeEmail(formData);
     switch (result.status) {
       case "success":

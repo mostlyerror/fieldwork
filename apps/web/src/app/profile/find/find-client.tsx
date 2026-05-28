@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { searchPlayers, requestClaim, type PlayerCandidate } from "./actions";
+import { track } from "@/lib/analytics";
 
 type SendState =
   | { status: "idle" }
@@ -19,8 +20,13 @@ export function FindClient({ initialEmail }: { initialEmail: string }) {
   const [searching, startSearch] = useTransition();
   const [send, setSend] = useState<SendState>({ status: "idle" });
 
+  useEffect(() => {
+    track("claim_flow_started");
+  }, []);
+
   function handleSearch() {
     if (!query.trim()) return;
+    track("claim_flow_searched", { queryLength: query.trim().length });
     startSearch(async () => {
       const results = await searchPlayers(query);
       setCandidates(results);
@@ -28,11 +34,19 @@ export function FindClient({ initialEmail }: { initialEmail: string }) {
     });
   }
 
+  function handlePick(candidateId: string) {
+    setPickedId(candidateId);
+    track("claim_flow_candidate_picked", { candidateId });
+  }
+
   async function handleConfirm() {
     if (!pickedId || !email) return;
     setSend({ status: "sending" });
     const r = await requestClaim(email, pickedId);
     setSend(r);
+    if (r.status === "sent") {
+      track("claim_flow_confirmation_sent", { candidateId: pickedId });
+    }
   }
 
   if (send.status === "sent") {
@@ -112,7 +126,7 @@ export function FindClient({ initialEmail }: { initialEmail: string }) {
                   <li key={c.id}>
                     <button
                       type="button"
-                      onClick={() => setPickedId(c.id)}
+                      onClick={() => handlePick(c.id)}
                       className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition ${
                         picked ? "bg-emerald-50" : "hover:bg-gray-50"
                       }`}

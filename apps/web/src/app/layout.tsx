@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { DevIndicator } from "@/components/dev-indicator";
+import { PostHogProvider } from "@/components/posthog-provider";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -28,7 +29,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={jakarta.variable}>
       <body className="font-sans text-foreground antialiased">
-        {children}
+        <PostHogProvider>
+          {children}
+        </PostHogProvider>
         <Analytics />
         <DevIndicator />
       </body>

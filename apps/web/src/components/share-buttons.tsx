@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { track } from "@/lib/analytics";
 
 export interface ShareButtonsProps {
   tournamentId: string;
@@ -102,6 +103,7 @@ export function ShareButtons({
   }, [open]);
 
   async function copyText() {
+    track("share_clicked", { method: "copy_text", tournamentId });
     try {
       await navigator.clipboard.writeText(shareText);
     } catch {
@@ -117,6 +119,7 @@ export function ShareButtons({
   }
 
   async function copyLink() {
+    track("share_clicked", { method: "copy_link", tournamentId });
     try {
       await navigator.clipboard.writeText(url);
     } catch {
@@ -132,6 +135,7 @@ export function ShareButtons({
   }
 
   async function nativeShare() {
+    track("share_clicked", { method: "native_share", tournamentId });
     if (navigator.share) {
       try {
         await navigator.share({

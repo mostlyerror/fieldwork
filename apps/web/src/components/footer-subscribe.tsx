@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { subscribeEmail } from "@/app/actions";
+import { track } from "@/lib/analytics";
 
 export function FooterSubscribe() {
   const [state, setState] = useState<"idle" | "submitting" | "success" | "error">("idle");
@@ -9,6 +10,7 @@ export function FooterSubscribe() {
 
   async function handleSubmit(formData: FormData) {
     setState("submitting");
+    track("subscribe_form_submitted", { source: "footer" });
     const result = await subscribeEmail(formData);
     if (result.status === "success" || result.status === "already_subscribed") {
       setState("success");

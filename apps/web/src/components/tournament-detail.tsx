@@ -8,6 +8,7 @@ import { SOURCE_DISPLAY_NAMES } from "@/lib/constants";
 import { ShareButtons } from "./share-buttons";
 import { RegistrationPill } from "./registration-pill";
 import { getRegistrationStatus } from "@/lib/registration";
+import { track } from "@/lib/analytics";
 
 export function TournamentDetail({
   tournament,
@@ -36,6 +37,24 @@ export function TournamentDetail({
 
   const primarySource = withUrl[0];
   const regStatus = getRegistrationStatus(tournament);
+
+  useEffect(() => {
+    track("tournament_viewed", {
+      tournamentId: tournament.id,
+      tournamentName: tournament.name,
+      registrationClosed: regStatus.isClosed,
+      eventCount: tournament.event_count,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tournament.id]);
+
+  function logRegister(source: string) {
+    track("register_button_clicked", {
+      tournamentId: tournament.id,
+      sourcePlatform: source,
+      registrationClosed: regStatus.isClosed,
+    });
+  }
 
   // Build stats prose
   const statParts: React.ReactNode[] = [];
@@ -83,6 +102,7 @@ export function TournamentDetail({
                   href={primarySource.registration_url!}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => logRegister(primarySource.source_platform)}
                   className="inline-flex items-center gap-1.5 rounded-lg bg-gray-200 px-3 sm:px-4 py-1.5 text-sm font-bold text-gray-600 transition hover:bg-gray-300 whitespace-nowrap"
                 >
                   <span className="sm:hidden">View ↗</span>
@@ -93,6 +113,7 @@ export function TournamentDetail({
                   href={primarySource.registration_url!}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => logRegister(primarySource.source_platform)}
                   className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 sm:px-4 py-1.5 text-sm font-bold text-white transition hover:bg-emerald-800 whitespace-nowrap"
                 >
                   Register ↗
@@ -168,6 +189,7 @@ export function TournamentDetail({
                   href={source.registration_url!}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => logRegister(source.source_platform)}
                   className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-gray-200 px-8 py-4 text-lg font-bold text-gray-600 transition hover:bg-gray-300"
                 >
                   View on {SOURCE_DISPLAY_NAMES[source.source_platform] ?? source.source_platform} ↗
@@ -178,6 +200,7 @@ export function TournamentDetail({
                   href={source.registration_url!}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => logRegister(source.source_platform)}
                   className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-emerald-700 px-8 py-4 text-lg font-bold text-white transition hover:bg-emerald-800"
                 >
                   Register on {SOURCE_DISPLAY_NAMES[source.source_platform] ?? source.source_platform} ↗
