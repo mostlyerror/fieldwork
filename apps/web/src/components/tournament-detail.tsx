@@ -72,36 +72,37 @@ export function TournamentDetail({
           stickyVisible ? "translate-y-0" : "-translate-y-full"
         }`}
       >
-        <div className="max-w-6xl mx-auto px-5 py-2.5 flex items-center justify-between gap-4">
-          <span className="text-sm font-bold text-gray-900 truncate min-w-0">
+        <div className="max-w-6xl mx-auto px-5 py-2.5 flex items-center justify-between gap-3">
+          <span className="text-sm font-bold text-gray-900 truncate min-w-0 max-w-[55%] sm:max-w-none">
             {tournament.name}
           </span>
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {primarySource && (
               regStatus.isClosed ? (
                 <a
                   href={primarySource.registration_url!}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-gray-200 px-4 py-1.5 text-sm font-bold text-gray-600 transition hover:bg-gray-300 whitespace-nowrap"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-gray-200 px-3 sm:px-4 py-1.5 text-sm font-bold text-gray-600 transition hover:bg-gray-300 whitespace-nowrap"
                 >
-                  View on {SOURCE_DISPLAY_NAMES[primarySource.source_platform] ?? "source"} ↗
+                  <span className="sm:hidden">View ↗</span>
+                  <span className="hidden sm:inline">View on {SOURCE_DISPLAY_NAMES[primarySource.source_platform] ?? "source"} ↗</span>
                 </a>
               ) : (
                 <a
                   href={primarySource.registration_url!}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-4 py-1.5 text-sm font-bold text-white transition hover:bg-emerald-800 whitespace-nowrap"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 sm:px-4 py-1.5 text-sm font-bold text-white transition hover:bg-emerald-800 whitespace-nowrap"
                 >
                   Register ↗
                 </a>
               )
             )}
-            <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-emerald-700" title="Map">
+            <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="hidden sm:inline-flex text-gray-400 hover:text-emerald-700" title="Map">
               📍
             </a>
-            <a href={googleCalendarUrl(tournament)} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-emerald-700" title="Add to Calendar">
+            <a href={googleCalendarUrl(tournament)} target="_blank" rel="noopener noreferrer" className="hidden sm:inline-flex text-gray-400 hover:text-emerald-700" title="Add to Calendar">
               📅
             </a>
             <ShareButtons
@@ -119,7 +120,7 @@ export function TournamentDetail({
 
       {/* Main header */}
       <div className="py-10 sm:py-12">
-        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900 leading-tight">
+        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900 leading-tight break-words">
           {tournament.name}
         </h1>
 
@@ -158,32 +159,34 @@ export function TournamentDetail({
         )}
 
         {/* Actions */}
-        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
-          {withUrl.map((source) => (
-            regStatus.isClosed ? (
-              <a
-                key={source.id}
-                href={source.registration_url!}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl bg-gray-200 px-8 py-4 text-lg font-bold text-gray-600 transition hover:bg-gray-300"
-              >
-                View on {SOURCE_DISPLAY_NAMES[source.source_platform] ?? source.source_platform} ↗
-              </a>
-            ) : (
-              <a
-                key={source.id}
-                href={source.registration_url!}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-8 py-4 text-lg font-bold text-white transition hover:bg-emerald-800"
-              >
-                Register on {SOURCE_DISPLAY_NAMES[source.source_platform] ?? source.source_platform} ↗
-              </a>
-            )
-          ))}
-          <RegistrationPill tournament={tournament} />
-          <div className="flex items-center gap-4 text-sm text-gray-400">
+        <div className="mt-6 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-y-4 sm:gap-x-6 sm:gap-y-3">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 sm:gap-x-6 sm:gap-y-3">
+            {withUrl.map((source) => (
+              regStatus.isClosed ? (
+                <a
+                  key={source.id}
+                  href={source.registration_url!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-gray-200 px-8 py-4 text-lg font-bold text-gray-600 transition hover:bg-gray-300"
+                >
+                  View on {SOURCE_DISPLAY_NAMES[source.source_platform] ?? source.source_platform} ↗
+                </a>
+              ) : (
+                <a
+                  key={source.id}
+                  href={source.registration_url!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-emerald-700 px-8 py-4 text-lg font-bold text-white transition hover:bg-emerald-800"
+                >
+                  Register on {SOURCE_DISPLAY_NAMES[source.source_platform] ?? source.source_platform} ↗
+                </a>
+              )
+            ))}
+            <RegistrationPill tournament={tournament} />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-400">
             <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="hover:text-emerald-700 hover:underline">
               Map
             </a>
