@@ -18,19 +18,23 @@ import { PostHogProvider as PHProvider } from "posthog-js/react";
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-    const host = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com";
+    // Route through our /ingest proxy so ad blockers don't drop events.
+    // The actual destination is configured in next.config.ts rewrites.
+    const apiHost = "/ingest";
+    const uiHost = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.posthog.com";
     if (!key) {
       console.warn("[PostHog] NEXT_PUBLIC_POSTHOG_KEY is not set — analytics disabled");
       return;
     }
     if (posthog.__loaded) return;
     posthog.init(key, {
-      api_host: host,
+      api_host: apiHost,
+      ui_host: uiHost,
       person_profiles: "identified_only",
       capture_pageview: false, // we fire $pageview manually below
       capture_pageleave: true,
       loaded: () => {
-        console.log(`[PostHog] ready (key prefix=${key.slice(0, 8)}…, host=${host})`);
+        console.log(`[PostHog] ready (key=${key.slice(0, 8)}…, proxied via ${apiHost})`);
       },
     });
   }, []);

@@ -17,7 +17,7 @@ interface ClaimRow {
 }
 
 async function confirmClaim(token: string): Promise<
-  | { status: "ok"; playerName: string | null }
+  | { status: "ok"; playerName: string | null; subscriberEmail: string | null }
   | { status: "expired" }
   | { status: "already_confirmed" }
   | { status: "not_found" }
@@ -53,13 +53,24 @@ async function confirmClaim(token: string): Promise<
     .eq("id", claim.subscriber_id);
   if (subErr) return { status: "error" };
 
-  const { data: player } = await supabase
-    .from("players")
-    .select("name")
-    .eq("id", claim.player_id)
-    .single();
+  const [{ data: player }, { data: subscriber }] = await Promise.all([
+    supabase
+      .from("players")
+      .select("name")
+      .eq("id", claim.player_id)
+      .single(),
+    supabase
+      .from("email_subscribers")
+      .select("email")
+      .eq("id", claim.subscriber_id)
+      .single(),
+  ]);
 
-  return { status: "ok", playerName: (player?.name as string) ?? null };
+  return {
+    status: "ok",
+    playerName: (player?.name as string) ?? null,
+    subscriberEmail: (subscriber?.email as string) ?? null,
+  };
 }
 
 export default async function ClaimPage({ params }: PageProps) {
@@ -73,7 +84,7 @@ export default async function ClaimPage({ params }: PageProps) {
       <main className="mx-auto max-w-md px-5 py-16 text-center">
         {result.status === "ok" && (
           <>
-            <TrackConfirmed playerId={result.playerName ? result.playerName : null} />
+            <TrackConfirmed playerName={result.playerName} subscriberEmail={result.subscriberEmail} />
             <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-700 text-white animate-pop">
               <span className="text-3xl">✓</span>
             </div>

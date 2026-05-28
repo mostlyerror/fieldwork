@@ -41,3 +41,10 @@ export function identify(
   if (!posthog.__loaded) return;
   posthog.identify(distinctId, properties);
 }
+
+/** Clear the identified user — call this on sign-out. */
+export function resetIdentity(): void {
+  if (typeof window === "undefined") return;
+  if (!posthog.__loaded) return;
+  posthog.reset();
+}
