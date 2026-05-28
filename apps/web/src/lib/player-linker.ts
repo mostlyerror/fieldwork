@@ -11,6 +11,40 @@ export function normalizeName(name: string): string {
     .replace(/\s+/g, " ");
 }
 
+function tokens(name: string): string[] {
+  return normalizeName(name)
+    .split(" ")
+    .map((t) => t.replace(/[.,]/g, ""))
+    .filter(Boolean);
+}
+
+/**
+ * Does an input name match a candidate player name?
+ * Rules:
+ *   - First tokens must match exactly (full first name)
+ *   - 1-token input → first-name-only match is acceptable
+ *   - Additional input tokens must each match some later candidate token
+ *   - Last-name initial is OK if input ends with a single letter
+ */
+export function nameMatches(input: string, candidate: string): boolean {
+  const it = tokens(input);
+  const pt = tokens(candidate);
+  if (it.length === 0 || pt.length === 0) return false;
+  if (it[0] !== pt[0]) return false;
+  if (it.length === 1) return true;
+
+  for (let i = 1; i < it.length; i++) {
+    const tok = it[i];
+    const candidatesRest = pt.slice(1);
+    const matched = candidatesRest.some((pTok) => {
+      if (tok.length === 1) return pTok.startsWith(tok); // initial
+      return pTok === tok || pTok.startsWith(tok); // full or prefix
+    });
+    if (!matched) return false;
+  }
+  return true;
+}
+
 export async function linkSubscriberToPlayer(
   subscriberId: string,
   rawName: string | null | undefined,
@@ -25,8 +59,6 @@ export async function linkSubscriberToPlayer(
     return "no_match";
   }
 
-  const target = normalizeName(rawName);
-
   const { data: candidates } = await supabase
     .from("players")
     .select("id, name");
@@ -39,7 +71,7 @@ export async function linkSubscriberToPlayer(
     return "no_match";
   }
 
-  const matches = candidates.filter((p) => normalizeName(p.name as string) === target);
+  const matches = candidates.filter((p) => nameMatches(rawName, p.name as string));
 
   if (matches.length === 1) {
     await supabase

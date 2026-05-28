@@ -102,7 +102,8 @@ export function Homepage({
                   <input
                     type="text"
                     name="name"
-                    placeholder="Your name (optional)"
+                    placeholder="First + last name"
+                    title="A first + last name lets us match you to your tournaments"
                     className="min-w-0 flex-1 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm placeholder-gray-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200 sm:max-w-[180px]"
                   />
                   <input
