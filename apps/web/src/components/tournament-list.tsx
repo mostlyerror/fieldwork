@@ -70,7 +70,7 @@ export function TournamentList({ tournaments, citySlug }: { tournaments: Tournam
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {tournaments.map((t, i) => (
-          <div key={t.id} className={staggerClass(i)}>
+          <div key={t.id} className={`h-full ${staggerClass(i)}`}>
             <TournamentCard tournament={t} citySlug={citySlug} />
           </div>
         ))}
@@ -84,7 +84,7 @@ export function TournamentList({ tournaments, citySlug }: { tournaments: Tournam
         <SectionLabel count={thisWeek.length}>This Week</SectionLabel>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {thisWeek.map((t, i) => (
-            <div key={t.id} className={staggerClass(i)}>
+            <div key={t.id} className={`h-full ${staggerClass(i)}`}>
               <TournamentCard tournament={t} citySlug={citySlug} />
             </div>
           ))}
@@ -94,7 +94,7 @@ export function TournamentList({ tournaments, citySlug }: { tournaments: Tournam
         <SectionLabel count={later.length}>Coming Up</SectionLabel>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {later.map((t, i) => (
-            <div key={t.id} className={staggerClass(i)}>
+            <div key={t.id} className={`h-full ${staggerClass(i)}`}>
               <TournamentCard tournament={t} citySlug={citySlug} />
             </div>
           ))}

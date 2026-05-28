@@ -48,7 +48,7 @@ function buildShareText({
   }
 
   if ((liveRatings ?? 0) > 0) {
-    lines.push(`📊 ${liveRatings} live DUPR ratings verified`);
+    lines.push(`📊 ${liveRatings} verified ratings`);
   }
 
   lines.push("");

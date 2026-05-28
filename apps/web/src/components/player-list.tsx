@@ -95,10 +95,10 @@ export function PlayerList({ players }: { players: EventPlayer[] }) {
           <tr className="border-b border-gray-100 bg-gray-50/50 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
             <th className="px-3 py-2">Player</th>
             <th className="px-3 py-2 text-right">
-              {hasAnyLiveDupr ? "DUPR" : "Listed DUPR"}
+              {hasAnyLiveDupr ? "Rating" : "Listed Rating"}
             </th>
             <th className="hidden px-3 py-2 sm:table-cell">Partner</th>
-            <th className="hidden px-3 py-2 text-right sm:table-cell">Partner DUPR</th>
+            <th className="hidden px-3 py-2 text-right sm:table-cell">Partner Rating</th>
             {isDoubles && (
               <th className="hidden px-3 py-2 text-right sm:table-cell">Team</th>
             )}

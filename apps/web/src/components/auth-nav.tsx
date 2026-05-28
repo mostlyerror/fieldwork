@@ -55,7 +55,7 @@ export function AuthNav({ user }: { user: User | null }) {
               onClick={() => setMenuOpen(false)}
               className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
             >
-              Profile &amp; DUPR
+              Profile
             </Link>
             <button
               onClick={handleLogout}

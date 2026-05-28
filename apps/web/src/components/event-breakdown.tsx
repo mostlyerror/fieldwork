@@ -155,7 +155,7 @@ export function EventBreakdown({
             )}
             {effectiveAvgDupr(selectedEvent) != null && (
               <span className="inline-flex items-center gap-1.5">
-                <span className="text-gray-500">Avg DUPR</span>{" "}
+                <span className="text-gray-500">Avg Rating</span>{" "}
                 <AvgDuprCell pair={avgDuprPair(selectedEvent)} size="md" />
               </span>
             )}

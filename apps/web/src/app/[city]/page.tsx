@@ -141,10 +141,10 @@ export default async function CityPage({ params }: PageProps) {
                   </p>
                 </div>
                 <div className="rounded-xl border border-gray-200 bg-white p-6">
-                  <h3 className="text-lg font-extrabold text-gray-900">Real DUPR Intel</h3>
+                  <h3 className="text-lg font-extrabold text-gray-900">Real Rating Intel</h3>
                   <p className="mt-2 text-sm leading-relaxed text-gray-500">
-                    Live DUPR ratings verified from the source. See who&apos;s really in each bracket
-                    before you register. Sandbagger alerts included.
+                    Verified ratings, not the ones players list at signup. See who&apos;s really in
+                    each bracket before you register. Sandbagger alerts included.
                   </p>
                 </div>
                 <div className="rounded-xl border border-gray-200 bg-white p-6">

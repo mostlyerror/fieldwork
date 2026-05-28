@@ -125,8 +125,8 @@ function Style_editorial({ d }: { d: CardData }) {
       <div style={{ display: "flex", gap: "14px" }}>
         {d.intel.total_registered > 0 && <div style={{ display: "flex", flexDirection: "column", background: "#f0fdf4", borderRadius: "10px", padding: "12px 18px" }}><div style={{ display: "flex", fontSize: "12px", color: "#065f46", fontWeight: 700, letterSpacing: "2px" }}>REGISTERED</div><div style={{ display: "flex", fontSize: "28px", fontWeight: 900, color: "#065f46" }}>{d.intel.total_registered}</div></div>}
         {d.intel.event_count > 0 && <div style={{ display: "flex", flexDirection: "column", background: "#f0fdf4", borderRadius: "10px", padding: "12px 18px" }}><div style={{ display: "flex", fontSize: "12px", color: "#065f46", fontWeight: 700, letterSpacing: "2px" }}>EVENTS</div><div style={{ display: "flex", fontSize: "28px", fontWeight: 900, color: "#065f46" }}>{d.intel.event_count}</div></div>}
-        {d.intel.avg_dupr != null && <div style={{ display: "flex", flexDirection: "column", background: "#f0fdf4", borderRadius: "10px", padding: "12px 18px" }}><div style={{ display: "flex", fontSize: "12px", color: "#065f46", fontWeight: 700, letterSpacing: "2px" }}>AVG DUPR</div><div style={{ display: "flex", fontSize: "28px", fontWeight: 900, color: "#065f46" }}>{d.intel.avg_dupr.toFixed(2)}</div></div>}
-        {d.intel.total_live_dupr > 0 && <div style={{ display: "flex", flexDirection: "column", background: "#f0fdf4", borderRadius: "10px", padding: "12px 18px" }}><div style={{ display: "flex", fontSize: "12px", color: "#065f46", fontWeight: 700, letterSpacing: "2px" }}>VERIFIED DUPR</div><div style={{ display: "flex", fontSize: "28px", fontWeight: 900, color: "#065f46" }}>{d.intel.total_live_dupr}</div></div>}
+        {d.intel.avg_dupr != null && <div style={{ display: "flex", flexDirection: "column", background: "#f0fdf4", borderRadius: "10px", padding: "12px 18px" }}><div style={{ display: "flex", fontSize: "12px", color: "#065f46", fontWeight: 700, letterSpacing: "2px" }}>AVG RATING</div><div style={{ display: "flex", fontSize: "28px", fontWeight: 900, color: "#065f46" }}>{d.intel.avg_dupr.toFixed(2)}</div></div>}
+        {d.intel.total_live_dupr > 0 && <div style={{ display: "flex", flexDirection: "column", background: "#f0fdf4", borderRadius: "10px", padding: "12px 18px" }}><div style={{ display: "flex", fontSize: "12px", color: "#065f46", fontWeight: 700, letterSpacing: "2px" }}>VERIFIED</div><div style={{ display: "flex", fontSize: "28px", fontWeight: 900, color: "#065f46" }}>{d.intel.total_live_dupr}</div></div>}
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", borderTop: "2px solid #0a0a0a", paddingTop: "14px" }}>
         <div style={{ display: "flex", fontSize: "16px", fontWeight: 700, color: "#0a0a0a", letterSpacing: "3px" }}>PICKLERADAR.APP</div>
@@ -151,7 +151,7 @@ function Style_newspaper({ d }: { d: CardData }) {
       <div style={{ display: "flex", borderTop: "1px solid #0a0a0a", paddingTop: "16px", gap: "32px" }}>
         {d.intel.total_registered > 0 && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "11px", color: "#6b7280", letterSpacing: "2px" }}>REGISTERED</div><div style={{ display: "flex", fontSize: "24px", fontWeight: 900, color: "#0a0a0a" }}>{d.intel.total_registered}</div></div>}
         {d.intel.event_count > 0 && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "11px", color: "#6b7280", letterSpacing: "2px" }}>EVENTS</div><div style={{ display: "flex", fontSize: "24px", fontWeight: 900, color: "#0a0a0a" }}>{d.intel.event_count}</div></div>}
-        {d.intel.avg_dupr != null && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "11px", color: "#6b7280", letterSpacing: "2px" }}>AVG DUPR</div><div style={{ display: "flex", fontSize: "24px", fontWeight: 900, color: "#0a0a0a" }}>{d.intel.avg_dupr.toFixed(2)}</div></div>}
+        {d.intel.avg_dupr != null && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "11px", color: "#6b7280", letterSpacing: "2px" }}>AVG RATING</div><div style={{ display: "flex", fontSize: "24px", fontWeight: 900, color: "#0a0a0a" }}>{d.intel.avg_dupr.toFixed(2)}</div></div>}
         <div style={{ display: "flex", marginLeft: "auto", alignItems: "center" }}>
           <div style={{ display: "flex", fontSize: "13px", color: "#6b7280", letterSpacing: "2px", fontStyle: "italic" }}>pickleradar.app</div>
         </div>
@@ -183,7 +183,7 @@ function Style_dark_bold({ d }: { d: CardData }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", gap: "32px" }}>
           {d.intel.total_registered > 0 && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "12px", color: "#6b7280", letterSpacing: "2px", fontWeight: 700 }}>REGISTERED</div><div style={{ display: "flex", fontSize: "28px", fontWeight: 900, color: "white" }}>{d.intel.total_registered}</div></div>}
-          {d.intel.avg_dupr != null && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "12px", color: "#6b7280", letterSpacing: "2px", fontWeight: 700 }}>AVG DUPR</div><div style={{ display: "flex", fontSize: "28px", fontWeight: 900, color: "#10b981" }}>{d.intel.avg_dupr.toFixed(2)}</div></div>}
+          {d.intel.avg_dupr != null && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "12px", color: "#6b7280", letterSpacing: "2px", fontWeight: 700 }}>AVG RATING</div><div style={{ display: "flex", fontSize: "28px", fontWeight: 900, color: "#10b981" }}>{d.intel.avg_dupr.toFixed(2)}</div></div>}
           {d.intel.total_live_dupr > 0 && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "12px", color: "#6b7280", letterSpacing: "2px", fontWeight: 700 }}>VERIFIED</div><div style={{ display: "flex", fontSize: "28px", fontWeight: 900, color: "#10b981" }}>{d.intel.total_live_dupr}</div></div>}
         </div>
         <div style={{ display: "flex", fontSize: "14px", color: "#6b7280", letterSpacing: "3px", fontWeight: 700 }}>PICKLERADAR.APP</div>
@@ -211,7 +211,7 @@ function Style_scoreboard({ d }: { d: CardData }) {
       <div style={{ display: "flex", background: "#1e293b", padding: "20px 48px", gap: "40px", borderTop: "2px solid #334155" }}>
         {d.intel.total_registered > 0 && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "11px", color: "#64748b", letterSpacing: "2px", fontWeight: 700 }}>REG</div><div style={{ display: "flex", fontSize: "26px", fontWeight: 900, color: "#d4af37" }}>{d.intel.total_registered}</div></div>}
         {d.intel.event_count > 0 && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "11px", color: "#64748b", letterSpacing: "2px", fontWeight: 700 }}>EVENTS</div><div style={{ display: "flex", fontSize: "26px", fontWeight: 900, color: "white" }}>{d.intel.event_count}</div></div>}
-        {d.intel.avg_dupr != null && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "11px", color: "#64748b", letterSpacing: "2px", fontWeight: 700 }}>AVG DUPR</div><div style={{ display: "flex", fontSize: "26px", fontWeight: 900, color: "white" }}>{d.intel.avg_dupr.toFixed(2)}</div></div>}
+        {d.intel.avg_dupr != null && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "11px", color: "#64748b", letterSpacing: "2px", fontWeight: 700 }}>AVG RATING</div><div style={{ display: "flex", fontSize: "26px", fontWeight: 900, color: "white" }}>{d.intel.avg_dupr.toFixed(2)}</div></div>}
         <div style={{ display: "flex", marginLeft: "auto", alignItems: "center", fontSize: "13px", color: "#475569", letterSpacing: "3px", fontWeight: 700 }}>PICKLERADAR.APP</div>
       </div>
     </div>
@@ -236,8 +236,8 @@ function Style_data({ d }: { d: CardData }) {
       </div>
       <div style={{ display: "flex", flexDirection: "column", width: "45%", background: "#065f46", padding: "48px 56px", justifyContent: "center", gap: "28px", color: "white" }}>
         {d.intel.total_registered > 0 && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "13px", color: "rgba(255,255,255,0.6)", letterSpacing: "2px", fontWeight: 700 }}>REGISTERED</div><div style={{ display: "flex", fontSize: "56px", fontWeight: 900, lineHeight: 1.0, marginTop: "4px" }}>{d.intel.total_registered}</div></div>}
-        {d.intel.avg_dupr != null && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "13px", color: "rgba(255,255,255,0.6)", letterSpacing: "2px", fontWeight: 700 }}>AVG DUPR</div><div style={{ display: "flex", fontSize: "56px", fontWeight: 900, lineHeight: 1.0, marginTop: "4px" }}>{d.intel.avg_dupr.toFixed(2)}</div></div>}
-        {d.intel.total_live_dupr > 0 && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "13px", color: "rgba(255,255,255,0.6)", letterSpacing: "2px", fontWeight: 700 }}>LIVE DUPR VERIFIED</div><div style={{ display: "flex", fontSize: "56px", fontWeight: 900, lineHeight: 1.0, marginTop: "4px" }}>{d.intel.total_live_dupr}</div></div>}
+        {d.intel.avg_dupr != null && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "13px", color: "rgba(255,255,255,0.6)", letterSpacing: "2px", fontWeight: 700 }}>AVG RATING</div><div style={{ display: "flex", fontSize: "56px", fontWeight: 900, lineHeight: 1.0, marginTop: "4px" }}>{d.intel.avg_dupr.toFixed(2)}</div></div>}
+        {d.intel.total_live_dupr > 0 && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "13px", color: "rgba(255,255,255,0.6)", letterSpacing: "2px", fontWeight: 700 }}>VERIFIED RATINGS</div><div style={{ display: "flex", fontSize: "56px", fontWeight: 900, lineHeight: 1.0, marginTop: "4px" }}>{d.intel.total_live_dupr}</div></div>}
       </div>
     </div>
   );
@@ -260,7 +260,7 @@ function Style_minimal({ d }: { d: CardData }) {
       <div style={{ display: "flex", gap: "40px" }}>
         {d.intel.total_registered > 0 && <div style={{ display: "flex", fontSize: "14px", color: "#6b7280", fontWeight: 700, letterSpacing: "2px" }}>{d.intel.total_registered} REGISTERED</div>}
         {d.intel.event_count > 0 && <div style={{ display: "flex", fontSize: "14px", color: "#6b7280", fontWeight: 700, letterSpacing: "2px" }}>{d.intel.event_count} EVENTS</div>}
-        {d.intel.avg_dupr != null && <div style={{ display: "flex", fontSize: "14px", color: "#6b7280", fontWeight: 700, letterSpacing: "2px" }}>AVG DUPR {d.intel.avg_dupr.toFixed(2)}</div>}
+        {d.intel.avg_dupr != null && <div style={{ display: "flex", fontSize: "14px", color: "#6b7280", fontWeight: 700, letterSpacing: "2px" }}>AVG RATING {d.intel.avg_dupr.toFixed(2)}</div>}
       </div>
     </div>
   );
@@ -288,7 +288,7 @@ function Style_block({ d }: { d: CardData }) {
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           {d.intel.total_registered > 0 && <div style={{ display: "flex", flexDirection: "column", background: "#065f46", padding: "16px 20px", borderRadius: "12px", color: "white" }}><div style={{ display: "flex", fontSize: "11px", letterSpacing: "2px", fontWeight: 800, opacity: 0.7 }}>REGISTERED</div><div style={{ display: "flex", fontSize: "32px", fontWeight: 900 }}>{d.intel.total_registered}</div></div>}
-          {d.intel.avg_dupr != null && <div style={{ display: "flex", flexDirection: "column", background: "#065f46", padding: "16px 20px", borderRadius: "12px", color: "white" }}><div style={{ display: "flex", fontSize: "11px", letterSpacing: "2px", fontWeight: 800, opacity: 0.7 }}>AVG DUPR</div><div style={{ display: "flex", fontSize: "32px", fontWeight: 900 }}>{d.intel.avg_dupr.toFixed(2)}</div></div>}
+          {d.intel.avg_dupr != null && <div style={{ display: "flex", flexDirection: "column", background: "#065f46", padding: "16px 20px", borderRadius: "12px", color: "white" }}><div style={{ display: "flex", fontSize: "11px", letterSpacing: "2px", fontWeight: 800, opacity: 0.7 }}>AVG RATING</div><div style={{ display: "flex", fontSize: "32px", fontWeight: 900 }}>{d.intel.avg_dupr.toFixed(2)}</div></div>}
         </div>
       </div>
     </div>
@@ -315,7 +315,7 @@ function Style_stencil({ d }: { d: CardData }) {
         <div style={{ display: "flex", gap: "32px" }}>
           {d.intel.total_registered > 0 && <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}><div style={{ display: "flex", fontSize: "32px", fontWeight: 900 }}>{d.intel.total_registered}</div><div style={{ display: "flex", fontSize: "13px", letterSpacing: "2px", opacity: 0.8 }}>REG</div></div>}
           {d.intel.event_count > 0 && <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}><div style={{ display: "flex", fontSize: "32px", fontWeight: 900 }}>{d.intel.event_count}</div><div style={{ display: "flex", fontSize: "13px", letterSpacing: "2px", opacity: 0.8 }}>EVENTS</div></div>}
-          {d.intel.avg_dupr != null && <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}><div style={{ display: "flex", fontSize: "32px", fontWeight: 900 }}>{d.intel.avg_dupr.toFixed(2)}</div><div style={{ display: "flex", fontSize: "13px", letterSpacing: "2px", opacity: 0.8 }}>AVG DUPR</div></div>}
+          {d.intel.avg_dupr != null && <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}><div style={{ display: "flex", fontSize: "32px", fontWeight: 900 }}>{d.intel.avg_dupr.toFixed(2)}</div><div style={{ display: "flex", fontSize: "13px", letterSpacing: "2px", opacity: 0.8 }}>AVG RATING</div></div>}
         </div>
         <div style={{ display: "flex", fontSize: "16px", letterSpacing: "4px", fontWeight: 900 }}>PICKLERADAR.APP</div>
       </div>
@@ -392,13 +392,13 @@ function Style_hybrid({ d }: { d: CardData }) {
             )}
             {d.intel.avg_dupr != null && (
               <div style={{ display: "flex", flexDirection: "column" }}>
-                <div style={{ display: "flex", fontSize: "11px", letterSpacing: "3px", fontWeight: 800, opacity: 0.7 }}>AVG DUPR</div>
+                <div style={{ display: "flex", fontSize: "11px", letterSpacing: "3px", fontWeight: 800, opacity: 0.7 }}>AVG RATING</div>
                 <div style={{ display: "flex", fontSize: "34px", fontWeight: 900, lineHeight: 1.0, marginTop: "2px" }}>{d.intel.avg_dupr.toFixed(2)}</div>
               </div>
             )}
             {d.intel.total_live_dupr > 0 && (
               <div style={{ display: "flex", flexDirection: "column" }}>
-                <div style={{ display: "flex", fontSize: "11px", letterSpacing: "3px", fontWeight: 800, opacity: 0.7 }}>LIVE DUPR</div>
+                <div style={{ display: "flex", fontSize: "11px", letterSpacing: "3px", fontWeight: 800, opacity: 0.7 }}>LIVE</div>
                 <div style={{ display: "flex", fontSize: "34px", fontWeight: 900, lineHeight: 1.0, marginTop: "2px" }}>{d.intel.total_live_dupr}</div>
               </div>
             )}

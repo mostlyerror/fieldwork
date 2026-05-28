@@ -39,7 +39,7 @@ function DarkStyle({ d }: { d: CardData }) {
       </div>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
         <div style={{ fontSize: "44px", fontWeight: 900, lineHeight: 1.2, textAlign: "center", display: "flex" }}>{names}</div>
-        <div style={{ fontSize: "20px", color: "rgba(255,255,255,0.5)", marginTop: "12px", display: "flex" }}>{dr ? `DUPR ${dr}` : ""}</div>
+        <div style={{ fontSize: "20px", color: "rgba(255,255,255,0.5)", marginTop: "12px", display: "flex" }}>{dr ? `RATING ${dr}` : ""}</div>
       </div>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "rgba(255,255,255,0.08)", borderRadius: "16px", padding: "24px" }}>
         <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.4)", letterSpacing: "2px", display: "flex" }}>{d.eventName}</div>
@@ -71,7 +71,7 @@ function EditorialStyle({ d }: { d: CardData }) {
         {dr ? (
           <div style={{ display: "flex", gap: "16px", marginTop: "20px" }}>
             <div style={{ background: "#f0fdf4", borderRadius: "12px", padding: "12px 20px", display: "flex", flexDirection: "column" }}>
-              <div style={{ fontSize: "11px", color: "#065f46", letterSpacing: "2px", fontWeight: 700, display: "flex" }}>DUPR</div>
+              <div style={{ fontSize: "11px", color: "#065f46", letterSpacing: "2px", fontWeight: 700, display: "flex" }}>RATING</div>
               <div style={{ fontSize: "28px", fontWeight: 900, color: "#065f46", display: "flex" }}>{dr}</div>
             </div>
           </div>
@@ -115,7 +115,7 @@ function PodiumStyle({ d }: { d: CardData }) {
         <div style={{ fontSize: "12px", color: "#065f46", letterSpacing: "3px", fontWeight: 800, display: "flex" }}>Your Result</div>
         <div style={{ fontSize: "36px", fontWeight: 900, color: "#065f46", marginTop: "4px", display: "flex" }}>{MEDAL[d.placement]} {ORD[d.placement]}</div>
         <div style={{ fontSize: "20px", fontWeight: 700, color: "#1a1a1a", marginTop: "4px", display: "flex" }}>{names}</div>
-        <div style={{ fontSize: "15px", color: "#6b7280", marginTop: "4px", display: "flex" }}>{dr ? `DUPR ${dr}` : ""}</div>
+        <div style={{ fontSize: "15px", color: "#6b7280", marginTop: "4px", display: "flex" }}>{dr ? `RATING ${dr}` : ""}</div>
       </div>
       <div style={{ display: "flex", justifyContent: "center", fontSize: "13px", color: "#d1d5db", fontWeight: 700, letterSpacing: "3px" }}>PICKLERADAR.APP</div>
     </div>

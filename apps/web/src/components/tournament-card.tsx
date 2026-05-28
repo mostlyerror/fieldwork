@@ -18,7 +18,7 @@ export function TournamentCard({
   return (
     <Link
       href={href}
-      className="group flex flex-col overflow-hidden rounded-xl bg-white border border-gray-200 shadow-sm transition-all duration-200 ease-out hover:shadow-lg hover:-translate-y-0.5 hover:border-emerald-300 motion-reduce:hover:transform-none"
+      className="group flex h-full flex-col overflow-hidden rounded-xl bg-white border border-gray-200 shadow-sm transition-all duration-200 ease-out hover:shadow-lg hover:-translate-y-0.5 hover:border-emerald-300 motion-reduce:hover:transform-none"
     >
       {/* Main card body */}
       <div className="flex-1 p-5">
@@ -80,7 +80,7 @@ export function TournamentCard({
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
             </span>
             <span className="text-sm font-semibold text-white">
-              {t.total_live_dupr} live DUPR rating{(t.total_live_dupr ?? 0) !== 1 ? "s" : ""}
+              {t.total_live_dupr} verified rating{(t.total_live_dupr ?? 0) !== 1 ? "s" : ""}
             </span>
           </div>
           <span className="text-sm font-semibold text-white opacity-60">View intel →</span>

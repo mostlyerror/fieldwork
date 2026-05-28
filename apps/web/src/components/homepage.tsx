@@ -68,7 +68,7 @@ export function Homepage({
         <p className="mt-2 text-base text-gray-500">
           {upcomingCount > 0 ? `${upcomingCount} upcoming` : "Upcoming tournaments"}
           {" · "}
-          {duprCount} verified DUPR ratings
+          {duprCount} verified ratings
         </p>
 
         {/* Inline email subscribe bar */}

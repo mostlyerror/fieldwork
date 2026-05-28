@@ -15,7 +15,7 @@ export function Footer({ citySlug }: { citySlug?: string }) {
             </p>
             <p className="mt-2 text-sm leading-relaxed text-gray-500">
               Tournament intel for competitive pickleball players.
-              Real DUPR ratings. Sandbagger detection. Know what
+              Real ratings. Sandbagger detection. Know what
               you&apos;re walking into before you register.
             </p>
           </div>

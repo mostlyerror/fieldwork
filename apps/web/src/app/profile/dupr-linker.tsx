@@ -68,7 +68,7 @@ export function DuprLinker() {
 
       {status === "saved" && (
         <div className="rounded-lg bg-green-50 p-3 text-sm text-green-700">
-          DUPR rating linked successfully!
+          Rating linked successfully!
         </div>
       )}
 
@@ -82,7 +82,7 @@ export function DuprLinker() {
               : "text-gray-500 hover:bg-gray-50"
           }`}
         >
-          Find your DUPR
+          Find your rating
         </button>
         <button
           type="button"

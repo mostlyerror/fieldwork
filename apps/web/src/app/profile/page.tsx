@@ -32,13 +32,13 @@ export default async function ProfilePage() {
             <ProfileForm profile={profile} />
           </div>
 
-          {/* DUPR Rating */}
+          {/* Rating */}
           <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
             <h2 className="mb-1 text-sm font-bold uppercase tracking-wide text-gray-500">
-              DUPR Rating
+              Rating
             </h2>
             <p className="mb-4 text-xs text-gray-400">
-              Link your DUPR rating for personalized tournament recommendations
+              Link your rating for personalized tournament recommendations
             </p>
 
             {profile?.dupr_rating_doubles != null || profile?.dupr_rating_singles != null ? (

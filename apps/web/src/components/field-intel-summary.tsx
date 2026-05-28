@@ -60,7 +60,7 @@ export function FieldIntelSummary({ events }: { events: TournamentEvent[] }) {
 
       <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
         <div className="inline-flex items-center gap-1.5">
-          <span className="text-gray-400">Avg DUPR </span>
+          <span className="text-gray-400">Avg Rating </span>
           <AvgDuprCell pair={summaryPair} size="md" />
         </div>
         <div>

@@ -23,10 +23,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const player = await getPlayer(id);
   if (!player) return { title: "Player Not Found" };
 
-  const duprStr = player.dupr_doubles != null ? ` — DUPR ${player.dupr_doubles.toFixed(2)}` : "";
+  const ratingStr = player.dupr_doubles != null ? ` — ${player.dupr_doubles.toFixed(2)}` : "";
   return {
-    title: `${player.name}${duprStr} — PickleRadar`,
-    description: `View ${player.name}'s pickleball match history, W-L record, and DUPR rating on PickleRadar.`,
+    title: `${player.name}${ratingStr} — PickleRadar`,
+    description: `View ${player.name}'s pickleball match history, W-L record, and rating on PickleRadar.`,
   };
 }
 
