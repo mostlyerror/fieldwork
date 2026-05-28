@@ -240,7 +240,7 @@ export default function SubmitTournamentPage() {
             <div className="mb-6 flex items-center gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
                 <svg
-                  className="h-3.5 w-3.5"
+                  className="h-3.5 w-3.5 flex-shrink-0"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -252,7 +252,9 @@ export default function SubmitTournamentPage() {
                     d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
                   />
                 </svg>
-                <span className="max-w-[240px] truncate">{sourceUrl}</span>
+                <span className="max-w-[240px] truncate break-all">
+                  {sourceUrl}
+                </span>
               </span>
               <button
                 type="button"
@@ -262,7 +264,7 @@ export default function SubmitTournamentPage() {
                   setLatitude(null);
                   setLongitude(null);
                 }}
-                className="text-xs text-gray-400 hover:text-emerald-700"
+                className="px-2 py-1 text-sm text-gray-400 hover:text-emerald-700"
               >
                 Edit
               </button>
@@ -308,7 +310,7 @@ export default function SubmitTournamentPage() {
                 <div>
                   <label
                     htmlFor="dateStart"
-                    className="mb-1 block text-sm font-semibold text-gray-700"
+                    className="mb-2 block text-sm font-semibold text-gray-700"
                   >
                     Start Date *
                   </label>
@@ -318,13 +320,13 @@ export default function SubmitTournamentPage() {
                     type="date"
                     required
                     defaultValue={extracted?.dateStart ?? ""}
-                    className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-700"
+                    className="min-h-[44px] w-full rounded-lg border border-gray-200 px-4 py-3 text-sm focus:border-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-700"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="dateEnd"
-                    className="mb-1 block text-sm font-semibold text-gray-700"
+                    className="mb-2 block text-sm font-semibold text-gray-700"
                   >
                     End Date
                   </label>
@@ -333,7 +335,7 @@ export default function SubmitTournamentPage() {
                     name="dateEnd"
                     type="date"
                     defaultValue={extracted?.dateEnd ?? ""}
-                    className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-700"
+                    className="min-h-[44px] w-full rounded-lg border border-gray-200 px-4 py-3 text-sm focus:border-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-700"
                   />
                 </div>
               </div>
@@ -404,11 +406,11 @@ export default function SubmitTournamentPage() {
                 <p className="mb-2 text-sm font-semibold text-gray-700">
                   Skill Levels
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2.5">
                   {SKILL_LEVELS.map((level) => (
                     <label
                       key={level}
-                      className="flex items-center gap-1.5 rounded-full border border-gray-200 px-3 py-1 text-xs font-medium text-gray-700 transition has-[:checked]:border-emerald-700 has-[:checked]:bg-emerald-50 has-[:checked]:text-emerald-800"
+                      className="flex min-h-[44px] cursor-pointer items-center gap-1.5 rounded-full border border-gray-200 px-3.5 py-2.5 text-xs font-medium text-gray-700 transition has-[:checked]:border-emerald-700 has-[:checked]:bg-emerald-50 has-[:checked]:text-emerald-800"
                     >
                       <input
                         type="checkbox"
