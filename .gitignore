@@ -25,3 +25,13 @@ logs/
 .DS_Store
 .vercel
 .env*.local
+
+# Claude Code + Superpowers tooling state
+.claude/
+.superpowers/
+.worktrees/
+
+# One-off scraper test runners (kept locally for manual triggers, not part of pipeline)
+packages/scrapers/src/check-active.ts
+packages/scrapers/src/load-test-matches.ts
+packages/scrapers/src/run-live-matches.ts
