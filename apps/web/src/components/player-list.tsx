@@ -118,21 +118,40 @@ export function PlayerList({ players }: { players: EventPlayer[] }) {
                 ) : (
                   player.player_name
                 )}
-                {isDoubles && player.partner_name && (
-                  <span className="block text-xs text-gray-400 sm:hidden">
-                    w/{" "}
-                    {player.partner_id ? (
-                      <Link
-                        href={`/players/${player.partner_id}`}
-                        className="text-emerald-600 hover:underline"
-                      >
-                        {player.partner_name}
-                      </Link>
-                    ) : (
-                      player.partner_name
-                    )}
-                  </span>
-                )}
+                {isDoubles && player.partner_name && (() => {
+                  const partnerRating = player.partner_live_dupr ?? player.partner_dupr_rating;
+                  const teamTotal = teamDuprTotal(player);
+                  const partnerVerified = player.partner_live_dupr_verified === true;
+                  return (
+                    <div className="mt-0.5 flex flex-col gap-0.5 text-xs text-gray-400 sm:hidden">
+                      <span className="inline-flex flex-wrap items-center gap-1">
+                        <span className="text-gray-400">w/</span>
+                        {player.partner_id ? (
+                          <Link
+                            href={`/players/${player.partner_id}`}
+                            className="text-emerald-600 hover:underline"
+                          >
+                            {player.partner_name}
+                          </Link>
+                        ) : (
+                          <span>{player.partner_name}</span>
+                        )}
+                        {partnerRating != null && (
+                          <span className={partnerVerified ? "font-semibold text-emerald-600" : "font-semibold text-gray-600"}>
+                            {partnerRating.toFixed(2)}
+                          </span>
+                        )}
+                      </span>
+                      {teamTotal != null && (
+                        <span className="inline-flex items-center gap-1 text-[11px]">
+                          <span className="text-gray-400">Team</span>
+                          <span className="font-bold text-gray-700">{teamTotal.toFixed(2)}</span>
+                          <span className="text-gray-300">· avg {teamDuprAvg(player)!.toFixed(2)}</span>
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
               </td>
               <td className="px-3 py-1.5 text-right">
                 <DuprCell

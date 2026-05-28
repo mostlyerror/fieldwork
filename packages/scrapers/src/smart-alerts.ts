@@ -334,18 +334,31 @@ export interface SmartAlertResult {
   skippedCooldown: number;
 }
 
-export async function sendSmartAlerts(): Promise<SmartAlertResult> {
+export interface SmartAlertOptions {
+  /** Restrict to a single subscriber email — used for testing before broad rollout. */
+  onlyEmail?: string;
+  /** Compute everything but don't actually send or record. */
+  dryRun?: boolean;
+}
+
+export async function sendSmartAlerts(opts: SmartAlertOptions = {}): Promise<SmartAlertResult> {
   const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
+  if (!apiKey && !opts.dryRun) {
     console.log("[smart-alerts] No RESEND_API_KEY, skipping");
     return { subscribersChecked: 0, alertsSent: 0, skippedCooldown: 0 };
   }
 
-  const resend = new Resend(apiKey);
+  const resend = apiKey ? new Resend(apiKey) : null;
   const result: SmartAlertResult = { subscribersChecked: 0, alertsSent: 0, skippedCooldown: 0 };
 
-  const subscribers = await getLinkedSubscribers();
-  console.log(`[smart-alerts] ${subscribers.length} linked subscribers`);
+  let subscribers = await getLinkedSubscribers();
+  if (opts.onlyEmail) {
+    const target = opts.onlyEmail.toLowerCase();
+    subscribers = subscribers.filter((s) => s.email.toLowerCase() === target);
+    console.log(`[smart-alerts] TEST MODE: only ${subscribers.length} subscriber matching ${target}`);
+  } else {
+    console.log(`[smart-alerts] ${subscribers.length} linked subscribers`);
+  }
   if (subscribers.length === 0) return result;
 
   const tournaments = await getUpcomingTournaments();
@@ -376,8 +389,16 @@ export async function sendSmartAlerts(): Promise<SmartAlertResult> {
 
     const html = buildAlertHtml(sub, best.tournament, best.score);
 
+    if (opts.dryRun) {
+      console.log(
+        `[smart-alerts] DRY RUN — would send ${sub.email} → ${best.tournament.name} (score=${best.score.total}, reasons=${best.score.reasons.join(",")})`,
+      );
+      result.alertsSent++;
+      continue;
+    }
+
     try {
-      await resend.emails.send({
+      await resend!.emails.send({
         from: "PickleRadar <alerts@pickleradar.app>",
         to: sub.email,
         subject: `🏓 ${best.tournament.name} looks good for you${sub.name ? `, ${sub.name.split(" ")[0]}` : ""}`,
