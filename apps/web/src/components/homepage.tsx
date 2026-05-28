@@ -87,8 +87,14 @@ export function Homepage({
                 <form
                   ref={formRef}
                   action={handleEmailSubmit}
-                  className="flex items-center gap-2"
+                  className="flex flex-wrap items-center gap-2"
                 >
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Your name (optional)"
+                    className="min-w-0 flex-1 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm placeholder-gray-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200 sm:max-w-[180px]"
+                  />
                   <input
                     type="email"
                     name="email"
