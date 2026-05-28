@@ -29,7 +29,7 @@ export function EventCard({
         type="button"
         onClick={hasPlayers ? () => setExpanded(!expanded) : undefined}
         disabled={!hasPlayers}
-        className="flex w-full items-center gap-3 px-5 py-4 text-left transition hover:bg-gray-50 disabled:cursor-default disabled:hover:bg-white"
+        className="flex w-full items-center gap-3 px-4 sm:px-5 py-4 text-left transition hover:bg-gray-50 disabled:cursor-default disabled:hover:bg-white"
       >
         {hasPlayers && (
           <svg
@@ -72,7 +72,7 @@ export function EventCard({
       {!expanded && hasPlayers && playersWithLive > 0 && (
         <div
           onClick={() => setExpanded(true)}
-          className="flex cursor-pointer items-center gap-2 border-t border-gray-50 px-5 py-2 pl-12"
+          className="flex cursor-pointer items-center gap-2 border-t border-gray-50 px-4 sm:px-5 py-2 pl-12"
         >
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
           <span className="text-xs font-semibold text-emerald-700">
@@ -90,7 +90,7 @@ export function EventCard({
       )}
 
       {expanded && hasPlayers && (
-        <div className="border-t border-gray-100 px-5 pb-4 pt-2">
+        <div className="border-t border-gray-100 px-4 sm:px-5 pb-4 pt-2">
           <DuprDistribution players={event.players!} />
           <PlayerList players={event.players!} />
         </div>

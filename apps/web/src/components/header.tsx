@@ -13,7 +13,7 @@ export function Header({
 
   return (
     <nav className="bg-[#FFFDF7] border-b-2 border-[#1a1a1a]">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-3 sm:px-5 py-4">
         <Link
           href={homeHref}
           className="group inline-flex items-center gap-2 font-sans text-xl font-black text-[#1a1a1a] tracking-tight transition-opacity hover:opacity-80"

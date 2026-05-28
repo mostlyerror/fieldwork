@@ -129,7 +129,7 @@ export default async function TournamentPage({ params }: PageProps) {
       />
       <ServerHeader city={city} />
 
-      <main className="mx-auto max-w-6xl px-5 py-10">
+      <main className="mx-auto max-w-6xl px-3 sm:px-5 py-10">
         <Link
           href={`/${citySlug}`}
           className="mb-8 inline-flex items-center text-sm text-gray-400 hover:text-emerald-700"
@@ -175,7 +175,7 @@ export default async function TournamentPage({ params }: PageProps) {
 
       {/* Pre-footer CTA */}
       <div className="border-t border-gray-200 bg-gray-50">
-        <div className="mx-auto max-w-6xl px-5 py-10 text-center">
+        <div className="mx-auto max-w-6xl px-3 sm:px-5 py-10 text-center">
           <p className="text-base font-semibold text-gray-700">
             Something missing or incorrect?{" "}
             <Link href="/submit" className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2">

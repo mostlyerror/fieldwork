@@ -81,7 +81,7 @@ export default async function ClaimPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-background">
       <ServerHeader city={city} />
-      <main className="mx-auto max-w-md px-5 py-16 text-center">
+      <main className="mx-auto max-w-md px-3 sm:px-5 py-16 text-center">
         {result.status === "ok" && (
           <>
             <TrackConfirmed playerName={result.playerName} subscriberEmail={result.subscriberEmail} />

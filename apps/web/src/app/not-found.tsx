@@ -3,11 +3,11 @@ import { PaddleIcon } from "@/components/paddle-icon";
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-5 text-center">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-3 sm:px-5 text-center">
       <div className="animate-paddle">
         <PaddleIcon size={88} />
       </div>
-      <h1 className="mt-6 text-7xl font-black tracking-tight text-gray-200 animate-fade-up">
+      <h1 className="mt-6 text-5xl sm:text-7xl font-black tracking-tight text-gray-200 animate-fade-up">
         Out!
       </h1>
       <p className="mt-2 text-lg font-medium text-gray-600 animate-fade-up stagger-1">

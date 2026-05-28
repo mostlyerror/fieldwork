@@ -87,7 +87,7 @@ export function FindClient({ initialEmail }: { initialEmail: string }) {
         <label htmlFor="q" className="block text-xs font-bold uppercase tracking-widest text-gray-500">
           Your name
         </label>
-        <div className="mt-2 flex gap-2">
+        <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:gap-2">
           <input
             id="q"
             type="text"
@@ -95,13 +95,13 @@ export function FindClient({ initialEmail }: { initialEmail: string }) {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             placeholder="Ben Poon"
-            className="flex-1 rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-base focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+            className="w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-base focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100 sm:flex-1"
           />
           <button
             type="button"
             onClick={handleSearch}
             disabled={searching || !query.trim()}
-            className="shrink-0 rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50"
+            className="w-full min-h-[44px] rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50 sm:w-auto sm:shrink-0"
           >
             {searching ? "Searching..." : "Search"}
           </button>

@@ -126,29 +126,29 @@ export default async function CityPage({ params }: PageProps) {
         }
         seoContent={
           <section className="border-t-2 border-gray-900">
-            <div className="mx-auto max-w-6xl px-5 py-16">
+            <div className="mx-auto max-w-6xl px-3 sm:px-5 py-16">
               <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">
                 Why {city.name} Players Use PickleRadar
               </h2>
 
               {/* Feature cards */}
               <div className="mt-8 grid gap-6 sm:grid-cols-3">
-                <div className="rounded-xl border border-gray-200 bg-white p-6">
-                  <h3 className="text-lg font-extrabold text-gray-900">Every Tournament</h3>
+                <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-6">
+                  <h3 className="text-base sm:text-lg font-extrabold text-gray-900">Every Tournament</h3>
                   <p className="mt-2 text-sm leading-relaxed text-gray-500">
                     We aggregate from PBBrackets, Pickleball Den, and community submissions.
                     {upcomingCount > 0 ? ` ${upcomingCount} upcoming across ${venueCount} venues.` : ""}
                   </p>
                 </div>
-                <div className="rounded-xl border border-gray-200 bg-white p-6">
-                  <h3 className="text-lg font-extrabold text-gray-900">Real Rating Intel</h3>
+                <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-6">
+                  <h3 className="text-base sm:text-lg font-extrabold text-gray-900">Real Rating Intel</h3>
                   <p className="mt-2 text-sm leading-relaxed text-gray-500">
                     Verified ratings, not the ones players list at signup. See who&apos;s really in
                     each bracket before you register. Sandbagger alerts included.
                   </p>
                 </div>
-                <div className="rounded-xl border border-gray-200 bg-white p-6">
-                  <h3 className="text-lg font-extrabold text-gray-900">Never Miss a Match</h3>
+                <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-6">
+                  <h3 className="text-base sm:text-lg font-extrabold text-gray-900">Never Miss a Match</h3>
                   <p className="mt-2 text-sm leading-relaxed text-gray-500">
                     Filter by skill level, view on a map, or subscribe to our weekly email digest
                     every Monday. New tournaments added daily.

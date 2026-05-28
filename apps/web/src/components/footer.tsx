@@ -6,8 +6,8 @@ export function Footer({ citySlug }: { citySlug?: string }) {
 
   return (
     <footer className="mt-20 border-t-2 border-gray-900">
-      <div className="mx-auto max-w-6xl px-5 py-12">
-        <div className="grid gap-10 sm:grid-cols-3">
+      <div className="mx-auto max-w-6xl px-3 sm:px-5 py-12">
+        <div className="grid gap-6 sm:gap-10 sm:grid-cols-3">
           {/* Brand */}
           <div>
             <p className="text-lg font-extrabold tracking-tight text-gray-900">

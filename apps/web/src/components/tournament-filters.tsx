@@ -32,7 +32,7 @@ export function TournamentFilters({
           <button
             key={opt.value}
             onClick={() => onChange({ ...filters, fieldStrength: opt.value })}
-            className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+            className={`rounded-full min-h-[36px] px-3.5 py-1.5 text-xs font-semibold transition sm:min-h-0 sm:py-1 ${
               filters.fieldStrength === opt.value
                 ? "bg-emerald-600 text-white shadow-sm"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"

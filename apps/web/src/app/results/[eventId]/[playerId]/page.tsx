@@ -59,7 +59,7 @@ export default async function ResultPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-background">
       <ServerHeader city={city} />
-      <main className="mx-auto max-w-lg px-5 py-8">
+      <main className="mx-auto max-w-lg px-3 sm:px-5 py-8">
         <Link
           href={`/${city.slug}`}
           className="mb-6 inline-flex items-center text-sm text-gray-400 hover:text-emerald-700"

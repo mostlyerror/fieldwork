@@ -71,7 +71,7 @@ function PoolTable({ label, matches }: { label: string; matches: TournamentMatch
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-gray-100 text-left text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-            <th className="px-3 py-1 w-5">#</th>
+            <th className="px-3 py-1 w-5 hidden sm:table-cell">#</th>
             <th className="px-3 py-1">Team</th>
             <th className="px-3 py-1 text-center">W-L</th>
             <th className="px-3 py-1 text-right hidden sm:table-cell">+/-</th>
@@ -80,7 +80,7 @@ function PoolTable({ label, matches }: { label: string; matches: TournamentMatch
         <tbody className="divide-y divide-gray-50">
           {standings.map((team, i) => (
             <tr key={team.name} className={i === 0 ? "bg-emerald-50/50" : ""}>
-              <td className="px-3 py-1.5 text-xs font-bold text-gray-400">{i + 1}</td>
+              <td className="px-3 py-1.5 text-xs font-bold text-gray-400 hidden sm:table-cell">{i + 1}</td>
               <td className="px-3 py-1.5">
                 <span className="font-medium text-gray-800 text-sm">{team.name}</span>
                 {team.rating != null && (

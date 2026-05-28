@@ -51,14 +51,14 @@ export function FieldIntelSummary({ events }: { events: TournamentEvent[] }) {
   };
 
   return (
-    <div className="border-b border-gray-100 bg-white px-5 py-4">
+    <div className="border-b border-gray-100 bg-white px-4 sm:px-5 py-4">
       {isSandbaggerAlert && sandbaggerEvents.length > 0 && (
         <p className="mb-3 text-sm font-semibold text-red-700">
           ⚠ {sandbaggerEvents.length} bracket{sandbaggerEvents.length !== 1 ? "s" : ""} with 20%+ players rated above the skill cap
         </p>
       )}
 
-      <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+      <div className="flex flex-wrap gap-x-3 gap-y-2 sm:gap-x-6 text-sm">
         <div className="inline-flex items-center gap-1.5">
           <span className="text-gray-400">Avg Rating </span>
           <AvgDuprCell pair={summaryPair} size="md" />

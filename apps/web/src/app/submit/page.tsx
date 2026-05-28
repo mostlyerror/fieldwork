@@ -131,7 +131,7 @@ export default function SubmitTournamentPage() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="mx-auto max-w-3xl px-5 py-16 text-center">
+        <main className="mx-auto max-w-3xl px-3 sm:px-5 py-16 text-center">
           <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 mb-2">
             Thanks for submitting!
           </h1>
@@ -162,7 +162,7 @@ export default function SubmitTournamentPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="mx-auto max-w-3xl px-5 py-8">
+      <main className="mx-auto max-w-3xl px-3 sm:px-5 py-8">
         <Link
           href="/"
           className="mb-6 inline-flex items-center text-sm text-gray-400 hover:text-emerald-700"
@@ -406,11 +406,11 @@ export default function SubmitTournamentPage() {
                 <p className="mb-2 text-sm font-semibold text-gray-700">
                   Skill Levels
                 </p>
-                <div className="flex flex-wrap gap-2.5">
+                <div className="flex flex-wrap gap-2 sm:gap-2.5">
                   {SKILL_LEVELS.map((level) => (
                     <label
                       key={level}
-                      className="flex min-h-[44px] cursor-pointer items-center gap-1.5 rounded-full border border-gray-200 px-3.5 py-2.5 text-xs font-medium text-gray-700 transition has-[:checked]:border-emerald-700 has-[:checked]:bg-emerald-50 has-[:checked]:text-emerald-800"
+                      className="flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-full border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 transition has-[:checked]:border-emerald-700 has-[:checked]:bg-emerald-50 has-[:checked]:text-emerald-800 sm:min-h-[44px] sm:px-3.5 sm:py-2.5"
                     >
                       <input
                         type="checkbox"
@@ -471,7 +471,7 @@ export default function SubmitTournamentPage() {
                 </p>
               )}
 
-              <div className="flex gap-3">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between sm:gap-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -480,14 +480,14 @@ export default function SubmitTournamentPage() {
                     setLatitude(null);
                     setLongitude(null);
                   }}
-                  className="rounded-lg border border-gray-200 px-6 py-3 text-sm font-bold text-gray-600 transition hover:bg-gray-50"
+                  className="w-full min-h-[44px] rounded-lg border border-gray-200 px-6 py-3 text-sm font-bold text-gray-600 transition hover:bg-gray-50 sm:w-auto"
                 >
                   Back
                 </button>
                 <button
                   type="submit"
                   disabled={state === "submitting"}
-                  className="flex-1 rounded-lg bg-emerald-700 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50"
+                  className="w-full min-h-[44px] flex-1 rounded-lg bg-emerald-700 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50 sm:w-auto"
                 >
                   {state === "submitting"
                     ? "Submitting..."

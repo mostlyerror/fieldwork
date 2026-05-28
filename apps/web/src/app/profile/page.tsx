@@ -17,7 +17,7 @@ export default async function ProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50/50 via-white to-amber-50/30">
       <ServerHeader />
-      <main className="mx-auto max-w-2xl px-5 py-8">
+      <main className="mx-auto max-w-2xl px-3 sm:px-5 py-8">
         <h1 className="mb-8 text-3xl font-extrabold tracking-tight text-gray-900">
           Your Profile
         </h1>

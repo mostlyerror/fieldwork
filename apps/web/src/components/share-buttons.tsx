@@ -173,8 +173,7 @@ export function ShareButtons({
         <div
           role="dialog"
           aria-label="Share this tournament"
-          className="absolute right-0 top-full mt-2 z-50 w-80 rounded-xl border border-gray-200 bg-white shadow-lg p-4"
-          style={{ minWidth: "20rem" }}
+          className="absolute right-0 top-full mt-2 z-50 w-[calc(100vw-2rem)] max-w-80 sm:w-80 rounded-xl border border-gray-200 bg-white shadow-lg p-4"
         >
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
             Share this tournament

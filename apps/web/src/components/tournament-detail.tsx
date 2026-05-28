@@ -91,8 +91,8 @@ export function TournamentDetail({
           stickyVisible ? "translate-y-0" : "-translate-y-full"
         }`}
       >
-        <div className="max-w-6xl mx-auto px-5 py-2.5 flex items-center justify-between gap-3">
-          <span className="text-sm font-bold text-gray-900 truncate min-w-0 max-w-[55%] sm:max-w-none">
+        <div className="max-w-6xl mx-auto px-3 sm:px-5 py-2.5 flex items-center justify-between gap-3">
+          <span className="text-sm font-bold text-gray-900 truncate min-w-0 max-w-[60%] sm:max-w-none">
             {tournament.name}
           </span>
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
@@ -103,7 +103,7 @@ export function TournamentDetail({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => logRegister(primarySource.source_platform)}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-gray-200 px-3 sm:px-4 py-1.5 text-sm font-bold text-gray-600 transition hover:bg-gray-300 whitespace-nowrap"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-gray-200 px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-bold text-gray-600 transition hover:bg-gray-300 whitespace-nowrap"
                 >
                   <span className="sm:hidden">View ↗</span>
                   <span className="hidden sm:inline">View on {SOURCE_DISPLAY_NAMES[primarySource.source_platform] ?? "source"} ↗</span>
@@ -114,7 +114,7 @@ export function TournamentDetail({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => logRegister(primarySource.source_platform)}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 sm:px-4 py-1.5 text-sm font-bold text-white transition hover:bg-emerald-800 whitespace-nowrap"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-bold text-white transition hover:bg-emerald-800 whitespace-nowrap"
                 >
                   Register ↗
                 </a>

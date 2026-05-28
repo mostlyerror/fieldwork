@@ -21,7 +21,7 @@ export function TournamentPodium({ events }: { events: TournamentEvent[] }) {
             .sort((a, b) => a.placement! - b.placement!);
 
           return (
-            <div key={event.id} className="px-5 py-4">
+            <div key={event.id} className="px-4 sm:px-5 py-4">
               <h4 className="text-sm font-bold text-gray-900 mb-3">{event.name}</h4>
               <div className="flex flex-col gap-2">
                 {medalists.map((p) => {

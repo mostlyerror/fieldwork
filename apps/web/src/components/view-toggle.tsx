@@ -16,7 +16,7 @@ export function ViewToggle({
         aria-selected={view === "list"}
         aria-label="List view"
         onClick={() => onChange("list")}
-        className={`rounded-xl px-3 py-1.5 text-sm font-medium transition ${
+        className={`rounded-xl min-h-[40px] px-4 py-2 sm:min-h-0 sm:py-1.5 text-sm font-medium transition ${
           view === "list"
             ? "bg-green-600 text-white shadow-sm"
             : "text-gray-600 hover:text-gray-900"
@@ -29,7 +29,7 @@ export function ViewToggle({
         aria-selected={view === "map"}
         aria-label="Map view"
         onClick={() => onChange("map")}
-        className={`rounded-xl px-3 py-1.5 text-sm font-medium transition ${
+        className={`rounded-xl min-h-[40px] px-4 py-2 sm:min-h-0 sm:py-1.5 text-sm font-medium transition ${
           view === "map"
             ? "bg-green-600 text-white shadow-sm"
             : "text-gray-600 hover:text-gray-900"

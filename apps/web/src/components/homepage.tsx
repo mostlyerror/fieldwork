@@ -73,7 +73,7 @@ export function Homepage({
       <Header city={city} user={user} />
 
       {/* Page header */}
-      <div className="mx-auto max-w-6xl px-5 pt-8 pb-4">
+      <div className="mx-auto max-w-6xl px-3 sm:px-5 pt-8 pb-4">
         <h1 className="relative inline-block text-3xl font-extrabold text-gray-900">
           {city?.name ?? "Houston"} Tournaments
           <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-emerald-700 origin-left animate-underline" />
@@ -153,18 +153,18 @@ export function Homepage({
 
       {/* Personalized recommendations */}
       {recommendations && (
-        <section className="mx-auto max-w-6xl px-5 pt-6">
+        <section className="mx-auto max-w-6xl px-3 sm:px-5 pt-6">
           {recommendations}
         </section>
       )}
 
       {/* Tournament browser */}
-      <section className="mx-auto max-w-6xl px-5 pt-6 pb-16">
+      <section className="mx-auto max-w-6xl px-3 sm:px-5 pt-6 pb-16">
         <TournamentBrowser tournaments={tournaments} citySlug={city?.slug} />
       </section>
 
       {/* Submit CTA — single line */}
-      <div className="mx-auto max-w-6xl px-5 pb-10 text-sm text-gray-400">
+      <div className="mx-auto max-w-6xl px-3 sm:px-5 pb-10 text-sm text-gray-400">
         Know about a tournament?{" "}
         <Link href="/submit" className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline">
           Submit it here →

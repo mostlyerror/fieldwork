@@ -138,14 +138,18 @@ export default async function PlayerPage({ params }: PageProps) {
     <div className="min-h-screen bg-background">
       <ServerHeader city={city} />
 
-      <main className="mx-auto max-w-3xl px-5 py-8">
+      <main className="mx-auto max-w-3xl px-3 sm:px-5 py-8">
         {/* Back link — uses browser history so it returns to the referring page
              (e.g. a specific tournament) instead of always going to the list */}
-        <BackButton fallbackHref={`/${city.slug}`} label="Back" />
+        <BackButton
+          fallbackHref={`/${city.slug}`}
+          label="Back"
+          className="mb-6 inline-flex min-h-[44px] items-center py-2 text-sm text-gray-400 hover:text-emerald-700"
+        />
 
         {/* Player header card */}
         <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h1 className="text-2xl font-extrabold text-gray-900">
                 {player.name}
@@ -165,7 +169,7 @@ export default async function PlayerPage({ params }: PageProps) {
               )}
             </div>
 
-            <div className="flex shrink-0 flex-col items-stretch gap-3 sm:flex-row sm:items-start sm:gap-4">
+            <div className="flex shrink-0 flex-row items-stretch gap-4 sm:items-start">
               <div className="text-right">
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
                   Doubles
@@ -185,7 +189,7 @@ export default async function PlayerPage({ params }: PageProps) {
                   <p className="text-2xl font-extrabold text-gray-200 leading-none mt-0.5">--</p>
                 )}
               </div>
-              <div className="text-right border-t border-gray-100 pt-3 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-4">
+              <div className="text-right border-l border-gray-100 pl-4">
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
                   Singles
                 </p>
@@ -322,31 +326,30 @@ export default async function PlayerPage({ params }: PageProps) {
                           </span>
                         )}
                       </div>
-                      <p className="mt-0.5 text-sm text-gray-700 truncate">
+                      <div className="mt-0.5 flex flex-col gap-0.5 text-sm text-gray-700 sm:flex-row sm:flex-wrap sm:gap-x-3 sm:gap-y-0.5">
                         {partner && (
-                          <span>
+                          <p className="truncate">
                             <span className="text-gray-400">w/ </span>
                             {partnerId ? (
                               <Link href={`/players/${partnerId}`} className="hover:text-emerald-700 hover:underline">{partner}</Link>
                             ) : partner}
-                            <span className="text-gray-400"> vs </span>
-                          </span>
+                          </p>
                         )}
-                        {!partner && (
+                        <p className="truncate">
                           <span className="text-gray-400">vs </span>
-                        )}
-                        {opp1Id ? (
-                          <Link href={`/players/${opp1Id}`} className="hover:text-emerald-700 hover:underline">{opp1}</Link>
-                        ) : opp1}
-                        {opp2 && (
-                          <>
-                            {" + "}
-                            {opp2Id ? (
-                              <Link href={`/players/${opp2Id}`} className="hover:text-emerald-700 hover:underline">{opp2}</Link>
-                            ) : opp2}
-                          </>
-                        )}
-                      </p>
+                          {opp1Id ? (
+                            <Link href={`/players/${opp1Id}`} className="hover:text-emerald-700 hover:underline">{opp1}</Link>
+                          ) : opp1}
+                          {opp2 && (
+                            <>
+                              {" + "}
+                              {opp2Id ? (
+                                <Link href={`/players/${opp2Id}`} className="hover:text-emerald-700 hover:underline">{opp2}</Link>
+                              ) : opp2}
+                            </>
+                          )}
+                        </p>
+                      </div>
                     </div>
 
                     {/* Scores */}
