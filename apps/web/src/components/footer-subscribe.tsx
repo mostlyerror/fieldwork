@@ -19,7 +19,12 @@ export function FooterSubscribe() {
   }
 
   if (state === "success") {
-    return <p className="mt-3 text-sm font-semibold text-emerald-600">You&apos;re in!</p>;
+    return (
+      <div className="mt-3 inline-flex items-center gap-2">
+        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-xs text-white animate-pop">✓</span>
+        <p className="text-sm font-semibold text-emerald-600 animate-fade-up">Boom — you&apos;re in.</p>
+      </div>
+    );
   }
 
   return (

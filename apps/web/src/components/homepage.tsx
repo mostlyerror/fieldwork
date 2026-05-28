@@ -61,10 +61,11 @@ export function Homepage({
 
       {/* Page header */}
       <div className="mx-auto max-w-6xl px-5 pt-8 pb-4">
-        <h1 className="text-3xl font-extrabold text-gray-900">
+        <h1 className="relative inline-block text-3xl font-extrabold text-gray-900">
           {city?.name ?? "Houston"} Tournaments
+          <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-emerald-700 origin-left animate-underline" />
         </h1>
-        <p className="mt-1 text-base text-gray-500">
+        <p className="mt-2 text-base text-gray-500">
           {upcomingCount > 0 ? `${upcomingCount} upcoming` : "Upcoming tournaments"}
           {" · "}
           {duprCount} verified DUPR ratings
@@ -79,9 +80,18 @@ export function Homepage({
 
           <div className="flex-1">
             {emailState === "success" ? (
-              <p className="text-sm font-semibold text-emerald-700">
-                ✓ You&apos;re subscribed!
-              </p>
+              <div className="relative inline-flex items-center gap-2">
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-white animate-pop">
+                  ✓
+                </span>
+                <span className="text-sm font-bold text-emerald-700 animate-fade-up">
+                  Boom — you&apos;re in.
+                </span>
+                {/* Confetti */}
+                <span aria-hidden="true" className="pointer-events-none absolute -top-2 left-1 text-base animate-confetti">🎉</span>
+                <span aria-hidden="true" className="pointer-events-none absolute -top-3 left-6 text-sm animate-confetti" style={{ animationDelay: "120ms" }}>🏓</span>
+                <span aria-hidden="true" className="pointer-events-none absolute -top-2 left-12 text-base animate-confetti" style={{ animationDelay: "200ms" }}>✨</span>
+              </div>
             ) : (
               <>
                 <form

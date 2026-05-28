@@ -19,7 +19,7 @@ export function TournamentCard({
   return (
     <Link
       href={href}
-      className="flex flex-col overflow-hidden rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition"
+      className="group flex flex-col overflow-hidden rounded-xl bg-white border border-gray-200 shadow-sm transition-all duration-200 ease-out hover:shadow-lg hover:-translate-y-0.5 hover:border-emerald-300 motion-reduce:hover:transform-none"
     >
       {/* Main card body */}
       <div className="flex-1 p-5">
