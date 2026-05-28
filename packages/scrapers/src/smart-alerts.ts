@@ -280,7 +280,6 @@ function buildAlertHtml(
   }
 
   const fee = t.entry_fee != null ? ` &bull; $${t.entry_fee}` : "";
-  const sourceUrl = t.source_url ?? `${APP_URL}/houston/tournaments/${t.id}`;
   const detailUrl = `${APP_URL}/houston/tournaments/${t.id}`;
   const unsubToken = Buffer.from(subscriber.email).toString("base64url");
   const unsubUrl = `${APP_URL}/unsubscribe?token=${unsubToken}`;
@@ -305,8 +304,7 @@ function buildAlertHtml(
       ${bullets.join("\n      ")}
     </ul>` : ""}
 
-    <a href="${sourceUrl}" style="display:inline-block;background:#065f46;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px">Register ↗</a>
-    <a href="${detailUrl}" style="display:inline-block;margin-left:12px;color:#065f46;padding:12px 0;font-weight:700;font-size:15px;text-decoration:none">View details</a>
+    <a href="${detailUrl}" style="display:inline-block;background:#065f46;color:#fff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px">See full intel →</a>
   </div>
 
   <div style="text-align:center;padding:16px 0 0;font-size:12px;color:#9ca3af">
