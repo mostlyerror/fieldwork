@@ -8,7 +8,6 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["test/**/*.test.ts"],
-    exclude: ["test/smoke/**", "node_modules/**"],
+    include: ["test/smoke/**/*.test.ts"],
   },
 });

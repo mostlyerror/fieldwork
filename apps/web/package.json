@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:smoke": "vitest run --config vitest.smoke.config.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.74.0",
