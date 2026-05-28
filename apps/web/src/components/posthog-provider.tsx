@@ -19,13 +19,19 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
     const host = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com";
-    if (!key) return;
+    if (!key) {
+      console.warn("[PostHog] NEXT_PUBLIC_POSTHOG_KEY is not set — analytics disabled");
+      return;
+    }
     if (posthog.__loaded) return;
     posthog.init(key, {
       api_host: host,
       person_profiles: "identified_only",
       capture_pageview: false, // we fire $pageview manually below
       capture_pageleave: true,
+      loaded: () => {
+        console.log(`[PostHog] ready (key prefix=${key.slice(0, 8)}…, host=${host})`);
+      },
     });
   }, []);
 
