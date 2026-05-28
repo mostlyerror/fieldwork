@@ -14,7 +14,6 @@ export function TournamentCard({
   const slug = citySlug ?? "";
   const href = slug ? `/${slug}/tournaments/${t.id}` : `/tournaments/${t.id}`;
   const hasIntel = (t.total_live_dupr ?? 0) > 0;
-  const showSandbagger = t.max_sandbagger_pct != null && t.max_sandbagger_pct > 0.2;
 
   return (
     <Link
@@ -58,12 +57,6 @@ export function TournamentCard({
           {t.total_registered != null && t.total_registered > 0 && (
             <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
               {t.total_registered} registered
-            </span>
-          )}
-
-          {showSandbagger && (
-            <span className="inline-flex items-center rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-800">
-              Sandbagger Alert
             </span>
           )}
 
