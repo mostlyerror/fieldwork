@@ -272,11 +272,11 @@ function EventBracketView({ matches }: { matches: TournamentMatch[] }) {
           <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-400">
             Medal Round
           </h4>
-          {/* Horizontal bracket: each round is a column, left-to-right */}
-          <div className="overflow-x-auto">
-            <div className="flex gap-3 min-w-max">
+          {/* Mobile: stacked rounds. Desktop (sm+): horizontal columns, left-to-right */}
+          <div className="sm:overflow-x-auto">
+            <div className="flex flex-col gap-4 sm:flex-row sm:gap-3 sm:min-w-max">
               {Array.from(bracketRounds.entries()).map(([label, roundMatches]) => (
-                <div key={label} className="flex flex-col w-64 shrink-0">
+                <div key={label} className="flex flex-col sm:w-64 sm:shrink-0">
                   <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400 text-center">
                     {label}
                   </p>
