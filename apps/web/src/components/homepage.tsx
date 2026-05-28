@@ -97,33 +97,33 @@ export function Homepage({
                 <form
                   ref={formRef}
                   action={handleEmailSubmit}
-                  className="flex flex-wrap items-center gap-2"
+                  className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center"
                 >
                   <input
                     type="text"
                     name="name"
                     placeholder="Your name (optional)"
-                    className="min-w-0 flex-1 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm placeholder-gray-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200 sm:max-w-[180px]"
+                    className="w-full min-w-0 rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm placeholder-gray-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200 sm:flex-1 sm:py-1.5 sm:max-w-[180px]"
                   />
                   <input
                     type="email"
                     name="email"
                     required
                     placeholder="you@email.com"
-                    className="min-w-0 flex-1 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm placeholder-gray-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200 sm:max-w-xs"
+                    className="w-full min-w-0 rounded-lg border border-emerald-200 bg-white px-3 py-2.5 text-sm placeholder-gray-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200 sm:flex-1 sm:py-1.5 sm:max-w-xs"
                   />
                   <button
                     type="submit"
                     disabled={emailState === "submitting"}
-                    className="shrink-0 rounded-lg bg-emerald-600 px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
+                    className="w-full shrink-0 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50 sm:w-auto sm:py-1.5"
                   >
                     {emailState === "submitting" ? "..." : "Subscribe"}
                   </button>
                   {emailState === "already_subscribed" && (
-                    <span className="text-xs font-medium text-amber-600">Already subscribed!</span>
+                    <span className="w-full text-xs font-medium text-amber-600 sm:w-auto">Already subscribed!</span>
                   )}
                   {emailState === "error" && (
-                    <span className="text-xs font-medium text-red-500">{errorMsg}</span>
+                    <span className="w-full text-xs font-medium text-red-500 sm:w-auto">{errorMsg}</span>
                   )}
                 </form>
               </>

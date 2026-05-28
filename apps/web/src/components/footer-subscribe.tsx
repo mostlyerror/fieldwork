@@ -41,12 +41,12 @@ export function FooterSubscribe() {
           name="email"
           required
           placeholder="you@email.com"
-          className="w-full min-w-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          className="w-full min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
         />
         <button
           type="submit"
           disabled={state === "submitting"}
-          className="shrink-0 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50"
+          className="shrink-0 rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50"
         >
           {state === "submitting" ? "..." : "Subscribe"}
         </button>
