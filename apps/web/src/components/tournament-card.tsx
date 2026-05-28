@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Tournament } from "@/lib/types";
 import { formatDateRange, formatCurrency } from "@/lib/format";
 import { FieldStrengthBadge } from "./field-strength-badge";
+import { RegistrationPill } from "./registration-pill";
 
 export function TournamentCard({
   tournament: t,
@@ -71,6 +72,8 @@ export function TournamentCard({
             maxSandbaggerPct={t.max_sandbagger_pct}
             size="sm"
           />
+
+          <RegistrationPill tournament={t} />
         </div>
       </div>
 

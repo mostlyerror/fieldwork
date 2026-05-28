@@ -151,6 +151,15 @@ export async function scrape(): Promise<ScrapedTournament[]> {
       sourcePlatform: SOURCE_PLATFORM,
       sourceUrl: raw.website,
       rawPageHash: hashContent(line),
+      registrationCloseDate: raw.registrationClose
+        ? (() => {
+            try {
+              return new Date(convertDate(raw.registrationClose)).toISOString();
+            } catch {
+              return undefined;
+            }
+          })()
+        : undefined,
     };
 
     tournaments.push(tournament);

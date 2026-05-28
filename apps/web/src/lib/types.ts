@@ -12,6 +12,9 @@ export interface Tournament {
   entry_fee: number | null;
   registration_url: string | null;
   registration_status: string | null;
+  registration_close_date: string | null;
+  logo_url: string | null;
+  venue_website: string | null;
   description: string | null;
   status: string;
   created_at: string;

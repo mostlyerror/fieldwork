@@ -6,6 +6,8 @@ import { formatDateRange, formatCurrency, relativeDate, googleMapsUrl } from "@/
 import { googleCalendarUrl } from "@/lib/calendar";
 import { SOURCE_DISPLAY_NAMES } from "@/lib/constants";
 import { ShareButtons } from "./share-buttons";
+import { RegistrationPill } from "./registration-pill";
+import { getRegistrationStatus } from "@/lib/registration";
 
 export function TournamentDetail({
   tournament,
@@ -33,6 +35,7 @@ export function TournamentDetail({
   }, []);
 
   const primarySource = withUrl[0];
+  const regStatus = getRegistrationStatus(tournament);
 
   // Build stats prose
   const statParts: React.ReactNode[] = [];
@@ -75,14 +78,20 @@ export function TournamentDetail({
           </span>
           <div className="flex items-center gap-3 shrink-0">
             {primarySource && (
-              <a
-                href={primarySource.registration_url!}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-4 py-1.5 text-sm font-bold text-white transition hover:bg-emerald-800 whitespace-nowrap"
-              >
-                Register ↗
-              </a>
+              regStatus.isClosed ? (
+                <span className="inline-flex items-center gap-1.5 rounded-lg bg-gray-200 px-4 py-1.5 text-sm font-bold text-gray-500 whitespace-nowrap cursor-not-allowed">
+                  Registration Closed
+                </span>
+              ) : (
+                <a
+                  href={primarySource.registration_url!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-4 py-1.5 text-sm font-bold text-white transition hover:bg-emerald-800 whitespace-nowrap"
+                >
+                  Register ↗
+                </a>
+              )
             )}
             <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-emerald-700" title="Map">
               📍
@@ -146,16 +155,26 @@ export function TournamentDetail({
         {/* Actions */}
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
           {withUrl.map((source) => (
-            <a
-              key={source.id}
-              href={source.registration_url!}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-8 py-4 text-lg font-bold text-white transition hover:bg-emerald-800"
-            >
-              Register on {SOURCE_DISPLAY_NAMES[source.source_platform] ?? source.source_platform} ↗
-            </a>
+            regStatus.isClosed ? (
+              <span
+                key={source.id}
+                className="inline-flex items-center gap-2 rounded-xl bg-gray-200 px-8 py-4 text-lg font-bold text-gray-500 cursor-not-allowed"
+              >
+                Registration Closed
+              </span>
+            ) : (
+              <a
+                key={source.id}
+                href={source.registration_url!}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-8 py-4 text-lg font-bold text-white transition hover:bg-emerald-800"
+              >
+                Register on {SOURCE_DISPLAY_NAMES[source.source_platform] ?? source.source_platform} ↗
+              </a>
+            )
           ))}
+          <RegistrationPill tournament={tournament} />
           <div className="flex items-center gap-4 text-sm text-gray-400">
             <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="hover:text-emerald-700 hover:underline">
               Map

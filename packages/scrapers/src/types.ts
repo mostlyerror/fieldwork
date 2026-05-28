@@ -41,6 +41,9 @@ export interface ScrapedTournament {
   description?: string;
   rawPageHash: string;
   events?: ScrapedEvent[];
+  registrationCloseDate?: string; // ISO timestamp
+  logoUrl?: string;
+  venueWebsite?: string;
 }
 
 export interface ScraperResult {

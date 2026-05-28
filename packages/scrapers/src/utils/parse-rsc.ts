@@ -21,6 +21,7 @@ export interface ParsedTournamentFields {
   city: string | null;
   stateAbbreviation: string | null;
   costRegistrationCurrent: number | null;
+  website: string | null;
 }
 
 /**
@@ -33,11 +34,21 @@ function rscStringValue(chunk: string, key: string): string | null {
   // Try escaped quotes: \"key\":\"value\"
   const escaped = new RegExp(`\\\\"${key}\\\\":\\s*\\\\"([^\\\\]*?)\\\\"`);
   const m1 = chunk.match(escaped);
-  if (m1) return m1[1];
+  if (m1) {
+    const v = m1[1];
+    // Filter out RSC deferred references like "$undefined", "$4a"
+    if (v.startsWith("$")) return null;
+    return v;
+  }
   // Try unescaped: "key":"value"
   const plain = new RegExp(`"${key}":\\s*"([^"]*?)"`);
   const m2 = chunk.match(plain);
-  return m2?.[1] || null;
+  if (m2) {
+    const v = m2[1];
+    if (v.startsWith("$")) return null;
+    return v;
+  }
+  return null;
 }
 
 /**
@@ -74,5 +85,6 @@ export function parseRscTournamentData(
     city: rscStringValue(chunk, "City"),
     stateAbbreviation: rscStringValue(chunk, "StateAbbreviation"),
     costRegistrationCurrent,
+    website: rscStringValue(chunk, "website"),
   };
 }

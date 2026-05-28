@@ -90,6 +90,9 @@ export async function upsertTournaments(
         source_url: t.sourceUrl,
         source_hash: t.rawPageHash,
         description: t.description || null,
+        registration_close_date: t.registrationCloseDate || null,
+        logo_url: t.logoUrl || null,
+        venue_website: t.venueWebsite || null,
       };
 
       if (existing) {

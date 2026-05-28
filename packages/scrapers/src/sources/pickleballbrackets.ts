@@ -31,6 +31,7 @@ interface SearchApiTournament {
   Title: string;
   slug: string;
   DetailsURL: string;
+  Logo?: string;
   TourneyFromDate: string;
   TourneyToDate: string;
   LocationCity: string;
@@ -39,12 +40,17 @@ interface SearchApiTournament {
   RegistrationDateClosed: string;
 }
 
+interface SearchMeta {
+  registrationCloseDate?: string;
+  logoUrl?: string;
+}
+
 /**
  * Try the text search API first for quick discovery.
- * Returns tournament slugs found via the API.
+ * Returns map of slug → metadata from the search API.
  */
-async function fetchFromSearchApi(): Promise<string[]> {
-  const slugs: string[] = [];
+async function fetchFromSearchApi(): Promise<Map<string, SearchMeta>> {
+  const result = new Map<string, SearchMeta>();
   const queries = ["houston", "sugar land", "katy", "conroe", "cypress"];
 
   for (const query of queries) {
@@ -53,10 +59,15 @@ async function fetchFromSearchApi(): Promise<string[]> {
       if (!res.ok) continue;
 
       const json = await res.json();
-      const tourneys = json?.data?.tourneys ?? [];
+      const tourneys = (json?.data?.tourneys ?? []) as SearchApiTournament[];
       for (const t of tourneys) {
-        if (t.slug && !slugs.includes(t.slug)) {
-          slugs.push(t.slug);
+        if (t.slug && !result.has(t.slug)) {
+          // Strip CDN URL transforms (?width=64&height=26&optimizer=image)
+          const logoUrl = t.Logo ? t.Logo.split("?")[0] : undefined;
+          result.set(t.slug, {
+            registrationCloseDate: t.RegistrationDateClosed || undefined,
+            logoUrl,
+          });
         }
       }
     } catch (err) {
@@ -65,9 +76,9 @@ async function fetchFromSearchApi(): Promise<string[]> {
   }
 
   console.log(
-    `[pickleballbrackets] API search found ${slugs.length} tournament slugs`
+    `[pickleballbrackets] API search found ${result.size} tournament slugs`
   );
-  return slugs;
+  return result;
 }
 
 /**
@@ -436,6 +447,7 @@ async function parseTournamentDetailPage(
     const city = rscData?.city ?? null;
     const stateAbbr = rscData?.stateAbbreviation ?? null;
     const priceNum = rscData?.costRegistrationCurrent ?? null;
+    const website = rscData?.website ?? null;
 
     const pageTitle = title || (await page.title()) || null;
 
@@ -518,6 +530,7 @@ async function parseTournamentDetailPage(
       description,
       rawPageHash: contentHash,
       events: events.length > 0 ? events : undefined,
+      venueWebsite: website || undefined,
     };
 
     console.log(
@@ -551,8 +564,9 @@ export async function scrape(): Promise<ScrapedTournament[]> {
   const tournaments: ScrapedTournament[] = [];
 
   try {
-    // Step 1: Get slugs from the text search API (quick, no browser needed)
-    const apiSlugs = await fetchFromSearchApi();
+    // Step 1: Get slugs + metadata from the text search API
+    const apiMeta = await fetchFromSearchApi();
+    const apiSlugs = Array.from(apiMeta.keys());
 
     // Step 2: Launch browser and get slugs from the search page
     browser = await chromium.launch({ headless: true });
@@ -581,6 +595,12 @@ export async function scrape(): Promise<ScrapedTournament[]> {
       try {
         const tournament = await parseTournamentDetailPage(page, slug);
         if (tournament) {
+          // Merge metadata from search API (close date, logo)
+          const meta = apiMeta.get(slug);
+          if (meta) {
+            if (meta.registrationCloseDate) tournament.registrationCloseDate = meta.registrationCloseDate;
+            if (meta.logoUrl) tournament.logoUrl = meta.logoUrl;
+          }
           tournaments.push(tournament);
         }
       } catch (err) {
