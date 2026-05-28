@@ -1,3 +1,32 @@
+/**
+ * Subscriber ↔ Player linking utility.
+ *
+ * NOT WIRED INTO PRODUCTION FLOWS YET.
+ *
+ * This utility (and the player_id / link_status / linked_at / wants_smart_alerts
+ * columns on email_subscribers, added in migration 020) exists to support the
+ * "claim your player profile" flow that personalization features will sit on top of
+ * (smart tournament alerts, "who else is going", watchlists, rivalry tracker,
+ * post-tournament recap emails).
+ *
+ * We initially used these helpers to auto-link subscribers at signup based on a
+ * fuzzy name match, but pulled that out — heuristic identity is too fragile
+ * (single first names match the wrong person; new tournaments add ambiguity to
+ * past matches; users never see the silent guess so they can't correct it).
+ *
+ * The intended path forward:
+ *
+ *   1. Subscribe form stays light (email + optional display name).
+ *   2. Welcome email contains a "Claim your player profile" CTA.
+ *   3. /profile/find — search + candidate list, user picks the right player.
+ *   4. We email a confirmation link to the subscriber's email.
+ *   5. Click confirms → link recorded with audit trail (claimed_via: 'email_confirm').
+ *
+ * Until then, nameMatches() can still be used for the candidate-search step on
+ * /profile/find, and linkSubscriberToPlayer() can be called from the confirmation
+ * endpoint once the user has explicitly picked and confirmed.
+ */
+
 import { getSupabaseAdmin } from "./supabase-admin";
 
 export type LinkResult = "linked" | "ambiguous" | "no_match";
