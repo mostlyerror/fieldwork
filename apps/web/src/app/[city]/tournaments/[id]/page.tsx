@@ -140,6 +140,7 @@ export default async function TournamentPage({ params }: PageProps) {
         <TournamentDetail
           tournament={tournament}
           sources={sources}
+          citySlug={citySlug}
         />
 
         {events.length > 0 && (

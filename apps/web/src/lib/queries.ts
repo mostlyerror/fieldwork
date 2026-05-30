@@ -42,18 +42,32 @@ export async function getTournamentsByCity(
 export async function getTournament(
   id: string
 ): Promise<Tournament | null> {
-  const { data, error } = await supabase
+  // Join the venue slug so the detail page can link the venue name. Falls back
+  // to a plain select if the venues relationship doesn't exist yet (pre-024).
+  let { data, error } = await supabase
     .from("tournaments")
-    .select("*")
+    .select("*, venues(slug)")
     .eq("id", id)
     .single();
 
   if (error) {
-    console.error("Error fetching tournament:", error);
+    ({ data, error } = await supabase
+      .from("tournaments")
+      .select("*")
+      .eq("id", id)
+      .single());
+  }
+
+  if (error || !data) {
+    if (error) console.error("Error fetching tournament:", error);
     return null;
   }
 
-  const tournament = data as Tournament;
+  const row = data as Tournament & { venues?: { slug: string } | null };
+  const tournament: Tournament = {
+    ...row,
+    venue_slug: row.venues?.slug ?? null,
+  };
 
   // Attach intelligence aggregates for single tournament
   const [withAggregates] = await attachIntelligenceAggregates([tournament]);
