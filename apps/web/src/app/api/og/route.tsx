@@ -382,7 +382,7 @@ function Style_radar_dark({ d }: { d: CardData }) {
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const id = searchParams.get("id");
-  const style = searchParams.get("style") || "radar";
+  const style = searchParams.get("style") || "spotlight";
 
   if (!id) {
     return new Response("Missing id", { status: 400 });
@@ -401,7 +401,7 @@ export async function GET(request: NextRequest) {
 
   const [semiBold, bold, extraBold] = await Promise.all([fontSemiBold, fontBold, fontExtraBold]);
 
-  return new ImageResponse(map[style] ?? map.radar, {
+  return new ImageResponse(map[style] ?? map.spotlight, {
     width: 1200,
     height: 630,
     fonts: [
