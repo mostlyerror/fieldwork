@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { supabase } from "@/lib/supabase";
 import { CITIES, getNearestCity } from "@/lib/cities";
+import { getVenuesForSitemap } from "@/lib/queries";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://pickleradar.app";
@@ -26,6 +27,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   );
 
+  const venues = await getVenuesForSitemap();
+  const venueEntries: MetadataRoute.Sitemap = venues
+    .filter((v) => v.city_slug)
+    .map((v) => ({
+      url: `${baseUrl}/${v.city_slug}/venues/${v.slug}`,
+      lastModified: new Date(v.updated_at),
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    }));
+
   const cityEntries: MetadataRoute.Sitemap = Object.values(CITIES).map(
     (city) => ({
       url: `${baseUrl}/${city.slug}`,
@@ -50,5 +61,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     },
     ...tournamentEntries,
+    ...venueEntries,
   ];
 }
