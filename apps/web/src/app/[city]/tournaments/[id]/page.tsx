@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getTournament, getTournamentSources, getTournamentsByCity, getTournamentEvents, getTournamentMatches } from "@/lib/queries";
+import { getTournament, getTournamentSources, getTournamentsByCity, getTournamentEvents, getTournamentMatches, getVenueTournaments } from "@/lib/queries";
 import { getCityBySlug, getDefaultCity } from "@/lib/cities";
 import { TournamentDetail } from "@/components/tournament-detail";
 import { TournamentCard } from "@/components/tournament-card";
@@ -84,7 +84,18 @@ export default async function TournamentPage({ params }: PageProps) {
 
   if (!tournament) notFound();
 
-  const related = getRelatedTournaments(tournament, cityTournaments);
+  // Other tournaments at the same venue (the reciprocal of the venue page).
+  // Only shown once a venue hosts more than this one; grows as data accrues.
+  let venueMates: Tournament[] = [];
+  if (tournament.venue_id) {
+    const { upcoming, past } = await getVenueTournaments(tournament.venue_id);
+    venueMates = [...upcoming, ...past].filter((t) => t.id !== tournament.id).slice(0, 6);
+  }
+  const venueMateIds = new Set(venueMates.map((t) => t.id));
+
+  const related = getRelatedTournaments(tournament, cityTournaments).filter(
+    (t) => !venueMateIds.has(t.id),
+  );
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -158,6 +169,29 @@ export default async function TournamentPage({ params }: PageProps) {
         {events.length > 0 && (
           <section className="mt-6">
             <TournamentPodium events={events} />
+          </section>
+        )}
+
+        {venueMates.length > 0 && (
+          <section className="mt-12">
+            <div className="mb-4 flex items-baseline justify-between gap-3">
+              <h2 className="text-lg font-bold text-gray-800">
+                More at {tournament.location_name}
+              </h2>
+              {tournament.venue_slug && (
+                <Link
+                  href={`/${citySlug}/venues/${tournament.venue_slug}`}
+                  className="flex-shrink-0 text-sm font-medium text-emerald-700 hover:text-emerald-800"
+                >
+                  View venue &rarr;
+                </Link>
+              )}
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {venueMates.map((t) => (
+                <TournamentCard key={t.id} tournament={t} citySlug={citySlug} />
+              ))}
+            </div>
           </section>
         )}
 
