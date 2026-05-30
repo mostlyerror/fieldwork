@@ -15,11 +15,30 @@
  */
 
 import { chromium, type Browser, type Page } from "playwright";
+import { writeFile, mkdir } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 import { hashContent } from "../utils/hash.js";
 import { parseRscTournamentData } from "../utils/parse-rsc.js";
 import { distanceMiles, HOUSTON_LAT, HOUSTON_LNG, MAX_DISTANCE_MILES } from "../utils/geo.js";
 import { parseEventName } from "../utils/parse-event-name.js";
 import type { ScrapedTournament, ScrapedEvent, ScrapedPlayer, ScraperSource } from "../types.js";
+
+// Dev-only page dump for parser development.
+// Set SAVE_PAGES=1 to write each scraped tournament page to packages/scrapers/.cache/
+// so the raw HTML can be inspected for fields we don't extract yet.
+// NOT used for production data — every scrape run still fetches fresh pages.
+const CACHE_DIR = join(dirname(fileURLToPath(import.meta.url)), "../../.cache");
+
+async function maybeDumpPage(slug: string, suffix: string, content: string): Promise<void> {
+  if (!process.env.SAVE_PAGES) return;
+  try {
+    await mkdir(CACHE_DIR, { recursive: true });
+    await writeFile(join(CACHE_DIR, `${slug}-${suffix}.html`), content, "utf8");
+  } catch (err) {
+    console.warn(`[pickleballbrackets] Failed to dump page ${slug}-${suffix}:`, err);
+  }
+}
 
 const SOURCE_PLATFORM = "pickleballbrackets";
 const BASE_URL = "https://pickleballtournaments.com";
@@ -197,6 +216,8 @@ async function scrapeEvents(page: Page, slug: string): Promise<ScrapedEvent[]> {
       console.log(`[pickleballbrackets] No events found on ${eventsUrl}`);
       return [];
     }
+
+    await maybeDumpPage(slug, "events", await page.content());
 
     // Set up listener to capture eventPlayers API responses
     const playersByActivityId = new Map<string, PbbPlayerResponse[]>();
@@ -430,6 +451,7 @@ async function parseTournamentDetailPage(
 
     const pageContent = await page.content();
     const contentHash = hashContent(pageContent);
+    await maybeDumpPage(slug, "detail", pageContent);
 
     // Extract structured fields from the RSC payload embedded in the page
     const rscData = parseRscTournamentData(pageContent);

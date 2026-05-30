@@ -10,6 +10,9 @@ apps/web/.next/
 # Playwright
 packages/scrapers/test-results/
 
+# Scraper page dumps for parser development (SAVE_PAGES=1)
+packages/scrapers/.cache/
+
 # Prod data dumps
 supabase/seed/
 
