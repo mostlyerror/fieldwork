@@ -38,42 +38,39 @@ export function parseEventName(name: string): ParsedEventName {
     eventType = "doubles";
   }
 
-  // Skill levels — look for patterns like "3.0-3.5", "4.0+", "2.5/3.0", "3.5"
+  // Skill levels — handle dash ranges ("3.0-3.5"), slash ranges ("2.5/3.0"),
+  // open-ended ("4.0+", "4.0 and above"), ceilings ("3.499 and under"), and
+  // single levels ("3.5"). PickleballBrackets wraps skill in "Skill: (....)"
+  // alongside an Age clause like "(18 And Above)" — isolate the skill clause
+  // first so the age bound can't be misread as a skill level.
   let skillMin: number | null = null;
   let skillMax: number | null = null;
 
-  // Range: "3.0-3.5" or "3.0 - 3.5" or "3.000 – 3.499"
-  const rangeMatch = name.match(/(\d+\.?\d*)\s*[-–]\s*(\d+\.?\d*)/);
+  const skillClause = name.match(/skill:\s*\(([^)]*)\)/i);
+  const skillText = skillClause ? skillClause[1] : name;
+  const N = String.raw`\d+\.?\d*`;
+
+  const rangeMatch = skillText.match(new RegExp(`(${N})\\s*(?:[-–]|to)\\s*(${N})`, "i"));
+  const slashMatch = skillText.match(new RegExp(`(${N})\\s*/\\s*(${N})`));
+  const underMatch = skillText.match(new RegExp(`(${N})\\s*(?:and|&)?\\s*under`, "i"));
+  const aboveMatch = skillText.match(new RegExp(`(${N})\\s*(?:(?:and|&)\\s*(?:above|over)|\\+)`, "i"));
+  const singleMatch = skillText.match(new RegExp(`(${N})`));
+
   if (rangeMatch) {
     skillMin = parseFloat(rangeMatch[1]);
     skillMax = parseFloat(rangeMatch[2]);
-  }
-
-  // Slash-separated range: "2.5/3.0" (common in senior events)
-  if (skillMin == null) {
-    const slashMatch = name.match(/(\d+\.\d+)\s*\/\s*(\d+\.\d+)/);
-    if (slashMatch) {
-      skillMin = parseFloat(slashMatch[1]);
-      skillMax = parseFloat(slashMatch[2]);
-    }
-  }
-
-  if (skillMin == null) {
-    // Open-ended: "4.0+" or "4.0 and above"
-    const plusMatch = name.match(/(\d+\.\d+)\s*\+/);
-    if (plusMatch) {
-      skillMin = parseFloat(plusMatch[1]);
-      skillMax = null;
-    } else {
-      // Single level in parentheses or standalone: "(3.5)" or "3.5"
-      // Prefer "Skill: (X.X)" format if present
-      const skillColonMatch = name.match(/skill:\s*\((\d+\.?\d*)\)/i);
-      const singleMatch = skillColonMatch || name.match(/(\d+\.\d+)/);
-      if (singleMatch) {
-        skillMin = parseFloat(singleMatch[1]);
-        skillMax = skillMin;
-      }
-    }
+  } else if (slashMatch) {
+    skillMin = parseFloat(slashMatch[1]);
+    skillMax = parseFloat(slashMatch[2]);
+  } else if (underMatch) {
+    skillMin = null; // "X and under" → ceiling only
+    skillMax = parseFloat(underMatch[1]);
+  } else if (aboveMatch) {
+    skillMin = parseFloat(aboveMatch[1]); // "X and above" / "X+" → floor only
+    skillMax = null;
+  } else if (singleMatch) {
+    skillMin = parseFloat(singleMatch[1]);
+    skillMax = skillMin;
   }
 
   return { gender, eventType, skillMin, skillMax };
