@@ -190,9 +190,10 @@ export function TournamentDetail({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => logRegister(source.source_platform)}
-                  className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-gray-200 px-8 py-4 text-lg font-bold text-gray-600 transition hover:bg-gray-300"
+                  className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-gray-200 px-5 py-3 text-base font-bold text-gray-600 transition hover:bg-gray-300"
                 >
-                  View on {SOURCE_DISPLAY_NAMES[source.source_platform] ?? source.source_platform} ↗
+                  <span className="sm:hidden">View ↗</span>
+                  <span className="hidden sm:inline">View on {SOURCE_DISPLAY_NAMES[source.source_platform] ?? source.source_platform} ↗</span>
                 </a>
               ) : (
                 <a
@@ -201,9 +202,10 @@ export function TournamentDetail({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => logRegister(source.source_platform)}
-                  className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-emerald-700 px-8 py-4 text-lg font-bold text-white transition hover:bg-emerald-800"
+                  className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-base font-bold text-white transition hover:bg-emerald-800"
                 >
-                  Register on {SOURCE_DISPLAY_NAMES[source.source_platform] ?? source.source_platform} ↗
+                  <span className="sm:hidden">Register ↗</span>
+                  <span className="hidden sm:inline">Register on {SOURCE_DISPLAY_NAMES[source.source_platform] ?? source.source_platform} ↗</span>
                 </a>
               )
             ))}
