@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { TournamentEvent } from "@/lib/types";
 import { TeamLeaderboard } from "./team-leaderboard";
 import { DuprDistribution } from "./dupr-distribution";
+import { FieldStrip } from "./field-strip";
 import { eventIntel, registrantLabel } from "@/lib/field-intel";
 
 /** Listed → live average transition shown on the right of the card header. */
@@ -30,7 +31,9 @@ export function EventCard({ event }: { event: TournamentEvent }) {
   const [expanded, setExpanded] = useState(false);
   const intel = eventIntel(event);
 
-  const showFlags = hasPlayers && (intel.ratedLiveCount > 0 || intel.above > 0);
+  // The over-cap signal is carried by the strip's red squares now, so flags are
+  // just live-coverage info.
+  const showFlags = hasPlayers && intel.ratedLiveCount > 0;
 
   return (
     <div className="border-b border-gray-100 bg-white last:border-b-0">
@@ -79,11 +82,15 @@ export function EventCard({ event }: { event: TournamentEvent }) {
           {intel.differCount > 0 && (
             <span className="text-[11.5px] font-medium text-gray-400">· {intel.differCount} differ from listed</span>
           )}
-          {intel.above > 0 && (
-            <span className="ml-auto flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-600">
-              {intel.above} above bracket
-            </span>
-          )}
+        </div>
+      )}
+
+      {!expanded && hasPlayers && (
+        <div
+          onClick={() => setExpanded(true)}
+          className="cursor-pointer px-4 pb-3.5 pl-11 sm:px-5 sm:pl-12"
+        >
+          <FieldStrip event={event} />
         </div>
       )}
 

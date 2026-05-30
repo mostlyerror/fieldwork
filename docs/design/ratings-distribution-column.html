@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Field Intelligence · The Column</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #f4f5f2;
+    --card: #fffdf7;
+    --ink: #16201b;
+    --ink-soft: #5c6661;
+    --ink-faint: #97a09a;
+    --green: #065f46;
+    --emerald: #1f9d57;
+    --emerald-deep: #15803d;
+    --slate: #aeb6bc;
+    --red: #e0483b;
+    --hair: #e8e7df;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "tnum" 1, "lnum" 1;
+  }
+
+  body { padding: 28px 0 56px; min-height: 100vh; }
+
+  .col { width: 100%; max-width: 390px; margin: 0 auto; padding: 0 16px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--hair);
+    border-radius: 22px;
+    padding: 24px 22px 26px;
+    box-shadow: 0 1px 1px rgba(22,32,27,0.03), 0 10px 30px -14px rgba(22,32,27,0.16);
+  }
+
+  /* ---------- Header ---------- */
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--green);
+  }
+  .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--emerald); box-shadow: 0 0 0 3px rgba(31,157,87,0.16); }
+
+  h1 { margin-top: 13px; font-size: 22px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.15; }
+
+  .takeaway { margin-top: 8px; font-size: 13.5px; font-weight: 500; line-height: 1.45; color: var(--ink-soft); }
+  .takeaway b { color: var(--ink); font-weight: 700; }
+
+  /* ---------- Chart ---------- */
+  .chart-wrap { margin-top: 22px; }
+  svg { display: block; width: 100%; height: auto; }
+  .axis-lbl { font-size: 10.5px; font-weight: 600; fill: var(--ink-faint); font-family: "Plus Jakarta Sans", sans-serif; }
+  .axis-lbl.edge { fill: var(--green); font-weight: 700; }
+  .win-cap { font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em; fill: var(--green); text-transform: uppercase; }
+  .avg-lbl { font-size: 10px; font-weight: 700; fill: var(--ink); }
+
+  /* ---------- Combined zone legend (color + count + label in one row) ---------- */
+  .zonelegend {
+    margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--hair);
+    display: flex; flex-wrap: wrap; gap: 9px 20px;
+    font-size: 13px; font-weight: 600; color: var(--ink-soft);
+  }
+  .zl { display: inline-flex; align-items: baseline; gap: 7px; }
+  .zl i { width: 10px; height: 10px; border-radius: 3px; flex: none; transform: translateY(1px); }
+  .zl b { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; }
+  .zl.below i { background: var(--slate); }   .zl.below b { color: #7e878b; }
+  .zl.win   i { background: var(--emerald); } .zl.win b { color: var(--emerald-deep); }
+  .zl.above i { background: var(--red); }      .zl.above b { color: var(--red); }
+
+  /* ---------- Collapsed variant ---------- */
+  .collabel { margin: 28px 2px 9px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); }
+  .card.collapsed { padding: 15px 18px; display: flex; flex-direction: column; gap: 12px; border-radius: 16px; }
+  .crow { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .cname { font-size: 14.5px; font-weight: 800; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .csub2 { flex: none; font-size: 11.5px; font-weight: 500; color: var(--ink-faint); white-space: nowrap; }
+  .csub2 b { color: var(--emerald-deep); font-weight: 800; }
+  .cfield { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; }
+  .cstrip { display: flex; gap: 2px; }
+  .cstrip i { width: 12px; height: 16px; border-radius: 2.5px; }
+  .cstrip i.s { background: var(--slate); }
+  .cstrip i.e { background: var(--emerald); }
+  .cstrip i.r { background: var(--red); }
+  .cwin { position: relative; height: 12px; align-self: stretch; }
+  .cwin .bar { position: absolute; height: 2px; background: rgba(6,95,70,0.45); border-radius: 2px; top: 0; }
+  .cwin .lab { position: absolute; top: 3px; font-size: 8px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--green); }
+</style>
+</head>
+<body>
+  <div class="col">
+
+    <!-- ============ EXPANDED CARD ============ -->
+    <div class="card">
+      <div class="eyebrow"><span class="dot"></span>Field Intelligence</div>
+      <h1>Men's Doubles · 3.5–4.0</h1>
+      <p class="takeaway">Field plays at <b>3.74</b> · <b>11 of 16</b> in the window.</p>
+
+      <div class="chart-wrap">
+        <svg id="chart" viewBox="0 108 356 142" role="img"
+             aria-label="Unit-square histogram of 16 player ratings positioned by rating bin. Three below the 3.5 floor, eleven inside the 3.5 to 4.0 window, two above the 4.0 cap."></svg>
+      </div>
+
+      <!-- merged: color swatch + count + label, one row -->
+      <div class="zonelegend">
+        <span class="zl win"><i></i><b>11</b> in window</span>
+        <span class="zl below"><i></i><b>3</b> below floor</span>
+        <span class="zl above"><i></i><b>2</b> over cap</span>
+      </div>
+    </div>
+
+    <!-- ============ COLLAPSED CARD ============ -->
+    <div class="collabel">Collapsed — feed / bracket list</div>
+    <div class="card collapsed">
+      <div class="crow">
+        <div class="cname">Men's Doubles · 3.5–4.0</div>
+        <div class="csub2"><b>11</b>/16 in window</div>
+      </div>
+      <div class="cfield">
+        <div class="cstrip" id="cstrip"></div>
+        <div class="cwin"><div class="bar" id="cwinbar"></div><div class="lab" id="cwinlab">window</div></div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+(function () {
+  var ratings = [3.1, 3.3, 3.4, 3.5, 3.6, 3.6, 3.7, 3.7, 3.8, 3.8, 3.9, 3.9, 4.0, 4.0, 4.2, 4.4];
+  var FLOOR = 3.5, CAP = 4.0, AVG = 3.74;
+  var AXIS_MIN = 3.0, AXIS_MAX = 4.5, STEP = 0.1;
+
+  var bins = [];
+  for (var r = AXIS_MIN; r <= AXIS_MAX + 1e-9; r += STEP) bins.push(Math.round(r * 10) / 10);
+
+  var counts = {};
+  ratings.forEach(function (v) { var k = Math.round(v * 10) / 10; counts[k] = (counts[k] || 0) + 1; });
+  var maxStack = 0;
+  bins.forEach(function (b) { if ((counts[b] || 0) > maxStack) maxStack = counts[b] || 0; });
+
+  var W = 356;
+  var padL = 8, padR = 8;
+  var baseY = 196;
+  var plotW = W - padL - padR;
+  var slot = plotW / bins.length;
+  var sqGap = 3, sqRound = 4.5;
+  var sq = Math.min(slot - 3, 19);
+  var stackTop = baseY - (maxStack * sq + (maxStack - 1) * sqGap);
+  var topPad = stackTop;
+
+  function zoneOf(v) { if (v < FLOOR - 1e-9) return 'below'; if (v > CAP + 1e-9) return 'above'; return 'win'; }
+  var COLORS = { below: '#aeb6bc', win: '#1f9d57', above: '#e0483b' };
+  function xOf(v) { var idx = (v - AXIS_MIN) / STEP; return padL + slot * (idx + 0.5); }
+
+  var svgNS = 'http://www.w3.org/2000/svg';
+  var svg = document.getElementById('chart');
+  function el(name, attrs) { var n = document.createElementNS(svgNS, name); for (var k in attrs) n.setAttribute(k, attrs[k]); return n; }
+
+  var bandTop = topPad - 12;
+  var winX1 = xOf(FLOOR) - slot / 2, winX2 = xOf(CAP) + slot / 2;
+  svg.appendChild(el('rect', { x: winX1, y: bandTop, width: winX2 - winX1, height: baseY - bandTop, rx: 10, fill: 'rgba(31,157,87,0.07)', stroke: 'rgba(6,95,70,0.26)', 'stroke-width': 1, 'stroke-dasharray': '2 4' }));
+  var capLbl = el('text', { x: (winX1 + winX2) / 2, y: bandTop - 9, 'text-anchor': 'middle', class: 'win-cap' });
+  capLbl.textContent = 'BRACKET WINDOW 3.5 – 4.0';
+  svg.appendChild(capLbl);
+
+  svg.appendChild(el('line', { x1: padL, y1: baseY + 0.5, x2: W - padR, y2: baseY + 0.5, stroke: '#d9d8cf', 'stroke-width': 1 }));
+
+  var avgX = xOf(AVG);
+  svg.appendChild(el('line', { x1: avgX, y1: bandTop + 2, x2: avgX, y2: baseY, stroke: '#16201b', 'stroke-width': 1, 'stroke-dasharray': '1.5 3', opacity: 0.5 }));
+  svg.appendChild(el('circle', { cx: avgX, cy: bandTop + 2, r: 2, fill: '#16201b', opacity: 0.65 }));
+  var avgTag = el('text', { x: avgX, y: bandTop - 24, 'text-anchor': 'middle', class: 'avg-lbl' });
+  avgTag.textContent = 'avg 3.74';
+  svg.appendChild(avgTag);
+
+  bins.forEach(function (b) {
+    var c = counts[b] || 0; if (!c) return;
+    var cx = xOf(b), zone = zoneOf(b), fill = COLORS[zone];
+    for (var i = 0; i < c; i++) {
+      var y = baseY - sq - i * (sq + sqGap);
+      var rect = el('rect', { x: cx - sq / 2, y: y, width: sq, height: sq, rx: sqRound, fill: fill });
+      if (zone === 'above') rect.setAttribute('opacity', '0.92');
+      svg.appendChild(rect);
+    }
+  });
+
+  var ticks = [3.0, 3.5, 4.0, 4.5];
+  ticks.forEach(function (t) {
+    var cls = (t === FLOOR || t === CAP) ? 'axis-lbl edge' : 'axis-lbl';
+    var tx = el('text', { x: xOf(t), y: baseY + 18, 'text-anchor': 'middle', class: cls });
+    tx.textContent = t.toFixed(1); svg.appendChild(tx);
+    svg.appendChild(el('line', { x1: xOf(t), y1: baseY + 1, x2: xOf(t), y2: baseY + 5, stroke: (t === FLOOR || t === CAP) ? '#065f46' : '#c7c6bc', 'stroke-width': 1 }));
+  });
+  var cap2 = el('text', { x: W / 2, y: baseY + 38, 'text-anchor': 'middle', class: 'axis-lbl' });
+  cap2.textContent = 'DUPR rating'; cap2.setAttribute('font-size', '10'); cap2.setAttribute('letter-spacing', '0.12em'); cap2.style.textTransform = 'uppercase';
+  svg.appendChild(cap2);
+
+  // ---- collapsed unit strip: 16 squares sorted ascending, colored by zone ----
+  var strip = document.getElementById('cstrip');
+  var sorted = ratings.slice().sort(function (a, b) { return a - b; });
+  var firstWin = -1, lastWin = -1;
+  sorted.forEach(function (v, idx) {
+    var z = zoneOf(v);
+    var s = document.createElement('i');
+    s.className = z === 'below' ? 's' : z === 'above' ? 'r' : 'e';
+    strip.appendChild(s);
+    if (z === 'win') { if (firstWin < 0) firstWin = idx; lastWin = idx; }
+  });
+  // window underline spanning the in-window squares
+  var cell = 12 + 2; // square width + gap
+  var bar = document.getElementById('cwinbar');
+  var lab = document.getElementById('cwinlab');
+  var left = firstWin * cell;
+  var width = (lastWin - firstWin + 1) * 12 + (lastWin - firstWin) * 2;
+  bar.style.left = left + 'px';
+  bar.style.width = width + 'px';
+  lab.style.left = left + 'px';
+})();
+</script>
+</body>
+</html>

@@ -211,6 +211,69 @@ export function eventIntel(event: TournamentEvent): EventIntel {
 }
 
 // ---------------------------------------------------------------------------
+// Rating histogram (for the unit-square distribution chart + collapsed strip)
+// ---------------------------------------------------------------------------
+
+export type Zone = "below" | "in" | "above";
+
+/** Classify a rating relative to the bracket's skill window. */
+export function classifyZone(
+  rating: number,
+  skillMin: number | null,
+  skillMax: number | null,
+): Zone {
+  if (skillMax != null && rating > skillMax + EPS) return "above";
+  if (skillMin != null && rating < skillMin - EPS) return "below";
+  return "in";
+}
+
+export interface RatingBin {
+  rating: number; // bin center, e.g. 3.6
+  count: number;
+  zone: Zone;
+}
+
+export interface RatingHistogram {
+  bins: RatingBin[];
+  maxStack: number;
+  avg: number | null;
+  min: number | null;
+  max: number | null;
+  total: number;
+}
+
+/** Bin the field's effective ratings (live ?? listed) for the unit-square chart. */
+export function ratingHistogram(event: TournamentEvent, step = 0.1): RatingHistogram {
+  const ratings = eventPeople(event)
+    .map((p) => p.rating)
+    .filter((r): r is number => r != null);
+  if (ratings.length === 0) {
+    return { bins: [], maxStack: 0, avg: null, min: null, max: null, total: 0 };
+  }
+  const counts = new Map<number, number>();
+  for (const r of ratings) {
+    const key = Math.round(r / step) * step;
+    const rounded = Math.round(key * 100) / 100;
+    counts.set(rounded, (counts.get(rounded) ?? 0) + 1);
+  }
+  const bins: RatingBin[] = [...counts.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([rating, count]) => ({
+      rating,
+      count,
+      zone: classifyZone(rating, event.skill_level_min, event.skill_level_max),
+    }));
+  return {
+    bins,
+    maxStack: Math.max(...bins.map((b) => b.count)),
+    avg: round2(ratings.reduce((a, b) => a + b, 0) / ratings.length),
+    min: Math.min(...ratings),
+    max: Math.max(...ratings),
+    total: ratings.length,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Team leaderboard
 // ---------------------------------------------------------------------------
 

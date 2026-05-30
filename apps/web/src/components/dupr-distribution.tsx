@@ -1,223 +1,148 @@
 "use client";
 
 import type { TournamentEvent } from "@/lib/types";
-import { eventPeople, eventIntel } from "@/lib/field-intel";
+import { ratingHistogram, eventIntel, type Zone } from "@/lib/field-intel";
 
-// Snap a rating to the nearest 0.05 bin for stacking
-function snapTo(rating: number, step = 0.05): number {
-  return Math.round(rating / step) * step;
-}
+const ZONE_FILL: Record<Zone, string> = {
+  in: "#1f9d57",
+  below: "#aeb6bc",
+  above: "#e0483b",
+};
 
-type DotColor = "green" | "red" | "gray";
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+const floorHalf = (v: number) => Math.floor(v / 0.5) * 0.5;
+const ceilHalf = (v: number) => Math.ceil(v / 0.5) * 0.5;
 
-interface PlotPlayer {
-  name: string;
-  rating: number;
-  snapped: number;
-  color: DotColor;
-}
-
-// Fallback when an event has no declared skill window: densest 0.5-wide bucket.
-function deriveBracket(ratings: number[]): { low: number; high: number } {
-  if (ratings.length === 0) return { low: 2.0, high: 5.0 };
-  const bucketSize = 0.5;
-  const minR = Math.min(...ratings);
-  const maxR = Math.max(...ratings);
-  let bestLow = Math.floor(minR / bucketSize) * bucketSize;
-  let bestCount = 0;
-  for (let low = Math.floor(minR / bucketSize) * bucketSize; low <= maxR; low += bucketSize) {
-    const count = ratings.filter((r) => r >= low && r < low + bucketSize).length;
-    if (count > bestCount) {
-      bestCount = count;
-      bestLow = low;
-    }
-  }
-  return { low: bestLow, high: bestLow + bucketSize };
-}
-
+/**
+ * Unit-square histogram of a bracket's DUPR ratings ("The Column").
+ * Each square is one real player, stacked into 0.1 bins positioned by rating,
+ * zone-colored against the bracket's skill window. Tall stacks (big fields) cap
+ * at MAX_ROWS squares with a +N overflow marker so it never runs off the card.
+ */
 export function DuprDistribution({ event }: { event: TournamentEvent }) {
-  const people = eventPeople(event).filter((p) => p.rating != null);
-  if (people.length === 0) return null;
+  const histo = ratingHistogram(event);
+  if (histo.total === 0 || histo.avg == null) return null;
 
   const intel = eventIntel(event);
-  const hasLive = people.some((p) => p.live != null);
+  const { skill_level_min: skillMin, skill_level_max: skillMax } = event;
 
-  // Bracket band: real skill window when known, else densest cluster.
-  const allRatings = people.map((p) => p.rating!);
-  const bracket =
-    intel.skillMin != null && intel.skillMax != null
-      ? { low: intel.skillMin, high: intel.skillMax }
-      : deriveBracket(allRatings);
+  // Axis domain — pad to the nearest 0.5 around both the data and the window.
+  const lo = Math.min(histo.min!, skillMin ?? histo.min!);
+  const hi = Math.max(histo.max!, skillMax ?? histo.max!);
+  const axisMin = floorHalf(lo - 0.1);
+  const axisMax = ceilHalf(hi + 0.1);
+  const span = Math.max(0.5, axisMax - axisMin);
 
-  const rated: PlotPlayer[] = people.map((p) => {
-    const rating = p.rating!;
-    let color: DotColor = "green";
-    if (rating < bracket.low - 0.05) color = "gray";
-    else if (rating > bracket.high + 0.05) color = "red";
-    return { name: p.name, rating, snapped: snapTo(rating), color };
-  });
+  // Geometry (viewBox units; the SVG scales to container width).
+  const W = 356;
+  const padL = 8;
+  const padR = 8;
+  const plotW = W - padL - padR;
+  const numSlots = Math.max(1, Math.round(span / 0.1));
+  const slot = plotW / numSlots;
+  const sq = clamp(slot - 2, 5, 18);
+  const gap = Math.max(2, Math.round(sq * 0.18));
 
-  const avg = allRatings.reduce((s, r) => s + r, 0) / allRatings.length;
-  const minRating = Math.min(...allRatings);
-  const maxRating = Math.max(...allRatings);
+  const MAX_ROWS = 9;
+  const shownMax = Math.min(histo.maxStack, MAX_ROWS);
+  const topPad = 42; // room for the stacked avg + window labels above the band
+  const columnsH = shownMax * sq + (shownMax - 1) * gap;
+  const baseY = topPad + columnsH;
+  const H = baseY + 24;
 
-  // Number line range
-  const lineMin = 2.0;
-  const lineMax = Math.max(Math.ceil((maxRating + 0.5) / 0.5) * 0.5, bracket.high + 0.5);
-  const lineRange = lineMax - lineMin;
-  const pct = (r: number) => ((r - lineMin) / lineRange) * 100;
+  const xOf = (r: number) => padL + ((r - axisMin) / span) * plotW;
+  const bandTop = topPad - 6;
 
   const ticks: number[] = [];
-  for (let t = lineMin; t <= lineMax; t = Math.round((t + 0.5) * 10) / 10) ticks.push(t);
+  for (let t = axisMin; t <= axisMax + 1e-9; t = Math.round((t + 0.5) * 10) / 10) ticks.push(t);
 
-  // Stack dots by snapped value
-  const stackMap: Record<number, PlotPlayer[]> = {};
-  for (const p of rated) (stackMap[p.snapped] ??= []).push(p);
-
-  interface DotPos {
-    player: PlotPlayer;
-    xPct: number;
-    col: number;
-  }
-  const dots: DotPos[] = [];
-  for (const [keyStr, stack] of Object.entries(stackMap)) {
-    const xPct = pct(parseFloat(keyStr));
-    stack.forEach((player, idx) => dots.push({ player, xPct, col: idx }));
-  }
-
-  const maxStack = Math.max(...Object.values(stackMap).map((s) => s.length), 1);
-  const DOT_PX = 12;
-  const DOT_GAP = 2;
-  const chartHeight = Math.max(40, (DOT_PX + DOT_GAP) * maxStack + 12);
-
-  const bracketLeftPct = Math.max(0, pct(bracket.low));
-  const bracketRightPct = Math.min(100, pct(bracket.high));
-  const avgPct = Math.min(100, Math.max(0, pct(avg)));
-
-  const colorClass: Record<DotColor, string> = {
-    green: "bg-emerald-500 ring-emerald-600",
-    red: "bg-red-400 ring-red-500",
-    gray: "bg-gray-300 ring-gray-400",
-  };
-
-  const showClassification =
-    intel.skillMin != null && intel.skillMax != null && (intel.inRange + intel.below + intel.above) > 0;
+  const avgX = xOf(histo.avg);
+  const hasWindow = skillMin != null && skillMax != null;
+  const winX1 = hasWindow ? Math.max(padL, xOf(skillMin!) - slot / 2) : 0;
+  const winX2 = hasWindow ? Math.min(W - padR, xOf(skillMax!) + slot / 2) : 0;
 
   return (
     <div className="my-4 max-w-full rounded-xl bg-gray-50/80 p-4">
-      {/* Header */}
-      <div className="mb-1 flex items-center justify-between">
+      <div className="mb-2 flex items-center justify-between">
         <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Rating spread</p>
-        <div className="flex items-center gap-2">
-          {hasLive && (
-            <span className="flex items-center gap-1 text-xs text-emerald-600">
-              <span className="h-1 w-1 rounded-full bg-emerald-500" />
-              Live
-            </span>
-          )}
-          <span className="text-xs text-gray-400">{rated.length} rated</span>
-        </div>
+        <span className="text-xs text-gray-400">{histo.total} rated</span>
       </div>
 
-      {/* Sub: count · avg · range */}
-      <p className="mb-2.5 text-xs font-medium tabular-nums text-gray-400">
-        {rated.length} player{rated.length !== 1 ? "s" : ""} · avg {avg.toFixed(2)} · range {minRating.toFixed(1)}–{maxRating.toFixed(1)}
-      </p>
+      <svg viewBox={`0 0 ${W} ${H}`} className="block h-auto w-full" role="img" aria-label={`Rating distribution: ${intel.inRange} in the window, ${intel.below} below the floor, ${intel.above} above the cap.`}>
+        {/* bracket window band */}
+        {hasWindow && (
+          <>
+            <rect x={winX1} y={bandTop} width={winX2 - winX1} height={baseY - bandTop} rx={9} fill="rgba(31,157,87,0.07)" stroke="rgba(6,95,70,0.26)" strokeWidth={1} strokeDasharray="2 4" />
+            <text x={(winX1 + winX2) / 2} y={bandTop - 8} textAnchor="middle" fontSize={9} fontWeight={700} letterSpacing="0.1em" fill="#065f46">
+              {skillMin === skillMax ? `BRACKET ${skillMin!.toFixed(1)}` : `BRACKET ${skillMin!.toFixed(1)}–${skillMax!.toFixed(1)}`}
+            </text>
+          </>
+        )}
 
-      {/* Takeaway sentence */}
-      {showClassification && (
-        <p className="mb-3 text-[13px] font-semibold tabular-nums text-gray-600">
-          <b className="font-extrabold text-gray-900">{intel.inRange}</b> in range
-          {intel.below > 0 && (
-            <>
-              {" · "}
-              <b className="font-extrabold text-gray-900">{intel.below}</b> below
-            </>
-          )}
-          {intel.above > 0 && (
-            <>
-              {" · "}
-              <b className="font-extrabold text-red-600">{intel.above}</b>
-              <span className="text-red-600"> above the {intel.skillMax!.toFixed(1)} ceiling</span>
-            </>
-          )}
-        </p>
-      )}
+        {/* average reference */}
+        <line x1={avgX} y1={bandTop + 2} x2={avgX} y2={baseY} stroke="#16201b" strokeWidth={1} strokeDasharray="1.5 3" opacity={0.5} />
+        <circle cx={avgX} cy={bandTop + 2} r={2} fill="#16201b" opacity={0.65} />
+        <text x={avgX} y={bandTop - 22} textAnchor="middle" fontSize={10} fontWeight={700} fill="#16201b">{`avg ${histo.avg.toFixed(2)}`}</text>
 
-      {/* Dot plot */}
-      <div className="relative w-full max-w-full select-none overflow-hidden">
-        <div className="relative w-full" style={{ height: `${chartHeight}px` }}>
-          {/* Bracket band */}
-          <div
-            className="absolute bottom-0 top-3 rounded-lg bg-emerald-100/70"
-            style={{ left: `${bracketLeftPct}%`, width: `${bracketRightPct - bracketLeftPct}%` }}
-          >
-            <span className="absolute left-0 right-0 top-1 text-center text-[8.5px] font-bold uppercase tracking-wider text-emerald-600/70">
-              Bracket
-            </span>
-          </div>
+        {/* baseline */}
+        <line x1={padL} y1={baseY + 0.5} x2={W - padR} y2={baseY + 0.5} stroke="#d9d8cf" strokeWidth={1} />
 
-          {/* Avg reference line + label */}
-          <div className="absolute bottom-0 top-0 border-l border-dashed border-gray-700/50" style={{ left: `${avgPct}%` }} />
-          <span
-            className="absolute top-0 -translate-x-1/2 text-[9.5px] font-extrabold tabular-nums text-gray-800"
-            style={{ left: `${avgPct}%` }}
-          >
-            avg {avg.toFixed(2)}
+        {/* stacked unit squares */}
+        {histo.bins.map((bin) => {
+          const cx = xOf(bin.rating);
+          const rows = Math.min(bin.count, MAX_ROWS);
+          const overflow = bin.count - rows;
+          return (
+            <g key={bin.rating}>
+              {Array.from({ length: rows }).map((_, i) => (
+                <rect
+                  key={i}
+                  x={cx - sq / 2}
+                  y={baseY - sq - i * (sq + gap)}
+                  width={sq}
+                  height={sq}
+                  rx={Math.max(2, sq * 0.25)}
+                  fill={ZONE_FILL[bin.zone]}
+                  opacity={bin.zone === "above" ? 0.92 : 1}
+                />
+              ))}
+              {overflow > 0 && (
+                <text x={cx} y={baseY - rows * (sq + gap) - 1} textAnchor="middle" fontSize={9} fontWeight={800} fill="#5c6661">{`+${overflow}`}</text>
+              )}
+            </g>
+          );
+        })}
+
+        {/* axis ticks every 0.5 */}
+        {ticks.map((t) => {
+          const edge = (skillMin != null && Math.abs(t - skillMin) < 1e-9) || (skillMax != null && Math.abs(t - skillMax) < 1e-9);
+          return (
+            <g key={t}>
+              <line x1={xOf(t)} y1={baseY + 1} x2={xOf(t)} y2={baseY + 5} stroke={edge ? "#065f46" : "#c7c6bc"} strokeWidth={1} />
+              <text x={xOf(t)} y={baseY + 17} textAnchor="middle" fontSize={10.5} fontWeight={edge ? 700 : 600} fill={edge ? "#065f46" : "#97a09a"}>{t.toFixed(1)}</text>
+            </g>
+          );
+        })}
+      </svg>
+
+      {/* merged zone legend: color + count + label */}
+      <div className="mt-4 flex flex-wrap items-baseline gap-x-5 gap-y-2 text-[13px] font-semibold text-gray-600">
+        <span className="inline-flex items-baseline gap-1.5">
+          <span className="h-2.5 w-2.5 translate-y-0.5 rounded-[3px]" style={{ background: ZONE_FILL.in }} />
+          <b className="text-[17px] font-extrabold tracking-tight text-emerald-700">{intel.inRange}</b> in window
+        </span>
+        {intel.below > 0 && (
+          <span className="inline-flex items-baseline gap-1.5">
+            <span className="h-2.5 w-2.5 translate-y-0.5 rounded-[3px]" style={{ background: ZONE_FILL.below }} />
+            <b className="text-[17px] font-extrabold tracking-tight text-gray-500">{intel.below}</b> below floor
           </span>
-
-          {/* Dots */}
-          {dots.map((d, i) => {
-            const bottomPx = d.col * (DOT_PX + DOT_GAP) + 4;
-            return (
-              <div
-                key={`${d.player.name}-${i}`}
-                title={`${d.player.name} · ${d.player.rating.toFixed(2)}`}
-                className={`absolute cursor-default rounded-full ring-1 transition-transform hover:z-10 hover:scale-150 ${colorClass[d.player.color]}`}
-                style={{
-                  width: `${DOT_PX}px`,
-                  height: `${DOT_PX}px`,
-                  left: `calc(${d.xPct}% - ${DOT_PX / 2}px)`,
-                  bottom: `${bottomPx}px`,
-                  zIndex: d.col + 1,
-                }}
-              />
-            );
-          })}
-        </div>
-
-        {/* Number line */}
-        <div className="relative mt-1 h-px w-full bg-gray-300">
-          {ticks.map((t) => {
-            const isWhole = Number.isInteger(t);
-            return (
-              <div
-                key={t}
-                className="absolute flex flex-col items-center"
-                style={{ left: `${pct(t)}%`, transform: "translateX(-50%)" }}
-              >
-                <div className={isWhole ? "h-2 w-px bg-gray-500" : "h-1.5 w-px bg-gray-300"} />
-                {isWhole && <span className="mt-0.5 text-xs font-semibold tabular-nums text-gray-500">{t.toFixed(1)}</span>}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Legend with counts */}
-      <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs font-medium tabular-nums text-gray-600">
-        <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-emerald-500" />
-          In bracket {showClassification ? intel.inRange : ""}
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-gray-300" />
-          Below {showClassification ? intel.below : ""}
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-red-400" />
-          Above {showClassification ? intel.above : ""}
-        </span>
+        )}
+        {intel.above > 0 && (
+          <span className="inline-flex items-baseline gap-1.5">
+            <span className="h-2.5 w-2.5 translate-y-0.5 rounded-[3px]" style={{ background: ZONE_FILL.above }} />
+            <b className="text-[17px] font-extrabold tracking-tight text-red-600">{intel.above}</b> over cap
+          </span>
+        )}
       </div>
     </div>
   );

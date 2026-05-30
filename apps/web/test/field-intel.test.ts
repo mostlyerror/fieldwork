@@ -6,6 +6,8 @@ import {
   eventIntel,
   teamLeaderboard,
   registrantLabel,
+  classifyZone,
+  ratingHistogram,
 } from "@/lib/field-intel";
 
 function player(overrides: Partial<EventPlayer> = {}): EventPlayer {
@@ -142,6 +144,53 @@ describe("eventIntel", () => {
 
   it("uses singular unit for singles", () => {
     expect(eventIntel(event({ event_type: "singles" })).unit).toBe("players");
+  });
+});
+
+describe("classifyZone", () => {
+  it("buckets relative to the skill window with an epsilon", () => {
+    expect(classifyZone(3.3, 3.5, 4.0)).toBe("below");
+    expect(classifyZone(3.7, 3.5, 4.0)).toBe("in");
+    expect(classifyZone(4.4, 3.5, 4.0)).toBe("above");
+    // boundary values count as in-window
+    expect(classifyZone(3.5, 3.5, 4.0)).toBe("in");
+    expect(classifyZone(4.0, 3.5, 4.0)).toBe("in");
+    // no window → everything is in
+    expect(classifyZone(2.0, null, null)).toBe("in");
+  });
+});
+
+describe("ratingHistogram", () => {
+  it("bins effective ratings at 0.1 and tags each bin's zone", () => {
+    const e = event({
+      skill_level_min: 3.5,
+      skill_level_max: 4.0,
+      players: [
+        player({ dupr_rating: 3.4 }),
+        player({ dupr_rating: 3.6 }),
+        player({ dupr_rating: 3.6 }),
+        player({ dupr_rating: 4.4 }),
+      ],
+    });
+    const h = ratingHistogram(e);
+    expect(h.total).toBe(4);
+    expect(h.maxStack).toBe(2); // the two 3.6s
+    expect(h.avg).toBe(3.75);
+    expect(h.min).toBe(3.4);
+    expect(h.max).toBe(4.4);
+    const at = (r: number) => h.bins.find((b) => Math.abs(b.rating - r) < 1e-9);
+    expect(at(3.6)!.count).toBe(2);
+    expect(at(3.6)!.zone).toBe("in");
+    expect(at(3.4)!.zone).toBe("below");
+    expect(at(4.4)!.zone).toBe("above");
+  });
+
+  it("prefers live over listed and returns empty when no ratings", () => {
+    const live = event({
+      players: [player({ dupr_rating: 3.0, live_dupr: 3.8, live_dupr_verified: true })],
+    });
+    expect(ratingHistogram(live).bins[0].rating).toBe(3.8);
+    expect(ratingHistogram(event({ players: [player()] })).total).toBe(0);
   });
 });
 
