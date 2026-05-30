@@ -7,6 +7,9 @@ const ZONE_FILL: Record<Zone, string> = {
   above: "#e0483b",
 };
 
+// Windowless events (Beginner / junior brackets) have no floor or cap.
+const NEUTRAL = "#9aa6a0";
+
 /**
  * Collapsed "unit strip" — every rated player as one zone-colored square in a
  * single sorted row, with the bracket window marked underneath. The compact form
@@ -19,6 +22,7 @@ export function FieldStrip({ event }: { event: TournamentEvent }) {
     .sort((a, b) => a.rating! - b.rating!);
   if (rated.length === 0) return null;
 
+  const hasWindow = event.skill_level_min != null || event.skill_level_max != null;
   const zones = rated.map((p) => classifyZone(p.rating!, event.skill_level_min, event.skill_level_max));
   const firstIn = zones.indexOf("in");
   const lastIn = zones.lastIndexOf("in");
@@ -31,11 +35,11 @@ export function FieldStrip({ event }: { event: TournamentEvent }) {
           <span
             key={i}
             className="h-3.5 min-w-[3px] flex-1 rounded-[2px]"
-            style={{ background: ZONE_FILL[z], opacity: z === "above" ? 0.92 : 1 }}
+            style={{ background: hasWindow ? ZONE_FILL[z] : NEUTRAL, opacity: hasWindow && z === "above" ? 0.92 : 1 }}
           />
         ))}
       </div>
-      {firstIn >= 0 && (
+      {hasWindow && firstIn >= 0 && (
         <div className="relative mt-1 h-3">
           <div
             className="absolute top-0 h-0.5 rounded-full"

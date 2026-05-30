@@ -9,6 +9,10 @@ const ZONE_FILL: Record<Zone, string> = {
   above: "#e0483b",
 };
 
+// Windowless events (Beginner brackets, junior 10U–16U) have no DUPR floor/cap,
+// so "in window / below / over" doesn't apply — squares render neutral.
+const NEUTRAL = "#9aa6a0";
+
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 const floorHalf = (v: number) => Math.floor(v / 0.5) * 0.5;
 const ceilHalf = (v: number) => Math.ceil(v / 0.5) * 0.5;
@@ -57,9 +61,10 @@ export function DuprDistribution({ event }: { event: TournamentEvent }) {
   for (let t = axisMin; t <= axisMax + 1e-9; t = Math.round((t + 0.5) * 10) / 10) ticks.push(t);
 
   const avgX = xOf(histo.avg);
-  const hasWindow = skillMin != null && skillMax != null;
-  const winX1 = hasWindow ? Math.max(padL, xOf(skillMin!) - slot / 2) : 0;
-  const winX2 = hasWindow ? Math.min(W - padR, xOf(skillMax!) + slot / 2) : 0;
+  const hasBand = skillMin != null && skillMax != null; // both bounds → draw the band rect
+  const hasWindow = skillMin != null || skillMax != null; // any bound → zones are meaningful
+  const winX1 = hasBand ? Math.max(padL, xOf(skillMin!) - slot / 2) : 0;
+  const winX2 = hasBand ? Math.min(W - padR, xOf(skillMax!) + slot / 2) : 0;
 
   return (
     <div className="my-4 max-w-full rounded-xl bg-gray-50/80 p-4">
@@ -68,9 +73,9 @@ export function DuprDistribution({ event }: { event: TournamentEvent }) {
         <span className="text-xs text-gray-400">{histo.total} rated</span>
       </div>
 
-      <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto block h-auto w-full" style={{ maxWidth: 420 }} role="img" aria-label={`Rating distribution: ${intel.inRange} in the window, ${intel.below} below the floor, ${intel.above} above the cap.`}>
+      <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto block h-auto w-full" style={{ maxWidth: 420 }} role="img" aria-label={hasWindow ? `Rating distribution: ${intel.inRange} in the window, ${intel.below} below the floor, ${intel.above} above the cap.` : `Rating distribution of ${histo.total} players. Open bracket with no rating limits.`}>
         {/* bracket window band */}
-        {hasWindow && (
+        {hasBand && (
           <>
             <rect x={winX1} y={bandTop} width={winX2 - winX1} height={baseY - bandTop} rx={9} fill="rgba(31,157,87,0.07)" stroke="rgba(6,95,70,0.26)" strokeWidth={1} strokeDasharray="2 4" />
             <text x={(winX1 + winX2) / 2} y={bandTop - 8} textAnchor="middle" fontSize={9} fontWeight={700} letterSpacing="0.1em" fill="#065f46">
@@ -102,8 +107,8 @@ export function DuprDistribution({ event }: { event: TournamentEvent }) {
                   width={sq}
                   height={sq}
                   rx={Math.max(2, sq * 0.25)}
-                  fill={ZONE_FILL[bin.zone]}
-                  opacity={bin.zone === "above" ? 0.92 : 1}
+                  fill={hasWindow ? ZONE_FILL[bin.zone] : NEUTRAL}
+                  opacity={hasWindow && bin.zone === "above" ? 0.92 : 1}
                 />
               ))}
               {overflow > 0 && (
@@ -125,25 +130,31 @@ export function DuprDistribution({ event }: { event: TournamentEvent }) {
         })}
       </svg>
 
-      {/* merged zone legend: color + count + label */}
-      <div className="mt-4 flex flex-wrap items-baseline gap-x-5 gap-y-2 text-[13px] font-semibold text-gray-600">
-        <span className="inline-flex items-baseline gap-1.5">
-          <span className="h-2.5 w-2.5 translate-y-0.5 rounded-[3px]" style={{ background: ZONE_FILL.in }} />
-          <b className="text-[17px] font-extrabold tracking-tight text-emerald-700">{intel.inRange}</b> in window
-        </span>
-        {intel.below > 0 && (
+      {/* merged zone legend: color + count + label (only when a window exists) */}
+      {hasWindow ? (
+        <div className="mt-4 flex flex-wrap items-baseline gap-x-5 gap-y-2 text-[13px] font-semibold text-gray-600">
           <span className="inline-flex items-baseline gap-1.5">
-            <span className="h-2.5 w-2.5 translate-y-0.5 rounded-[3px]" style={{ background: ZONE_FILL.below }} />
-            <b className="text-[17px] font-extrabold tracking-tight text-gray-500">{intel.below}</b> below floor
+            <span className="h-2.5 w-2.5 translate-y-0.5 rounded-[3px]" style={{ background: ZONE_FILL.in }} />
+            <b className="text-[17px] font-extrabold tracking-tight text-emerald-700">{intel.inRange}</b> in window
           </span>
-        )}
-        {intel.above > 0 && (
-          <span className="inline-flex items-baseline gap-1.5">
-            <span className="h-2.5 w-2.5 translate-y-0.5 rounded-[3px]" style={{ background: ZONE_FILL.above }} />
-            <b className="text-[17px] font-extrabold tracking-tight text-red-600">{intel.above}</b> over cap
-          </span>
-        )}
-      </div>
+          {intel.below > 0 && (
+            <span className="inline-flex items-baseline gap-1.5">
+              <span className="h-2.5 w-2.5 translate-y-0.5 rounded-[3px]" style={{ background: ZONE_FILL.below }} />
+              <b className="text-[17px] font-extrabold tracking-tight text-gray-500">{intel.below}</b> below floor
+            </span>
+          )}
+          {intel.above > 0 && (
+            <span className="inline-flex items-baseline gap-1.5">
+              <span className="h-2.5 w-2.5 translate-y-0.5 rounded-[3px]" style={{ background: ZONE_FILL.above }} />
+              <b className="text-[17px] font-extrabold tracking-tight text-red-600">{intel.above}</b> over cap
+            </span>
+          )}
+        </div>
+      ) : (
+        <p className="mt-4 text-[13px] font-medium text-gray-400">
+          Open bracket — no rating limits, so ratings aren&apos;t scored against a floor or cap.
+        </p>
+      )}
     </div>
   );
 }
