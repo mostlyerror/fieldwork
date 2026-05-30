@@ -40,7 +40,7 @@ export function DuprDistribution({ event }: { event: TournamentEvent }) {
   const plotW = W - padL - padR;
   const numSlots = Math.max(1, Math.round(span / 0.1));
   const slot = plotW / numSlots;
-  const sq = clamp(slot - 2, 5, 18);
+  const sq = clamp(slot - 2, 5, 13);
   const gap = Math.max(2, Math.round(sq * 0.18));
 
   const MAX_ROWS = 9;
@@ -68,7 +68,7 @@ export function DuprDistribution({ event }: { event: TournamentEvent }) {
         <span className="text-xs text-gray-400">{histo.total} rated</span>
       </div>
 
-      <svg viewBox={`0 0 ${W} ${H}`} className="block h-auto w-full" role="img" aria-label={`Rating distribution: ${intel.inRange} in the window, ${intel.below} below the floor, ${intel.above} above the cap.`}>
+      <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto block h-auto w-full" style={{ maxWidth: 420 }} role="img" aria-label={`Rating distribution: ${intel.inRange} in the window, ${intel.below} below the floor, ${intel.above} above the cap.`}>
         {/* bracket window band */}
         {hasWindow && (
           <>
