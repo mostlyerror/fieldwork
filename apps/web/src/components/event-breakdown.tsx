@@ -3,7 +3,6 @@
 import { useState } from "react";
 import type { TournamentEvent } from "@/lib/types";
 import { EventCard } from "./event-card";
-import { FieldIntelSummary } from "./field-intel-summary";
 import { IntelSectionHeader } from "@/components/intel-section-header";
 import { DuprDistribution } from "./dupr-distribution";
 import { TeamLeaderboard } from "./team-leaderboard";
@@ -61,7 +60,6 @@ export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 shadow-sm">
       <IntelSectionHeader title="Field Intelligence" badge={badgeText} />
-      <FieldIntelSummary events={events} />
 
       {/* Mobile: stacked expandable cards */}
       <div className="lg:hidden">
