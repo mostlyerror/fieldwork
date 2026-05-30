@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { track } from "@/lib/analytics";
+import { buildShareUrl, type ShareMedium } from "@/lib/share-url";
 
 export interface ShareButtonsProps {
   tournamentId: string;
@@ -73,12 +74,21 @@ export function ShareButtons({
   const [copiedLink, setCopiedLink] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const url =
+  const baseUrl =
     typeof window !== "undefined"
       ? window.location.href
       : `https://pickleradar.app/tournaments/${tournamentId}`;
 
-  const shareText = buildShareText({
+  // Each share method tags the outbound link with its own utm_medium so we can
+  // see in PostHog which method actually drives return visits.
+  const shareUrlFor = (medium: ShareMedium) =>
+    buildShareUrl(baseUrl, {
+      medium,
+      campaign: "tournament",
+      content: tournamentId,
+    });
+
+  const shareProps: ShareButtonsProps = {
     tournamentId,
     tournamentName,
     dateRange,
@@ -87,7 +97,12 @@ export function ShareButtons({
     eventCount,
     sandbaggerAlert,
     liveRatings,
-    url,
+  };
+
+  // Preview shows the copy-text variant (the primary CTA).
+  const previewText = buildShareText({
+    ...shareProps,
+    url: shareUrlFor("copy_text"),
   });
 
   // Close on outside click
@@ -104,11 +119,12 @@ export function ShareButtons({
 
   async function copyText() {
     track("share_clicked", { method: "copy_text", tournamentId });
+    const text = previewText;
     try {
-      await navigator.clipboard.writeText(shareText);
+      await navigator.clipboard.writeText(text);
     } catch {
       const el = document.createElement("textarea");
-      el.value = shareText;
+      el.value = text;
       document.body.appendChild(el);
       el.select();
       document.execCommand("copy");
@@ -120,11 +136,12 @@ export function ShareButtons({
 
   async function copyLink() {
     track("share_clicked", { method: "copy_link", tournamentId });
+    const link = shareUrlFor("copy_link");
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(link);
     } catch {
       const el = document.createElement("input");
-      el.value = url;
+      el.value = link;
       document.body.appendChild(el);
       el.select();
       document.execCommand("copy");
@@ -140,8 +157,8 @@ export function ShareButtons({
       try {
         await navigator.share({
           title: tournamentName ?? "Check out this tournament!",
-          text: shareText,
-          url,
+          text: buildShareText({ ...shareProps, url: shareUrlFor("native_share") }),
+          url: shareUrlFor("native_share"),
         });
       } catch {
         // User cancelled — do nothing
@@ -181,7 +198,7 @@ export function ShareButtons({
 
           {hasRichData && (
             <pre className="mb-3 whitespace-pre-wrap rounded-lg bg-gray-50 p-3 text-sm font-mono text-gray-700 leading-relaxed">
-              {shareText}
+              {previewText}
             </pre>
           )}
 

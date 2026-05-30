@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { buildShareUrl } from "@/lib/share-url";
 
 const STYLES = [
   { id: "dark", label: "Dark & Bold" },
@@ -23,6 +24,14 @@ export function ResultCardPicker({
     typeof window !== "undefined"
       ? window.location.href
       : `https://pickleradar.app/results/${eventId}/${playerId}`;
+
+  // The result card is shared as an image; this URL is what carries attribution
+  // back. content = the specific result so we can see which one spread.
+  const shareUrl = buildShareUrl(pageUrl, {
+    medium: "result_card_link",
+    campaign: "result_card",
+    content: `${eventId}:${playerId}`,
+  });
 
   async function handleDownload() {
     const res = await fetch(imageUrl);
@@ -47,13 +56,13 @@ export function ResultCardPicker({
         });
         await navigator.share({
           title: "My tournament result — PickleRadar",
-          url: pageUrl,
+          url: shareUrl,
           files: [file],
         });
         return;
       } catch {}
     }
-    await navigator.clipboard.writeText(pageUrl);
+    await navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
