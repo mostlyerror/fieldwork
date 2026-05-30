@@ -5,6 +5,7 @@ export interface PlacesVenue {
   formattedAddress: string | null;
   latitude: number | null;
   longitude: number | null;
+  types: string[];
 }
 
 interface SearchTextJson {
@@ -13,6 +14,7 @@ interface SearchTextJson {
     displayName?: { text?: string };
     formattedAddress?: string;
     location?: { latitude?: number; longitude?: number };
+    types?: string[];
   }>;
 }
 
@@ -25,7 +27,18 @@ export function mapSearchTextResponse(json: SearchTextJson): PlacesVenue | null 
     formattedAddress: p.formattedAddress ?? null,
     latitude: p.location?.latitude ?? null,
     longitude: p.location?.longitude ?? null,
+    types: p.types ?? [],
   };
+}
+
+/**
+ * True when a Places result is an actual venue/business rather than a bare
+ * geographic area or address. A TD who types just a city ("Missouri City")
+ * resolves to a locality/street_address — we treat those as unresolved so we
+ * don't invent a venue. Real venues carry "establishment"/"point_of_interest".
+ */
+export function isEstablishment(types: string[]): boolean {
+  return types.includes("establishment") || types.includes("point_of_interest");
 }
 
 export interface SearchTextArgs {
@@ -60,7 +73,7 @@ export const realPlacesClient: PlacesClient = async (args) => {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": apiKey,
       "X-Goog-FieldMask":
-        "places.id,places.displayName,places.formattedAddress,places.location",
+        "places.id,places.displayName,places.formattedAddress,places.location,places.types",
     },
     body: JSON.stringify(body),
   });

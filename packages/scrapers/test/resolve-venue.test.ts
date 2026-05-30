@@ -39,6 +39,7 @@ function fakeDb(opts: {
 const placesHit: PlacesVenue = {
   placeId: "ChIJabc", name: "Memorial Park Pickleball Center",
   formattedAddress: "6501 Memorial Dr", latitude: 29.7641, longitude: -95.4203,
+  types: ["establishment", "point_of_interest"],
 };
 
 describe("resolveVenue", () => {
@@ -74,24 +75,36 @@ describe("resolveVenue", () => {
     expect(id).toBe("v-existing-place");
   });
 
-  it("creates a fallback venue when Places misses", async () => {
-    const db = fakeDb({ nearby: [], byPlaceId: null, insertedId: "v-fallback" });
+  it("leaves the tournament unlinked (null) when Places misses", async () => {
+    const db = fakeDb({ nearby: [], byPlaceId: null });
     const places = vi.fn(async () => null);
     const id = await resolveVenue(
       { name: "Backyard Courts", address: null, latitude: 30.1, longitude: -95.5 },
       { db, places },
     );
-    expect(id).toBe("v-fallback");
+    expect(id).toBeNull();
   });
 
-  it("returns a shared fallback for non-geographic labels without calling Places", async () => {
-    const db = fakeDb({ insertedId: "v-unknown" });
+  it("leaves it unlinked when Places resolves to a bare locality (TD typed just a city)", async () => {
+    const db = fakeDb({ nearby: [], byPlaceId: null });
+    const cityHit: PlacesVenue = { placeId: "ChIJcity", name: "Missouri City", formattedAddress: "Missouri City, TX, USA", latitude: 29.6, longitude: -95.5, types: ["locality", "political"] };
+    const places = vi.fn(async () => cityHit);
+    const id = await resolveVenue(
+      { name: "Missouri City", address: null, latitude: 29.6, longitude: -95.5 },
+      { db, places },
+    );
+    expect(places).toHaveBeenCalledTimes(1);
+    expect(id).toBeNull();
+  });
+
+  it("leaves non-geographic labels unlinked without calling Places", async () => {
+    const db = fakeDb({});
     const places = vi.fn(async () => placesHit);
     const id = await resolveVenue(
       { name: "Unknown", address: null, latitude: null, longitude: null },
       { db, places },
     );
     expect(places).not.toHaveBeenCalled();
-    expect(id).toBe("v-unknown");
+    expect(id).toBeNull();
   });
 });
