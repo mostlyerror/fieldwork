@@ -1,6 +1,6 @@
 // packages/scrapers/test/venue-identity.test.ts
 import { describe, it, expect } from "vitest";
-import { normalizeVenueName, nameSimilarity, venueDedupKey, roundCoord } from "../src/utils/venue-identity.js";
+import { normalizeVenueName, nameSimilarity, venueDedupKey, roundCoord, venueDisplayName, hasLocaleSuffix } from "../src/utils/venue-identity.js";
 
 describe("normalizeVenueName", () => {
   it("lowercases, strips punctuation and noise tokens", () => {
@@ -43,5 +43,32 @@ describe("venueDedupKey", () => {
   it("uses :na: for missing coords", () => {
     expect(venueDedupKey({ placeId: null, name: "Unknown", latitude: null, longitude: null }))
       .toBe("loc::na:na");
+  });
+});
+
+describe("venueDisplayName", () => {
+  it("disambiguates a chain name with the scraped locale token", () => {
+    expect(venueDisplayName("Life Time", "Life Time Greenway")).toBe("Life Time — Greenway");
+    expect(venueDisplayName("Life Time", "Galleria Life Time")).toBe("Life Time — Galleria");
+  });
+  it("uses a non-overlapping scraped token (neighborhood) as the suffix", () => {
+    expect(venueDisplayName("Life Time", "Champions")).toBe("Life Time — Champions");
+  });
+  it("keeps the Places name when the scraped name adds nothing", () => {
+    expect(venueDisplayName("Chicken N Pickle - Webster", "Chicken N Pickle - Webster")).toBe("Chicken N Pickle - Webster");
+  });
+  it("falls back to the scraped name when Places returns a bare street address", () => {
+    expect(venueDisplayName("8421 Hwy 6", "Missouri City")).toBe("Missouri City");
+  });
+  it("ignores noise tokens when computing the suffix", () => {
+    // "pickleball"/"club" are noise → no spurious suffix
+    expect(venueDisplayName("PACE Pickleball Club", "Pace Pickleball Club")).toBe("PACE Pickleball Club");
+  });
+});
+
+describe("hasLocaleSuffix", () => {
+  it("detects the em-dash locale suffix", () => {
+    expect(hasLocaleSuffix("Life Time — Greenway")).toBe(true);
+    expect(hasLocaleSuffix("Missouri City")).toBe(false);
   });
 });

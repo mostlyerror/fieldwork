@@ -1,10 +1,13 @@
 // packages/scrapers/src/utils/resolve-venue.ts
 import { realPlacesClient, type PlacesClient, type PlacesVenue } from "./places-client.js";
-import { normalizeVenueName, nameSimilarity, venueDedupKey } from "./venue-identity.js";
+import { normalizeVenueName, nameSimilarity, venueDedupKey, venueDisplayName, hasLocaleSuffix } from "./venue-identity.js";
 import { venueSlug } from "./venue-slug.js";
 
 const PRECHECK_RADIUS_M = 75;
 const NAME_SIMILARITY_THRESHOLD = 0.5;
+// Two distinct Places place_ids this close are the same physical building (e.g.
+// a plaza geocode vs the club inside it) — merge regardless of name.
+const SAME_BUILDING_M = 35;
 const NON_GEO_LABELS = new Set(["unknown", "online", "tbd", "tba"]);
 
 export interface ScrapedLocation {
@@ -129,6 +132,8 @@ export async function resolveVenue(
     });
 
     if (hit) {
+      const displayName = venueDisplayName(hit.name, loc.name);
+
       // place_id re-check: collapse different scraped names to one venue.
       const { data: existing } = await db
         .from("venues")
@@ -137,9 +142,28 @@ export async function resolveVenue(
         .maybeSingle();
       if (existing?.id) return existing.id;
 
+      // Same-building merge: a venue already at these precise coords with a
+      // different place_id (e.g. a plaza geocode vs the club inside it) is the
+      // same physical place. Reuse it, upgrading its name when ours is more
+      // specific (a bare "Missouri City" becomes "Life Time — Missouri City").
+      if (hit.latitude != null && hit.longitude != null) {
+        const { data: near, error: nErr } = await db.rpc("find_nearby_venue", {
+          p_lat: hit.latitude,
+          p_lng: hit.longitude,
+          p_max_distance_meters: SAME_BUILDING_M,
+        });
+        if (!nErr && Array.isArray(near) && near.length > 0) {
+          const match = near[0];
+          if (hasLocaleSuffix(displayName) && !hasLocaleSuffix(match.name ?? "")) {
+            await db.from("venues").update({ name: displayName }).eq("id", match.id);
+          }
+          return match.id;
+        }
+      }
+
       return upsertVenue(db, {
         placeId: hit.placeId,
-        name: hit.name,
+        name: displayName,
         formattedAddress: hit.formattedAddress,
         latitude: hit.latitude,
         longitude: hit.longitude,
