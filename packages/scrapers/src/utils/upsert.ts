@@ -3,6 +3,7 @@ import { findCanonicalMatch, addTournamentSource } from "./dedup.js";
 import { parseEventName } from "./parse-event-name.js";
 import { computeFieldStrength, computeSandbaggerPct, computeAvgDupr } from "./intelligence.js";
 import { posthog, SCRAPER_ID } from "./posthog.js";
+import { resolveVenue } from "./resolve-venue.js";
 import type { ScrapedTournament, ScrapedEvent, ScrapedPlayer } from "../types.js";
 
 export interface UpsertStats {
@@ -74,6 +75,15 @@ export async function upsertTournaments(
         continue;
       }
 
+      // Resolve (and dedup) the scraped location to a first-class venue once
+      // per tournament; the resulting venue_id is included in every write path.
+      const venueId = await resolveVenue({
+        name: t.locationName,
+        address: t.locationAddress ?? null,
+        latitude: t.latitude ?? null,
+        longitude: t.longitude ?? null,
+      });
+
       const row = {
         name: t.name,
         date_start: t.dateStart,
@@ -94,6 +104,7 @@ export async function upsertTournaments(
         registration_close_date: t.registrationCloseDate || null,
         logo_url: t.logoUrl || null,
         venue_website: t.venueWebsite || null,
+        venue_id: venueId,
       };
 
       if (existing) {
