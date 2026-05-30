@@ -7,6 +7,34 @@ export const runtime = "edge";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
+// Brand font (Plus Jakarta Sans) — Satori ignores fontWeight unless real font
+// files are embedded, so without these the card falls back to a limp default
+// sans. Colocated TTFs are bundled and fetched at render time (edge-safe).
+const fontSemiBold = fetch(new URL("./fonts/PlusJakartaSans-600.ttf", import.meta.url)).then((r) => r.arrayBuffer());
+const fontBold = fetch(new URL("./fonts/PlusJakartaSans-700.ttf", import.meta.url)).then((r) => r.arrayBuffer());
+const fontExtraBold = fetch(new URL("./fonts/PlusJakartaSans-800.ttf", import.meta.url)).then((r) => r.arrayBuffer());
+
+// PickleRadar LogoMark as an inline SVG data URI — replaces the 🏓 emoji, which
+// Satori renders as a flat low-res blob. Kept in sync with components/logo-mark.tsx.
+function logoMark(size: number): string {
+  const svg = `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10.5" stroke="#065f46" stroke-width="1.2" opacity="0.35"/><circle cx="12" cy="12" r="7.5" stroke="#065f46" stroke-width="1.2" opacity="0.6"/><path d="M12 1.5 A 10.5 10.5 0 0 1 22.5 12 L 12 12 Z" fill="#d4af37" opacity="0.22"/><path d="M12 1.5 A 10.5 10.5 0 0 1 22.5 12" stroke="#d4af37" stroke-width="1.4" stroke-linecap="round"/><circle cx="12" cy="12" r="4.6" fill="#d4af37"/><circle cx="12" cy="12" r="4.6" stroke="#065f46" stroke-width="1.4"/><circle cx="12" cy="9.4" r="0.7" fill="#0a0a0a"/><circle cx="12" cy="14.6" r="0.7" fill="#0a0a0a"/><circle cx="9.4" cy="12" r="0.7" fill="#0a0a0a"/><circle cx="14.6" cy="12" r="0.7" fill="#0a0a0a"/><circle cx="12" cy="12" r="0.6" fill="#0a0a0a"/></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+// Dynamic headline sizing shared by the new card styles.
+function headlineSize(name: string): string {
+  const n = name.length;
+  return n > 56 ? "52px" : n > 44 ? "62px" : n > 32 ? "76px" : n > 20 ? "92px" : "104px";
+}
+
+// Contextual bottom-right badge (urgency → entry fee fallback).
+function contextBadge(d: CardData): { label: string; value: string; bg: string; fg: string } {
+  if (d.urgency && d.urgency.includes("CLOSED")) return { label: "REGISTRATION", value: "CLOSED", bg: "#1a1a1a", fg: "#9ca3af" };
+  if (d.urgency && d.urgency.includes("h")) return { label: "HURRY", value: d.urgency.toUpperCase(), bg: "#dc2626", fg: "#FFFDF7" };
+  if (d.urgency) return { label: "CLOSES", value: d.urgency.replace("Closes in ", "IN ").toUpperCase(), bg: "#d4af37", fg: "#0a0a0a" };
+  return { label: "ENTRY", value: d.t.entry_fee != null ? `$${d.t.entry_fee}` : "FREE", bg: "#d4af37", fg: "#0a0a0a" };
+}
+
 interface TournamentRow {
   name: string;
   date_start: string;
@@ -414,10 +442,94 @@ function Style_hybrid({ d }: { d: CardData }) {
   );
 }
 
+// 10. RADAR — cream, real brand type, giant radar watermark fills the void
+function Style_radar({ d }: { d: CardData }) {
+  const badge = contextBadge(d);
+  return (
+    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "#FFFDF7", fontFamily: "Jakarta" }}>
+      {/* Top bar */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#0a0a0a", padding: "20px 56px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <img src={logoMark(34)} width={34} height={34} alt="" />
+          <div style={{ display: "flex", fontSize: "20px", fontWeight: 800, color: "#FFFDF7", letterSpacing: "5px" }}>PICKLERADAR</div>
+          <div style={{ display: "flex", fontSize: "20px", color: "#d4af37" }}>·</div>
+          <div style={{ display: "flex", fontSize: "20px", fontWeight: 700, color: "#d4af37", letterSpacing: "4px" }}>HOUSTON</div>
+        </div>
+        <div style={{ display: "flex", fontSize: "16px", color: "#d4af37", letterSpacing: "4px", fontWeight: 700 }}>{d.dateRange.toUpperCase()}</div>
+      </div>
+
+      {/* Hero with oversized radar watermark bleeding off the right */}
+      <div style={{ display: "flex", position: "relative", flex: 1, padding: "0" }}>
+        <img src={logoMark(620)} width={620} height={620} alt="" style={{ position: "absolute", top: "-70px", right: "-150px", opacity: 0.06 }} />
+        <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", padding: "40px 56px" }}>
+          <div style={{ display: "flex", fontSize: headlineSize(d.t.name), fontWeight: 800, color: "#0a0a0a", lineHeight: 0.98, letterSpacing: "-2px", maxWidth: "980px" }}>{d.t.name}</div>
+          <div style={{ display: "flex", width: "56px", height: "5px", background: "#d4af37", borderRadius: "3px", margin: "26px 0 18px" }} />
+          <div style={{ display: "flex", fontSize: "26px", color: "#065f46", fontWeight: 700 }}>{d.t.location_name}</div>
+        </div>
+      </div>
+
+      {/* Bottom intel + badge */}
+      <div style={{ display: "flex", borderTop: "8px solid #d4af37" }}>
+        <div style={{ display: "flex", alignItems: "center", flex: 1, background: "#065f46", padding: "22px 56px", gap: "44px", color: "white" }}>
+          {d.intel.total_registered > 0 && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "12px", letterSpacing: "3px", fontWeight: 700, opacity: 0.65 }}>REGISTERED</div><div style={{ display: "flex", fontSize: "38px", fontWeight: 800, lineHeight: 1.0 }}>{d.intel.total_registered}</div></div>}
+          {d.intel.event_count > 0 && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "12px", letterSpacing: "3px", fontWeight: 700, opacity: 0.65 }}>EVENTS</div><div style={{ display: "flex", fontSize: "38px", fontWeight: 800, lineHeight: 1.0 }}>{d.intel.event_count}</div></div>}
+          {d.intel.avg_dupr != null && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "12px", letterSpacing: "3px", fontWeight: 700, opacity: 0.65 }}>AVG RATING</div><div style={{ display: "flex", fontSize: "38px", fontWeight: 800, lineHeight: 1.0 }}>{d.intel.avg_dupr.toFixed(2)}</div></div>}
+          {d.intel.total_live_dupr > 0 && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "12px", letterSpacing: "3px", fontWeight: 700, opacity: 0.65 }}>LIVE DUPR</div><div style={{ display: "flex", fontSize: "38px", fontWeight: 800, lineHeight: 1.0 }}>{d.intel.total_live_dupr}</div></div>}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", width: "300px", background: badge.bg, padding: "22px 36px" }}>
+          <div style={{ display: "flex", fontSize: "12px", letterSpacing: "3px", fontWeight: 700, color: badge.fg, opacity: 0.7 }}>{badge.label}</div>
+          <div style={{ display: "flex", fontSize: badge.value.length > 9 ? "26px" : "36px", fontWeight: 800, color: badge.fg, lineHeight: 1.0, marginTop: "4px" }}>{badge.value}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 11. SPOTLIGHT — dark, high-contrast; stands out against white feed chrome
+function Style_spotlight({ d }: { d: CardData }) {
+  const badge = contextBadge(d);
+  return (
+    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", background: "#0a0a0a", padding: "52px 60px", fontFamily: "Jakarta", color: "#FFFDF7", position: "relative" }}>
+      <img src={logoMark(560)} width={560} height={560} alt="" style={{ position: "absolute", top: "60px", right: "-140px", opacity: 0.08 }} />
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <img src={logoMark(36)} width={36} height={36} alt="" />
+          <div style={{ display: "flex", fontSize: "20px", fontWeight: 800, color: "#FFFDF7", letterSpacing: "5px" }}>PICKLERADAR</div>
+        </div>
+        {d.urgency && <div style={{ display: "flex", fontSize: "15px", fontWeight: 800, color: d.urgency.includes("CLOSED") ? "#9ca3af" : "#fca5a5", background: d.urgency.includes("CLOSED") ? "rgba(255,255,255,0.06)" : "rgba(239,68,68,0.16)", padding: "8px 16px", borderRadius: "999px", letterSpacing: "1px" }}>{d.urgency.toUpperCase()}</div>}
+      </div>
+      {/* Hero */}
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <div style={{ display: "flex", width: "64px", height: "6px", background: "#d4af37", borderRadius: "3px", marginBottom: "22px" }} />
+        <div style={{ display: "flex", fontSize: headlineSize(d.t.name), fontWeight: 800, color: "#FFFDF7", lineHeight: 0.98, letterSpacing: "-2px", maxWidth: "1000px" }}>{d.t.name}</div>
+        <div style={{ display: "flex", alignItems: "center", marginTop: "22px", gap: "14px" }}>
+          <div style={{ display: "flex", fontSize: "24px", color: "#d4af37", fontWeight: 700 }}>{d.dateRange}</div>
+          <div style={{ display: "flex", fontSize: "24px", color: "#3f3f46" }}>·</div>
+          <div style={{ display: "flex", fontSize: "24px", color: "#a1a1aa", fontWeight: 600 }}>{d.t.location_name}</div>
+        </div>
+      </div>
+      {/* Stats */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", gap: "44px" }}>
+          {d.intel.total_registered > 0 && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "12px", color: "#71717a", letterSpacing: "3px", fontWeight: 700 }}>REGISTERED</div><div style={{ display: "flex", fontSize: "40px", fontWeight: 800, color: "#FFFDF7", lineHeight: 1.0 }}>{d.intel.total_registered}</div></div>}
+          {d.intel.event_count > 0 && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "12px", color: "#71717a", letterSpacing: "3px", fontWeight: 700 }}>EVENTS</div><div style={{ display: "flex", fontSize: "40px", fontWeight: 800, color: "#FFFDF7", lineHeight: 1.0 }}>{d.intel.event_count}</div></div>}
+          {d.intel.avg_dupr != null && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "12px", color: "#71717a", letterSpacing: "3px", fontWeight: 700 }}>AVG RATING</div><div style={{ display: "flex", fontSize: "40px", fontWeight: 800, color: "#d4af37", lineHeight: 1.0 }}>{d.intel.avg_dupr.toFixed(2)}</div></div>}
+          {d.intel.total_live_dupr > 0 && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "12px", color: "#71717a", letterSpacing: "3px", fontWeight: 700 }}>LIVE DUPR</div><div style={{ display: "flex", fontSize: "40px", fontWeight: 800, color: "#10b981", lineHeight: 1.0 }}>{d.intel.total_live_dupr}</div></div>}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+          <div style={{ display: "flex", fontSize: "12px", color: "#71717a", letterSpacing: "3px", fontWeight: 700 }}>{badge.label}</div>
+          <div style={{ display: "flex", fontSize: "26px", fontWeight: 800, color: badge.bg === "#dc2626" ? "#fca5a5" : "#d4af37", lineHeight: 1.0, marginTop: "4px" }}>{badge.value}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const id = searchParams.get("id");
-  const style = searchParams.get("style") || "hybrid";
+  const style = searchParams.get("style") || "radar";
 
   if (!id) {
     return new Response("Missing id", { status: 400 });
@@ -427,6 +539,8 @@ export async function GET(request: NextRequest) {
   if (!d) return new Response("Not found", { status: 404 });
 
   const map: Record<string, React.ReactElement> = {
+    radar: <Style_radar d={d} />,
+    spotlight: <Style_spotlight d={d} />,
     editorial: <Style_editorial d={d} />,
     newspaper: <Style_newspaper d={d} />,
     "dark-bold": <Style_dark_bold d={d} />,
@@ -438,5 +552,15 @@ export async function GET(request: NextRequest) {
     hybrid: <Style_hybrid d={d} />,
   };
 
-  return new ImageResponse(map[style] ?? map.hybrid, { width: 1200, height: 630 });
+  const [semiBold, bold, extraBold] = await Promise.all([fontSemiBold, fontBold, fontExtraBold]);
+
+  return new ImageResponse(map[style] ?? map.radar, {
+    width: 1200,
+    height: 630,
+    fonts: [
+      { name: "Jakarta", data: semiBold, weight: 600, style: "normal" },
+      { name: "Jakarta", data: bold, weight: 700, style: "normal" },
+      { name: "Jakarta", data: extraBold, weight: 800, style: "normal" },
+    ],
+  });
 }
