@@ -15,6 +15,8 @@ export interface Tournament {
   registration_close_date: string | null;
   logo_url: string | null;
   venue_website: string | null;
+  venue_id?: string | null;
+  venue_slug?: string | null;
   description: string | null;
   status: string;
   created_at: string;
@@ -25,6 +27,23 @@ export interface Tournament {
   avg_field_strength?: number;
   max_sandbagger_pct?: number;
   total_live_dupr?: number;
+}
+
+export interface Venue {
+  id: string;
+  place_id: string | null;
+  dedup_key: string;
+  name: string;
+  slug: string;
+  formatted_address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  city_slug: string | null;
+  photo_url: string | null;   // v2
+  website: string | null;     // v2
+  source: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface TournamentSource {

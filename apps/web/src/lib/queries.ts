@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import type { Tournament, TournamentSource, TournamentEvent, TournamentMatch, EventPlayer, Player, Match, PlayerRecord, FrequentPartner, ResultCardData } from "./types";
+import type { Tournament, TournamentSource, TournamentEvent, TournamentMatch, EventPlayer, Player, Match, PlayerRecord, FrequentPartner, ResultCardData, Venue } from "./types";
 import { getCityBySlug, getDefaultCity } from "./cities";
 
 export async function getTournaments(): Promise<Tournament[]> {
@@ -522,4 +522,69 @@ export async function getPlayerUpcomingTournaments(
       },
     ];
   });
+}
+
+// =============================================================================
+// Venues
+// Each venue-table read is wrapped so the build/queries degrade gracefully
+// before migration 024 is applied (table/column absent → empty/null, no throw).
+// =============================================================================
+
+export async function getVenueBySlug(slug: string): Promise<Venue | null> {
+  try {
+    const { data, error } = await supabase
+      .from("venues")
+      .select("*")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (error || !data) return null;
+    return data as Venue;
+  } catch {
+    return null;
+  }
+}
+
+export async function getVenueTournaments(
+  venueId: string,
+): Promise<{ upcoming: Tournament[]; past: Tournament[] }> {
+  const today = new Date().toISOString().split("T")[0];
+  try {
+    const { data, error } = await supabase
+      .from("tournaments")
+      .select("*")
+      .eq("venue_id", venueId)
+      .eq("status", "active")
+      .order("date_start", { ascending: true });
+    if (error || !data) return { upcoming: [], past: [] };
+
+    const all = await attachIntelligenceAggregates(data as Tournament[]);
+    const upcoming = all.filter((t) => (t.date_end ?? t.date_start) >= today);
+    const past = all
+      .filter((t) => (t.date_end ?? t.date_start) < today)
+      .sort((a, b) => (b.date_start < a.date_start ? -1 : 1))
+      .slice(0, 20);
+    return { upcoming, past };
+  } catch {
+    return { upcoming: [], past: [] };
+  }
+}
+
+export async function getVenuesForSitemap(): Promise<
+  { slug: string; city_slug: string | null; updated_at: string }[]
+> {
+  try {
+    const { data, error } = await supabase
+      .from("venues")
+      .select("slug, city_slug, updated_at, tournaments!inner(id)")
+      .eq("tournaments.status", "active");
+    if (error || !data) return [];
+    // Dedupe (inner join can repeat a venue per tournament).
+    const seen = new Map<string, { slug: string; city_slug: string | null; updated_at: string }>();
+    for (const v of data as unknown as { slug: string; city_slug: string | null; updated_at: string }[]) {
+      if (!seen.has(v.slug)) seen.set(v.slug, { slug: v.slug, city_slug: v.city_slug, updated_at: v.updated_at });
+    }
+    return [...seen.values()];
+  } catch {
+    return [];
+  }
 }
