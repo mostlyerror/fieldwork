@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import type { Tournament, TournamentSource } from "@/lib/types";
 import { formatDateRange, formatCurrency, relativeDate, googleMapsUrl } from "@/lib/format";
 import { googleCalendarUrl } from "@/lib/calendar";
@@ -13,9 +14,11 @@ import { track } from "@/lib/analytics";
 export function TournamentDetail({
   tournament,
   sources,
+  citySlug,
 }: {
   tournament: Tournament;
   sources: TournamentSource[];
+  citySlug?: string;
 }) {
   const withUrl = sources.filter((s) => s.registration_url);
   const relative = relativeDate(tournament.date_start);
@@ -151,14 +154,23 @@ export function TournamentDetail({
             {formatDateRange(tournament.date_start, tournament.date_end)}
           </span>
           <span className="text-gray-300 text-xl">·</span>
-          <a
-            href={mapsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xl text-gray-500 font-medium hover:text-emerald-700 hover:underline underline-offset-2"
-          >
-            {tournament.location_name}
-          </a>
+          {tournament.venue_slug && citySlug ? (
+            <Link
+              href={`/${citySlug}/venues/${tournament.venue_slug}`}
+              className="text-xl text-gray-500 font-medium hover:text-emerald-700 hover:underline underline-offset-2"
+            >
+              {tournament.location_name}
+            </Link>
+          ) : (
+            <a
+              href={mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xl text-gray-500 font-medium hover:text-emerald-700 hover:underline underline-offset-2"
+            >
+              {tournament.location_name}
+            </a>
+          )}
           {relative && (
             <>
               <span className="text-gray-300 text-xl">·</span>
