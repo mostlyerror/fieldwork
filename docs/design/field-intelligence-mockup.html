@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PickleRadar — Field Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400..800;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f5f2; --card:#ffffff;
+    --ink:#16201b; --ink-2:#475048; --muted:#8b948c; --line:#ecedea;
+    --green:#15803d; --green-ink:#136a34; --green-soft:#e7f4ec; --green-deep:#0f4d2a;
+    --red:#e0483b; --red-soft:#fdecea;
+    --slate:#aeb6bc; --slate-soft:#eef0f2; --slate-ink:#5b6470;
+    --shadow:0 1px 2px rgba(20,30,25,.04), 0 6px 24px rgba(20,30,25,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Hanken Grotesk',sans-serif;
+    background:radial-gradient(120% 60% at 50% -10%, #eef3ee 0%, transparent 60%), var(--bg);
+    color:var(--ink); min-height:100vh; display:flex; justify-content:center;
+    padding:24px 16px 48px; -webkit-font-smoothing:antialiased;
+  }
+  .phone{width:100%;max-width:390px}
+  .panel{background:var(--card);border-radius:20px;overflow:hidden;box-shadow:var(--shadow)}
+
+  .fi-head{background:var(--green-deep);color:#fff;padding:16px 18px;display:flex;align-items:center;justify-content:space-between}
+  .fi-head .t{font-size:14px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+  .fi-head .live{font-size:12px;font-weight:600;color:#bfe0cb;display:flex;align-items:center;gap:6px}
+  .fi-head .live i{width:6px;height:6px;border-radius:50%;background:#5ed68f;box-shadow:0 0 0 3px rgba(94,214,143,.25)}
+
+  .summary{padding:18px}
+  .insight{font-size:13.5px;font-weight:600;color:var(--ink-2);line-height:1.4;margin-bottom:16px}
+  .insight b{color:var(--green-ink);font-weight:800}
+  .metrics{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:0;border-top:1px solid var(--line);padding-top:14px}
+  .metric{display:flex;flex-direction:column;gap:3px}
+  .metric .lbl{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .metric .val{font-size:20px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:6px}
+  .metric .was{font-size:12px;color:var(--muted);text-decoration:line-through;font-weight:500}
+  .up{display:inline-flex;align-items:center;gap:2px;font-size:11px;font-weight:800;color:var(--green-ink);font-variant-numeric:tabular-nums}
+  .up svg{width:9px;height:9px}
+
+  .brackets{padding:0 14px 14px}
+  .bcard{border:1px solid var(--line);border-radius:14px;margin-top:10px;overflow:hidden;background:#fff}
+  .bcard-top{display:flex;align-items:center;gap:12px;padding:14px;cursor:pointer;user-select:none}
+  .chev{width:16px;height:16px;color:var(--muted);flex-shrink:0;transition:transform .25s ease}
+  .bcard.open .chev{transform:rotate(180deg)}
+  .bmeta{flex:1;min-width:0}
+  .bname{font-size:15.5px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bsub{font-size:12px;color:var(--muted);font-weight:500;margin-top:1px}
+  .brate{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0}
+  .brate .nums{display:flex;align-items:baseline;gap:6px}
+  .brate .was{font-size:12.5px;color:var(--muted);text-decoration:line-through;font-weight:500;font-variant-numeric:tabular-nums}
+  .brate .now{font-size:18px;font-weight:800;color:var(--green-ink);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+
+  .bcard-flags{display:flex;align-items:center;gap:8px;padding:0 14px 12px 42px;flex-wrap:wrap}
+  .flag{font-size:11.5px;font-weight:600;color:var(--ink-2);display:flex;align-items:center;gap:5px}
+  .flag i{width:6px;height:6px;border-radius:50%;background:#5ed68f}
+  .flag .m{color:var(--muted);font-weight:500}
+  .ringer{margin-left:auto;font-size:11px;font-weight:700;color:var(--red);background:var(--red-soft);padding:3px 8px;border-radius:999px;display:flex;align-items:center;gap:4px}
+
+  .detail{max-height:0;overflow:hidden;transition:max-height .4s ease}
+  .bcard.open .detail{max-height:1800px}
+  .detail-in{border-top:1px solid var(--line);padding:14px;background:#fbfcfb}
+
+  .spread-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px}
+  .spread-head .t{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+  .spread-sub{font-size:12px;color:var(--muted);font-weight:500;margin-bottom:10px;font-variant-numeric:tabular-nums}
+  .takeaway{font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:6px;font-variant-numeric:tabular-nums}
+  .takeaway b{color:var(--ink);font-weight:800}
+  .takeaway .r{color:var(--red);font-weight:800}
+  svg.chart{width:100%;height:auto;display:block}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}
+  .legend span{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-2);font-weight:500;font-variant-numeric:tabular-nums}
+  .legend .d{width:9px;height:9px;border-radius:50%}
+  .legend .d.g{background:#1f9d57}.legend .d.s{background:#aeb6bc}.legend .d.r{background:#e0483b}
+
+  /* leaderboard (scoped) */
+  .lb-wrap{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+  .lb-title{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+  .lb-group{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:13px 2px 6px;display:flex;gap:6px;align-items:center}
+  .lb-group .c{font-weight:600;letter-spacing:0}
+  .lb-list{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .lb-row{display:grid;grid-template-columns:22px 1fr auto;column-gap:10px;align-items:center;padding:11px 12px;border-bottom:1px solid var(--line)}
+  .lb-row:last-child{border-bottom:0}
+  .lb-rank{font-size:13px;font-weight:700;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums}
+  .lb-rank.medal{color:var(--green)}
+  .lb-team{border-left:2px solid var(--line);padding-left:10px;display:flex;flex-direction:column;gap:5px}
+  .lb-team.v{border-left-color:#c7e6d3}
+  .lb-player{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+  .lb-name{font-size:13.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lb-rate{font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums;flex-shrink:0}
+  .lb-score{display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:72px}
+  .lb-tlabel{font-size:8.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+  .lb-tnum{font-size:20px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .lb-tnum.up{color:var(--green)} .lb-tnum.flat{color:var(--ink-2);font-weight:700}
+  .lb-pill{font-size:9.5px;font-weight:700;letter-spacing:.02em;padding:2px 7px;border-radius:999px;white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
+  .lb-pill svg{width:8px;height:8px}
+  .lb-pill.verified{background:var(--green-soft);color:var(--green-ink)}
+  .lb-pill.prov{background:#fbf2dd;color:#9a6a12}
+  .lb-pill.self{background:var(--slate-soft);color:var(--slate-ink)}
+
+  .caption{font-size:12px;color:var(--muted);text-align:center;padding:14px 8px 0;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="panel">
+
+    <div class="fi-head">
+      <span class="t">Field Intelligence</span>
+      <span class="live"><i></i>31 live ratings</span>
+    </div>
+
+    <div class="summary">
+      <div class="insight">The field is playing <b>+0.16 above</b> what players listed at registration. 31 of 61 entrants now have a live rating.</div>
+      <div class="metrics">
+        <div class="metric">
+          <span class="lbl">Field avg (live)</span>
+          <span class="val">2.97 <span class="up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>0.16</span></span>
+          <span class="was">listed 2.81</span>
+        </div>
+        <div class="metric"><span class="lbl">Registered</span><span class="val">61</span></div>
+        <div class="metric"><span class="lbl">Data coverage</span><span class="val">2/2</span></div>
+      </div>
+    </div>
+
+    <div class="brackets">
+
+      <div class="bcard open" id="mens">
+        <div class="bcard-top" onclick="toggle('mens')">
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          <div class="bmeta"><div class="bname">Men's Doubles Skill (3.0–3.5)</div><div class="bsub">30 teams</div></div>
+          <div class="brate"><div class="nums"><span class="was">2.83</span><span class="now">3.02</span></div></div>
+        </div>
+        <div class="bcard-flags">
+          <span class="flag"><i></i>17 of 30 rated live</span>
+          <span class="flag m">· 16 differ from listed</span>
+          <span class="ringer">1 above bracket</span>
+        </div>
+        <div class="detail">
+          <div class="detail-in">
+            <div class="spread-head"><span class="t">Rating spread</span></div>
+            <div class="spread-sub">30 teams · avg 3.02 · range 2.0–3.6</div>
+            <div class="takeaway"><b>22</b> in range · <b>7</b> below · <span class="r">1 above the 3.5 ceiling</span></div>
+            <svg class="chart" id="chart-mens" viewBox="0 0 340 178"></svg>
+            <div class="legend">
+              <span><i class="d g"></i>In bracket 22</span>
+              <span><i class="d s"></i>Below 7</span>
+              <span><i class="d r"></i>Above 1</span>
+            </div>
+            <div id="lb-mens"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bcard" id="mixed">
+        <div class="bcard-top" onclick="toggle('mixed')">
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          <div class="bmeta"><div class="bname">Mixed Doubles Skill (3.0–3.5)</div><div class="bsub">31 teams</div></div>
+          <div class="brate"><div class="nums"><span class="was">2.78</span><span class="now">2.91</span></div></div>
+        </div>
+        <div class="bcard-flags">
+          <span class="flag"><i></i>14 of 31 rated live</span>
+          <span class="flag m">· 12 differ from listed</span>
+          <span class="ringer">1 above bracket</span>
+        </div>
+        <div class="detail">
+          <div class="detail-in">
+            <div class="spread-head"><span class="t">Rating spread</span></div>
+            <div class="spread-sub">31 teams · avg 2.91 · range 2.0–3.6</div>
+            <div class="takeaway"><b>18</b> in range · <b>12</b> below · <span class="r">1 above the 3.5 ceiling</span></div>
+            <svg class="chart" id="chart-mixed" viewBox="0 0 340 178"></svg>
+            <div class="legend">
+              <span><i class="d g"></i>In bracket 18</span>
+              <span><i class="d s"></i>Below 12</span>
+              <span><i class="d r"></i>Above 1</span>
+            </div>
+            <div id="lb-mixed"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="caption">Tap a bracket to see how the field's live ratings<br>fall against the skill window, then the team leaderboard.</div>
+</div>
+
+<script>
+function toggle(id){ document.getElementById(id).classList.toggle('open'); }
+
+/* ---------- rating spread chart ---------- */
+const mens=[[2.0,1,'s'],[2.5,1,'s'],[2.6,1,'s'],[2.7,1,'s'],[2.8,2,'s'],[2.9,1,'s'],[3.0,8,'g'],[3.1,6,'g'],[3.2,4,'g'],[3.3,2,'g'],[3.4,1,'g'],[3.5,1,'g'],[3.6,1,'r']];
+const mixed=[[2.0,1,'s'],[2.4,1,'s'],[2.6,2,'s'],[2.7,2,'s'],[2.8,3,'s'],[2.9,3,'s'],[3.0,7,'g'],[3.1,5,'g'],[3.2,3,'g'],[3.3,2,'g'],[3.4,1,'g'],[3.6,1,'r']];
+const COLOR={g:'#1f9d57',s:'#aeb6bc',r:'#e0483b'};
+function renderChart(svgId,data,avg){
+  const W=340,H=178,mL=16,mR=16,baseY=146,topY=16,dMin=1.95,dMax=3.72,plotW=W-mL-mR;
+  const x=r=>mL+(r-dMin)/(dMax-dMin)*plotW, R=5.4,step=10.6,off=9; let s='';
+  const bx0=x(3.0),bx1=x(3.5);
+  s+=`<rect x="${bx0}" y="${topY}" width="${bx1-bx0}" height="${baseY-topY}" rx="8" fill="#e7f4ec"/>`;
+  s+=`<text x="${(bx0+bx1)/2}" y="${topY+13}" text-anchor="middle" font-size="9.5" font-weight="700" letter-spacing="0.5" fill="#9bbfa8">BRACKET</text>`;
+  s+=`<line x1="${mL}" y1="${baseY}" x2="${W-mR}" y2="${baseY}" stroke="#e2e4e0" stroke-width="1.5"/>`;
+  [2.0,2.5,3.0,3.5].forEach(t=>{ s+=`<line x1="${x(t)}" y1="${baseY}" x2="${x(t)}" y2="${baseY+5}" stroke="#cdd0cb" stroke-width="1.5"/>`; s+=`<text x="${x(t)}" y="${baseY+18}" text-anchor="middle" font-size="11" font-weight="600" fill="#8b948c" font-family="Hanken Grotesk">${t.toFixed(1)}</text>`; });
+  const ax=x(avg);
+  s+=`<line x1="${ax}" y1="${topY-2}" x2="${ax}" y2="${baseY}" stroke="#16201b" stroke-width="1.3" stroke-dasharray="3 3" opacity="0.55"/>`;
+  s+=`<text x="${ax}" y="${topY-5}" text-anchor="middle" font-size="10" font-weight="800" fill="#16201b" font-family="Hanken Grotesk">avg ${avg.toFixed(2)}</text>`;
+  data.forEach(([r,c,cat])=>{ for(let i=0;i<c;i++){ s+=`<circle cx="${x(r)}" cy="${baseY-off-i*step}" r="${R}" fill="${COLOR[cat]}" stroke="#fff" stroke-width="1.2"/>`; }});
+  document.getElementById(svgId).innerHTML=s;
+}
+renderChart('chart-mens',mens,3.02);
+renderChart('chart-mixed',mixed,2.91);
+
+/* ---------- team leaderboard ---------- */
+const check='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+function pill(st){ if(st==='verified')return `<span class="lb-pill verified">${check}Verified</span>`; if(st==='prov')return '<span class="lb-pill prov">Provisional</span>'; return '<span class="lb-pill self">Self-rated</span>'; }
+function rows(arr,ranked){ return arr.map(t=>{
+  const players=t.names.map(n=>`<div class="lb-player"><span class="lb-name">${n[0]}</span><span class="lb-rate">${n[1].toFixed(2)}</span></div>`).join('');
+  const rank=ranked?`<div class="lb-rank medal">${t.rank}</div>`:'<div class="lb-rank">—</div>';
+  const cls=t.status==='verified'?'up':'flat';
+  return `<div class="lb-row">${rank}<div class="lb-team ${t.status==='verified'?'v':''}">${players}</div><div class="lb-score"><span class="lb-tlabel">Team</span><span class="lb-tnum ${cls}">${t.team}</span>${pill(t.status)}</div></div>`;
+}).join(''); }
+function renderLB(id,verified,awaiting){
+  let h='<div class="lb-wrap"><div class="lb-title">Team leaderboard</div>';
+  h+='<div class="lb-group">Verified teams <span class="c">· ranked by team rating</span></div>';
+  h+=`<div class="lb-list">${rows(verified,true)}</div>`;
+  if(awaiting.length){ h+='<div class="lb-group">Awaiting verification <span class="c">· baseline 3.00</span></div>'; h+=`<div class="lb-list">${rows(awaiting,false)}</div>`; }
+  h+='</div>'; document.getElementById(id).innerHTML=h;
+}
+
+renderLB('lb-mens',
+  [
+    {rank:1,status:'verified',team:'3.38',names:[['Shelley Xu',3.46],['Timothy Wang',3.30]]},
+    {rank:2,status:'verified',team:'3.33',names:[['Phyllis Aquino',3.45],['Joseph Aquino',3.21]]},
+    {rank:3,status:'verified',team:'3.17',names:[['Leng Businelle',3.22],['Tun Louangpho',3.12]]}
+  ],
+  [
+    {status:'prov',team:'3.00',names:[['Elizabeth Awolaja',3.00],['Michael P.',3.00]]},
+    {status:'prov',team:'3.00',names:[['Vy Bui',3.00],['Son Nguyen',3.00]]},
+    {status:'prov',team:'3.00',names:[['Jacklyn Huynh',3.00],['Joseph Kim',3.00]]},
+    {status:'self',team:'—',names:[['Ramzan Ali',3.00],['Misbah Virani',3.00]]},
+    {status:'self',team:'—',names:[['Natasha Herrera',3.00],['Nate Zeiger',3.00]]}
+  ]
+);
+renderLB('lb-mixed',
+  [
+    {rank:1,status:'verified',team:'3.29',names:[['Ana Reyes',3.40],['Ben Carter',3.18]]},
+    {rank:2,status:'verified',team:'3.23',names:[['Mia Tran',3.30],['Luis Ortega',3.16]]}
+  ],
+  [
+    {status:'prov',team:'3.00',names:[['Priya Kumar',3.00],['Dev Shah',3.00]]},
+    {status:'self',team:'—',names:[['Tara Lee',3.00],['Sam Cole',3.00]]}
+  ]
+);
+</script>
+</body>
+</html>

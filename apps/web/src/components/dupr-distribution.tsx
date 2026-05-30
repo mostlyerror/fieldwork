@@ -1,31 +1,30 @@
 "use client";
 
-import type { EventPlayer } from "@/lib/types";
+import type { TournamentEvent } from "@/lib/types";
+import { eventPeople, eventIntel } from "@/lib/field-intel";
 
 // Snap a rating to the nearest 0.05 bin for stacking
 function snapTo(rating: number, step = 0.05): number {
   return Math.round(rating / step) * step;
 }
 
+type DotColor = "green" | "red" | "gray";
+
 interface PlotPlayer {
   name: string;
   rating: number;
   snapped: number;
-  hasLive: boolean;
-  color: "green" | "red" | "gray";
+  color: DotColor;
 }
 
+// Fallback when an event has no declared skill window: densest 0.5-wide bucket.
 function deriveBracket(ratings: number[]): { low: number; high: number } {
   if (ratings.length === 0) return { low: 2.0, high: 5.0 };
-
-  // Build 0.5-wide buckets and find the densest one
   const bucketSize = 0.5;
   const minR = Math.min(...ratings);
   const maxR = Math.max(...ratings);
-
   let bestLow = Math.floor(minR / bucketSize) * bucketSize;
   let bestCount = 0;
-
   for (let low = Math.floor(minR / bucketSize) * bucketSize; low <= maxR; low += bucketSize) {
     const count = ratings.filter((r) => r >= low && r < low + bucketSize).length;
     if (count > bestCount) {
@@ -33,116 +32,82 @@ function deriveBracket(ratings: number[]): { low: number; high: number } {
       bestLow = low;
     }
   }
-
   return { low: bestLow, high: bestLow + bucketSize };
 }
 
-export function DuprDistribution({ players }: { players: EventPlayer[] }) {
-  // Build rated player list
-  const rated: PlotPlayer[] = players
-    .flatMap((p) => {
-      const rating = p.live_dupr ?? p.dupr_rating;
-      if (rating == null) return [];
-      const player: PlotPlayer = {
-        name: p.player_name,
-        rating,
-        snapped: snapTo(rating),
-        hasLive: p.live_dupr != null,
-        color: "gray", // placeholder, set below
-      };
-      return [player];
-    });
+export function DuprDistribution({ event }: { event: TournamentEvent }) {
+  const people = eventPeople(event).filter((p) => p.rating != null);
+  if (people.length === 0) return null;
 
-  if (rated.length === 0) return null;
+  const intel = eventIntel(event);
+  const hasLive = people.some((p) => p.live != null);
 
-  const hasLive = players.some((p) => p.live_dupr != null);
+  // Bracket band: real skill window when known, else densest cluster.
+  const allRatings = people.map((p) => p.rating!);
+  const bracket =
+    intel.skillMin != null && intel.skillMax != null
+      ? { low: intel.skillMin, high: intel.skillMax }
+      : deriveBracket(allRatings);
 
-  // Derive bracket from densest cluster
-  const allRatings = rated.map((p) => p.rating);
-  const bracket = deriveBracket(allRatings);
+  const rated: PlotPlayer[] = people.map((p) => {
+    const rating = p.rating!;
+    let color: DotColor = "green";
+    if (rating < bracket.low - 0.05) color = "gray";
+    else if (rating > bracket.high + 0.05) color = "red";
+    return { name: p.name, rating, snapped: snapTo(rating), color };
+  });
 
-  // Color code relative to bracket
-  for (const p of rated) {
-    if (p.rating < bracket.low - 0.05) {
-      p.color = "gray";
-    } else if (p.rating > bracket.high + 0.05) {
-      p.color = "red";
-    } else {
-      p.color = "green";
-    }
-  }
-
-  // Summary stats
   const avg = allRatings.reduce((s, r) => s + r, 0) / allRatings.length;
   const minRating = Math.min(...allRatings);
   const maxRating = Math.max(...allRatings);
 
   // Number line range
   const lineMin = 2.0;
-  const lineMax = Math.ceil((maxRating + 0.5) / 0.5) * 0.5;
+  const lineMax = Math.max(Math.ceil((maxRating + 0.5) / 0.5) * 0.5, bracket.high + 0.5);
   const lineRange = lineMax - lineMin;
+  const pct = (r: number) => ((r - lineMin) / lineRange) * 100;
 
-  // Tick marks every 0.5
   const ticks: number[] = [];
-  for (let t = lineMin; t <= lineMax; t = Math.round((t + 0.5) * 10) / 10) {
-    ticks.push(t);
-  }
+  for (let t = lineMin; t <= lineMax; t = Math.round((t + 0.5) * 10) / 10) ticks.push(t);
 
-  // Stack dots: group by snapped value, assign vertical slot
+  // Stack dots by snapped value
   const stackMap: Record<number, PlotPlayer[]> = {};
-  for (const p of rated) {
-    const key = p.snapped;
-    if (!stackMap[key]) stackMap[key] = [];
-    stackMap[key].push(p);
-  }
+  for (const p of rated) (stackMap[p.snapped] ??= []).push(p);
 
-  // Build dot positions: each dot gets (x%, column index in its stack)
   interface DotPos {
     player: PlotPlayer;
     xPct: number;
-    col: number; // 0-indexed from bottom
-    total: number; // total stack height at this x
+    col: number;
   }
-
   const dots: DotPos[] = [];
   for (const [keyStr, stack] of Object.entries(stackMap)) {
-    const key = parseFloat(keyStr);
-    const xPct = ((key - lineMin) / lineRange) * 100;
-    stack.forEach((player, idx) => {
-      dots.push({ player, xPct, col: idx, total: stack.length });
-    });
+    const xPct = pct(parseFloat(keyStr));
+    stack.forEach((player, idx) => dots.push({ player, xPct, col: idx }));
   }
 
-  // Max stack height determines chart height
   const maxStack = Math.max(...Object.values(stackMap).map((s) => s.length), 1);
-
   const DOT_PX = 12;
   const DOT_GAP = 2;
-  const chartHeight = Math.max(32, (DOT_PX + DOT_GAP) * maxStack + 8);
+  const chartHeight = Math.max(40, (DOT_PX + DOT_GAP) * maxStack + 12);
 
-  // Bracket band position
-  const bracketLeftPct = Math.max(0, ((bracket.low - lineMin) / lineRange) * 100);
-  const bracketRightPct = Math.min(100, ((bracket.high - lineMin) / lineRange) * 100);
+  const bracketLeftPct = Math.max(0, pct(bracket.low));
+  const bracketRightPct = Math.min(100, pct(bracket.high));
+  const avgPct = Math.min(100, Math.max(0, pct(avg)));
 
-  const colorClass = {
-    green: "bg-emerald-500",
-    red: "bg-red-400",
-    gray: "bg-gray-300",
+  const colorClass: Record<DotColor, string> = {
+    green: "bg-emerald-500 ring-emerald-600",
+    red: "bg-red-400 ring-red-500",
+    gray: "bg-gray-300 ring-gray-400",
   };
 
-  const borderClass = {
-    green: "ring-emerald-600",
-    red: "ring-red-500",
-    gray: "ring-gray-400",
-  };
+  const showClassification =
+    intel.skillMin != null && intel.skillMax != null && (intel.inRange + intel.below + intel.above) > 0;
 
   return (
-    <div className="my-4 max-w-full rounded-lg bg-gray-50/80 p-4">
+    <div className="my-4 max-w-full rounded-xl bg-gray-50/80 p-4">
       {/* Header */}
-      <div className="mb-2.5 flex items-center justify-between">
-        <p className="text-sm font-bold uppercase tracking-wide text-gray-500">
-          Rating Spread
-        </p>
+      <div className="mb-1 flex items-center justify-between">
+        <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Rating spread</p>
         <div className="flex items-center gap-2">
           {hasLive && (
             <span className="flex items-center gap-1 text-xs text-emerald-600">
@@ -150,44 +115,65 @@ export function DuprDistribution({ players }: { players: EventPlayer[] }) {
               Live
             </span>
           )}
-          <span className="text-xs text-gray-400">
-            {rated.length} rated
-          </span>
+          <span className="text-xs text-gray-400">{rated.length} rated</span>
         </div>
       </div>
 
-      {/* Summary stats */}
-      <p className="mb-2 text-xs text-gray-400">
-        {rated.length} player{rated.length !== 1 ? "s" : ""}
-        {" · "}avg {avg.toFixed(2)}
-        {" · "}range {minRating.toFixed(1)}–{maxRating.toFixed(1)}
+      {/* Sub: count · avg · range */}
+      <p className="mb-2.5 text-xs font-medium tabular-nums text-gray-400">
+        {rated.length} player{rated.length !== 1 ? "s" : ""} · avg {avg.toFixed(2)} · range {minRating.toFixed(1)}–{maxRating.toFixed(1)}
       </p>
+
+      {/* Takeaway sentence */}
+      {showClassification && (
+        <p className="mb-3 text-[13px] font-semibold tabular-nums text-gray-600">
+          <b className="font-extrabold text-gray-900">{intel.inRange}</b> in range
+          {intel.below > 0 && (
+            <>
+              {" · "}
+              <b className="font-extrabold text-gray-900">{intel.below}</b> below
+            </>
+          )}
+          {intel.above > 0 && (
+            <>
+              {" · "}
+              <b className="font-extrabold text-red-600">{intel.above}</b>
+              <span className="text-red-600"> above the {intel.skillMax!.toFixed(1)} ceiling</span>
+            </>
+          )}
+        </p>
+      )}
 
       {/* Dot plot */}
       <div className="relative w-full max-w-full select-none overflow-hidden">
-        {/* Dots area */}
-        <div
-          className="relative w-full"
-          style={{ height: `${chartHeight}px` }}
-        >
+        <div className="relative w-full" style={{ height: `${chartHeight}px` }}>
           {/* Bracket band */}
           <div
-            className="absolute bottom-0 top-0 rounded bg-emerald-100/70"
-            style={{
-              left: `${bracketLeftPct}%`,
-              width: `${bracketRightPct - bracketLeftPct}%`,
-            }}
-          />
+            className="absolute bottom-0 top-3 rounded-lg bg-emerald-100/70"
+            style={{ left: `${bracketLeftPct}%`, width: `${bracketRightPct - bracketLeftPct}%` }}
+          >
+            <span className="absolute left-0 right-0 top-1 text-center text-[8.5px] font-bold uppercase tracking-wider text-emerald-600/70">
+              Bracket
+            </span>
+          </div>
+
+          {/* Avg reference line + label */}
+          <div className="absolute bottom-0 top-0 border-l border-dashed border-gray-700/50" style={{ left: `${avgPct}%` }} />
+          <span
+            className="absolute top-0 -translate-x-1/2 text-[9.5px] font-extrabold tabular-nums text-gray-800"
+            style={{ left: `${avgPct}%` }}
+          >
+            avg {avg.toFixed(2)}
+          </span>
 
           {/* Dots */}
           {dots.map((d, i) => {
-            const player = d.player;
-            const bottomPx = (d.col * (DOT_PX + DOT_GAP)) + 4;
+            const bottomPx = d.col * (DOT_PX + DOT_GAP) + 4;
             return (
               <div
-                key={`${player.name}-${i}`}
-                title={`${player.name} · ${player.rating.toFixed(2)}`}
-                className={`absolute rounded-full ring-1 cursor-default transition-transform hover:scale-150 hover:z-10 ${colorClass[player.color]} ${borderClass[player.color]}`}
+                key={`${d.player.name}-${i}`}
+                title={`${d.player.name} · ${d.player.rating.toFixed(2)}`}
+                className={`absolute cursor-default rounded-full ring-1 transition-transform hover:z-10 hover:scale-150 ${colorClass[d.player.color]}`}
                 style={{
                   width: `${DOT_PX}px`,
                   height: `${DOT_PX}px`,
@@ -203,53 +189,34 @@ export function DuprDistribution({ players }: { players: EventPlayer[] }) {
         {/* Number line */}
         <div className="relative mt-1 h-px w-full bg-gray-300">
           {ticks.map((t) => {
-            const pct = ((t - lineMin) / lineRange) * 100;
             const isWhole = Number.isInteger(t);
             return (
               <div
                 key={t}
                 className="absolute flex flex-col items-center"
-                style={{ left: `${pct}%`, transform: "translateX(-50%)" }}
+                style={{ left: `${pct(t)}%`, transform: "translateX(-50%)" }}
               >
-                <div className={`${isWhole ? "h-2 w-px bg-gray-500" : "h-1.5 w-px bg-gray-300"}`} />
-                {isWhole && (
-                  <span className="mt-0.5 text-xs font-semibold text-gray-500">
-                    {t.toFixed(1)}
-                  </span>
-                )}
+                <div className={isWhole ? "h-2 w-px bg-gray-500" : "h-1.5 w-px bg-gray-300"} />
+                {isWhole && <span className="mt-0.5 text-xs font-semibold tabular-nums text-gray-500">{t.toFixed(1)}</span>}
               </div>
             );
           })}
         </div>
-
-        {/* Bracket label */}
-        <div
-          className="absolute mt-1 flex justify-center"
-          style={{
-            left: `${bracketLeftPct}%`,
-            width: `${bracketRightPct - bracketLeftPct}%`,
-            top: `${chartHeight + 2}px`,
-          }}
-        >
-          <span className="rounded bg-emerald-100 px-1 py-0.5 text-xs font-semibold text-emerald-700">
-            bracket
-          </span>
-        </div>
       </div>
 
-      {/* Legend */}
-      <div className="mt-7 flex flex-wrap items-center gap-3">
-        <span className="flex items-center gap-1 text-xs text-gray-500">
+      {/* Legend with counts */}
+      <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs font-medium tabular-nums text-gray-600">
+        <span className="flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full bg-emerald-500" />
-          In bracket
+          In bracket {showClassification ? intel.inRange : ""}
         </span>
-        <span className="flex items-center gap-1 text-xs text-gray-500">
-          <span className="h-2 w-2 rounded-full bg-red-400" />
-          Above bracket
-        </span>
-        <span className="flex items-center gap-1 text-xs text-gray-500">
+        <span className="flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full bg-gray-300" />
-          Below bracket
+          Below {showClassification ? intel.below : ""}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-red-400" />
+          Above {showClassification ? intel.above : ""}
         </span>
       </div>
     </div>

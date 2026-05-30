@@ -6,9 +6,10 @@ import { EventCard } from "./event-card";
 import { FieldIntelSummary } from "./field-intel-summary";
 import { IntelSectionHeader } from "@/components/intel-section-header";
 import { DuprDistribution } from "./dupr-distribution";
-import { PlayerList } from "./player-list";
+import { TeamLeaderboard } from "./team-leaderboard";
 import { FieldStrengthBadge } from "./field-strength-badge";
 import { effectiveAvgDupr, avgDuprPair } from "@/lib/dupr-utils";
+import { registrantLabel } from "@/lib/field-intel";
 import { AvgDuprCell } from "./avg-dupr-cell";
 
 function categorizeEvent(event: TournamentEvent): string {
@@ -37,13 +38,7 @@ function groupEvents(events: TournamentEvent[]): Map<string, TournamentEvent[]> 
   return sorted;
 }
 
-export function EventBreakdown({
-  events,
-  userDupr,
-}: {
-  events: TournamentEvent[];
-  userDupr?: number;
-}) {
+export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(
     events[0]?.id ?? null
   );
@@ -71,7 +66,7 @@ export function EventBreakdown({
       {/* Mobile: stacked expandable cards */}
       <div className="lg:hidden">
         {events.map((event) => (
-          <EventCard key={event.id} event={event} userDupr={userDupr} />
+          <EventCard key={event.id} event={event} />
         ))}
       </div>
 
@@ -112,10 +107,7 @@ export function EventBreakdown({
                     </span>
                     <div className="mt-1 flex items-center gap-3 text-xs text-gray-400">
                       {event.registered_count > 0 && (
-                        <span>
-                          {event.registered_count}{" "}
-                          {event.event_type === "singles" ? "players" : "teams"}
-                        </span>
+                        <span>{registrantLabel(event.registered_count, event.event_type)}</span>
                       )}
                       {effectiveAvgDupr(event) != null && (
                         <AvgDuprCell pair={avgDuprPair(event)} size="sm" />
@@ -146,11 +138,8 @@ export function EventBreakdown({
 
           <div className="mt-2 flex flex-wrap gap-5 text-sm text-gray-500">
             {selectedEvent.registered_count > 0 && (
-              <span>
-                <span className="font-bold text-gray-900">
-                  {selectedEvent.registered_count}
-                </span>{" "}
-                {selectedEvent.event_type === "singles" ? "players" : "teams"}
+              <span className="font-bold text-gray-900">
+                {registrantLabel(selectedEvent.registered_count, selectedEvent.event_type)}
               </span>
             )}
             {effectiveAvgDupr(selectedEvent) != null && (
@@ -177,8 +166,8 @@ export function EventBreakdown({
 
           {hasPlayers ? (
             <div className="mt-4">
-              <DuprDistribution players={selectedEvent.players!} />
-              <PlayerList players={selectedEvent.players!} />
+              <DuprDistribution event={selectedEvent} />
+              <TeamLeaderboard event={selectedEvent} />
             </div>
           ) : (
             <p className="mt-12 text-center text-sm text-gray-400">

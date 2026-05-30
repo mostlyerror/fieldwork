@@ -2,34 +2,43 @@
 
 import { useState } from "react";
 import type { TournamentEvent } from "@/lib/types";
-import { FieldStrengthBadge } from "./field-strength-badge";
-import { PlayerList } from "./player-list";
+import { TeamLeaderboard } from "./team-leaderboard";
 import { DuprDistribution } from "./dupr-distribution";
-import { effectiveAvgDupr, avgDuprPair } from "@/lib/dupr-utils";
-import { AvgDuprCell } from "./avg-dupr-cell";
+import { eventIntel, registrantLabel } from "@/lib/field-intel";
 
-export function EventCard({
-  event,
-  userDupr,
-}: {
-  event: TournamentEvent;
-  userDupr?: number;
-}) {
-  const hasPlayers = event.players && event.players.length > 0;
+/** Listed → live average transition shown on the right of the card header. */
+function RateTransition({ listed, live }: { listed: number | null; live: number | null }) {
+  if (live != null && listed != null && Math.abs(live - listed) > 0.05) {
+    return (
+      <div className="flex items-baseline gap-1.5">
+        <span className="text-[13px] font-medium tabular-nums text-gray-400 line-through">{listed.toFixed(2)}</span>
+        <span className="text-lg font-extrabold tabular-nums tracking-tight text-emerald-700">{live.toFixed(2)}</span>
+      </div>
+    );
+  }
+  const value = live ?? listed;
+  if (value == null) return null;
+  return (
+    <span className={`text-lg font-extrabold tabular-nums tracking-tight ${live != null ? "text-emerald-700" : "text-gray-900"}`}>
+      {value.toFixed(2)}
+    </span>
+  );
+}
+
+export function EventCard({ event }: { event: TournamentEvent }) {
+  const hasPlayers = (event.players?.length ?? 0) > 0;
   const [expanded, setExpanded] = useState(false);
+  const intel = eventIntel(event);
 
-  const playersWithLive = event.players?.filter((p) => p.live_dupr_verified === true).length ?? 0;
-  const playersWithDrift = event.players?.filter(
-    (p) => p.live_dupr_verified === true && p.live_dupr != null && p.dupr_rating != null && Math.abs(p.live_dupr - p.dupr_rating) > 0.05
-  ).length ?? 0;
+  const showFlags = hasPlayers && (intel.ratedLiveCount > 0 || intel.above > 0);
 
   return (
-    <div className="border-b border-gray-100 last:border-b-0 bg-white">
+    <div className="border-b border-gray-100 bg-white last:border-b-0">
       <button
         type="button"
-        onClick={hasPlayers ? () => setExpanded(!expanded) : undefined}
+        onClick={hasPlayers ? () => setExpanded((v) => !v) : undefined}
         disabled={!hasPlayers}
-        className="flex w-full items-center gap-3 px-4 sm:px-5 py-4 text-left transition hover:bg-gray-50 disabled:cursor-default disabled:hover:bg-white"
+        className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition hover:bg-gray-50 disabled:cursor-default disabled:hover:bg-white sm:px-5"
       >
         {hasPlayers && (
           <svg
@@ -42,57 +51,46 @@ export function EventCard({
           </svg>
         )}
 
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-            <span className="min-w-0 truncate font-bold text-gray-900">{event.name}</span>
-            <FieldStrengthBadge
-              avgFieldStrength={event.field_strength ?? undefined}
-              maxSandbaggerPct={event.sandbagger_pct ?? undefined}
-            />
-          </div>
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[15px] font-bold tracking-tight text-gray-900">{event.name}</div>
           {event.registered_count > 0 && (
-            <span className="text-xs text-gray-400 sm:hidden">
-              {event.registered_count} {event.event_type === "singles" ? "players" : "teams"}
-            </span>
+            <div className="mt-0.5 text-xs font-medium text-gray-400">
+              {registrantLabel(event.registered_count, event.event_type)}
+            </div>
           )}
         </div>
 
-        <div className="flex max-w-[45%] flex-shrink-0 flex-wrap items-center justify-end gap-x-3 gap-y-1 text-sm text-gray-400 sm:max-w-none">
-          {event.registered_count > 0 && (
-            <span className="hidden sm:inline">
-              {event.registered_count} {event.event_type === "singles" ? "players" : "teams"}
-            </span>
-          )}
-          {effectiveAvgDupr(event) != null && (
-            <AvgDuprCell pair={avgDuprPair(event)} size="sm" />
-          )}
+        <div className="flex-shrink-0">
+          <RateTransition listed={intel.listedAvg} live={intel.liveAvg} />
         </div>
       </button>
 
-      {!expanded && hasPlayers && playersWithLive > 0 && (
+      {showFlags && (
         <div
-          onClick={() => setExpanded(true)}
-          className="flex cursor-pointer items-center gap-2 border-t border-gray-50 px-4 sm:px-5 py-2 pl-12"
+          onClick={!expanded ? () => setExpanded(true) : undefined}
+          className={`flex flex-wrap items-center gap-x-2 gap-y-1 px-4 pb-3 pl-11 sm:px-5 sm:pl-12 ${!expanded ? "cursor-pointer" : ""}`}
         >
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
-          <span className="text-xs font-semibold text-emerald-700">
-            {playersWithLive} live ratings
-          </span>
-          {playersWithDrift > 0 && (
-            <span className="text-xs text-emerald-600">
-              · {playersWithDrift} differ from listed
+          {intel.ratedLiveCount > 0 && (
+            <span className="flex items-center gap-1.5 text-[11.5px] font-semibold text-gray-600">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              {intel.ratedLiveCount} of {event.registered_count > 0 && intel.unit === "players" ? event.registered_count : intel.totalPeople} rated live
             </span>
           )}
-          <span className="ml-auto text-xs text-emerald-500">
-            View →
-          </span>
+          {intel.differCount > 0 && (
+            <span className="text-[11.5px] font-medium text-gray-400">· {intel.differCount} differ from listed</span>
+          )}
+          {intel.above > 0 && (
+            <span className="ml-auto flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-600">
+              {intel.above} above bracket
+            </span>
+          )}
         </div>
       )}
 
       {expanded && hasPlayers && (
-        <div className="border-t border-gray-100 px-4 sm:px-5 pb-4 pt-2">
-          <DuprDistribution players={event.players!} />
-          <PlayerList players={event.players!} />
+        <div className="border-t border-gray-100 bg-[#fbfcfb] px-4 pb-4 pt-2 sm:px-5">
+          <DuprDistribution event={event} />
+          <TeamLeaderboard event={event} />
         </div>
       )}
     </div>
