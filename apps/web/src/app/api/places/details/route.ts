@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
   const data = await res.json();
 
   return NextResponse.json({
+    placeId,
     name: data.displayName?.text ?? "",
     address: data.formattedAddress ?? "",
     lat: data.location?.latitude ?? null,

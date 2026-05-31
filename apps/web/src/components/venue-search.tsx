@@ -14,6 +14,7 @@ export interface VenueSelection {
   locationAddress: string;
   latitude: number;
   longitude: number;
+  placeId: string;
 }
 
 interface VenueSearchProps {
@@ -109,6 +110,7 @@ export function VenueSearch({
           locationAddress: data.address || suggestion.secondaryText,
           latitude: data.lat,
           longitude: data.lng,
+          placeId: data.placeId ?? suggestion.placeId,
         };
         setSelection(venue);
         onSelect(venue);
@@ -119,6 +121,7 @@ export function VenueSearch({
           locationAddress: suggestion.secondaryText,
           latitude: 0,
           longitude: 0,
+          placeId: suggestion.placeId,
         };
         setSelection(venue);
         onSelect(venue);
@@ -130,6 +133,7 @@ export function VenueSearch({
         locationAddress: suggestion.secondaryText,
         latitude: 0,
         longitude: 0,
+        placeId: suggestion.placeId,
       };
       setSelection(venue);
       onSelect(venue);
@@ -175,6 +179,7 @@ export function VenueSearch({
         </button>
         <input type="hidden" name="locationName" value={selection.locationName} />
         <input type="hidden" name="locationAddress" value={selection.locationAddress} />
+        <input type="hidden" name="placeId" value={selection.placeId} />
       </div>
     );
   }
