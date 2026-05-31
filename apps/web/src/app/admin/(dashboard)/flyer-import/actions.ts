@@ -30,8 +30,8 @@ export async function createFlyerDraft(
 
   if (input.venue) {
     venueId = await upsertVenueFromSelection(admin, input.venue);
-    latitude = input.venue.latitude || null;
-    longitude = input.venue.longitude || null;
+    latitude = input.venue.latitude ?? null;
+    longitude = input.venue.longitude ?? null;
     locationName = input.venue.locationName || locationName;
     locationAddress = input.venue.locationAddress || locationAddress;
   }
@@ -65,16 +65,18 @@ export async function createFlyerDraft(
     return { error: error?.message ?? "insert failed" };
   }
 
-  const { error: srcError } = await admin.from("tournament_sources").upsert(
-    {
-      tournament_id: inserted.id,
-      source_platform: "flyer",
-      source_url: input.sourceUrl,
-      registration_url: input.draft.registration_url,
-    },
-    { onConflict: "tournament_id,source_platform,source_url" },
-  );
-  if (srcError) console.error("[flyer] source insert failed:", srcError);
+  if (input.sourceUrl) {
+    const { error: srcError } = await admin.from("tournament_sources").upsert(
+      {
+        tournament_id: inserted.id,
+        source_platform: "flyer",
+        source_url: input.sourceUrl,
+        registration_url: input.draft.registration_url,
+      },
+      { onConflict: "tournament_id,source_platform,source_url" },
+    );
+    if (srcError) console.error("[flyer] source insert failed:", srcError);
+  }
 
   return { id: inserted.id };
 }
@@ -87,13 +89,16 @@ export async function publishFlyerDraft(
 
   const admin = getSupabaseAdmin();
 
-  // Guard: never publish without a date (spec edge case).
+  // Guard: only publish actual drafts, and only when they have a date.
   const { data: row } = await admin
     .from("tournaments")
-    .select("date_start")
+    .select("date_start, status")
     .eq("id", id)
     .single();
-  if (!row?.date_start) return { error: "Cannot publish: missing date" };
+  if (!row) return { error: "Tournament not found" };
+  if (row.status !== TOURNAMENT_STATUS.DRAFT)
+    return { error: "Cannot publish: tournament is not a draft" };
+  if (!row.date_start) return { error: "Cannot publish: missing date" };
 
   const { error } = await admin
     .from("tournaments")
