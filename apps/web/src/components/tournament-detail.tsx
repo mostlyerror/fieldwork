@@ -10,6 +10,7 @@ import { ShareButtons } from "./share-buttons";
 import { RegistrationPill } from "./registration-pill";
 import { getRegistrationStatus } from "@/lib/registration";
 import { track } from "@/lib/analytics";
+import { isPublicStatus } from "@/lib/tournament-status";
 
 export function TournamentDetail({
   tournament,
@@ -87,6 +88,19 @@ export function TournamentDetail({
 
   return (
     <>
+      {!isPublicStatus(tournament.status) && (
+        <div className="mb-6 rounded-2xl border border-amber-300 bg-amber-50 px-5 py-4">
+          <p className="text-sm font-bold text-amber-900">
+            DRAFT — not public yet
+          </p>
+          <p className="mt-1 text-sm text-amber-800">
+            This page is private and excluded from search and listings. Share the
+            link with the organizer; publish from the admin Flyer Import tool once
+            they confirm.
+          </p>
+        </div>
+      )}
+
       {/* Sticky action bar */}
       <div
         aria-hidden={!stickyVisible}

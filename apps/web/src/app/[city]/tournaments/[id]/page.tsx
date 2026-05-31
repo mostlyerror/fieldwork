@@ -26,6 +26,7 @@ export async function generateMetadata({
   const tournament = await getTournament(id);
   if (!tournament) return { title: "Tournament Not Found" };
 
+  const isDraft = !tournament.status || tournament.status !== "active";
   const cityName = city?.name ?? getDefaultCity().name;
   const description = `${formatDateRange(tournament.date_start, tournament.date_end)} at ${tournament.location_name}. Find details and register for this ${cityName}-area pickleball tournament.`;
 
@@ -34,6 +35,7 @@ export async function generateMetadata({
   return {
     title: `${tournament.name} — PickleRadar`,
     description,
+    ...(isDraft && { robots: { index: false, follow: false } }),
     openGraph: {
       title: tournament.name,
       description,
