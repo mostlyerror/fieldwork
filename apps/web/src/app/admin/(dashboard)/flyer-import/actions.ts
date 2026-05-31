@@ -6,7 +6,7 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { upsertVenueFromSelection, type ConfirmedVenue } from "@/lib/venues";
 import { TOURNAMENT_STATUS } from "@/lib/tournament-status";
 import type { FlyerDraftRow } from "@/lib/flyer-extract";
-import { findFlyerDuplicate } from "./dedup";
+import { findFlyerDuplicate, DUPLICATE_ERROR_PREFIX } from "./dedup";
 
 export interface CreateFlyerDraftInput {
   draft: FlyerDraftRow;
@@ -25,18 +25,10 @@ export async function createFlyerDraft(
   const admin = getSupabaseAdmin();
 
   let venueId: string | null = null;
-  let latitude: number | null = null;
-  let longitude: number | null = null;
-  let locationName = input.draft.location_name;
-  let locationAddress = input.draft.location_address;
-
-  if (input.venue) {
-    venueId = await upsertVenueFromSelection(admin, input.venue);
-    latitude = input.venue.latitude ?? null;
-    longitude = input.venue.longitude ?? null;
-    locationName = input.venue.locationName || locationName;
-    locationAddress = input.venue.locationAddress || locationAddress;
-  }
+  let latitude: number | null = input.venue?.latitude ?? null;
+  let longitude: number | null = input.venue?.longitude ?? null;
+  let locationName = input.venue?.locationName || input.draft.location_name;
+  let locationAddress = input.venue?.locationAddress ?? input.draft.location_address;
 
   if (!input.ignoreDuplicate) {
     const dup = await findFlyerDuplicate(
@@ -47,9 +39,13 @@ export async function createFlyerDraft(
     );
     if (dup) {
       return {
-        error: `Possible duplicate of "${dup.name}" (${dup.id}). Re-save with "ignore duplicate" to create anyway.`,
+        error: `${DUPLICATE_ERROR_PREFIX} of "${dup.name}" (${dup.id}). Re-save with "ignore duplicate" to create anyway.`,
       };
     }
+  }
+
+  if (input.venue) {
+    venueId = await upsertVenueFromSelection(admin, input.venue);
   }
 
   const { data: inserted, error } = await admin

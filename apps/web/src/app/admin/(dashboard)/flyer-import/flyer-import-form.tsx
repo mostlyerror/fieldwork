@@ -8,6 +8,7 @@ import {
   type FlyerDraftRow,
 } from "@/lib/flyer-extract";
 import { createFlyerDraft, publishFlyerDraft } from "./actions";
+import { DUPLICATE_ERROR_PREFIX } from "./dedup";
 
 const CITY_SLUG = "houston"; // only city configured today
 
@@ -123,7 +124,7 @@ export function FlyerImportForm() {
 
   return (
     <div className="space-y-6">
-      {error && !createdId && (
+      {error && !createdId && !error.startsWith(DUPLICATE_ERROR_PREFIX) && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
@@ -218,6 +219,11 @@ export function FlyerImportForm() {
             <textarea rows={4} className={inputCls} value={draft.description ?? ""}
               onChange={(e) => update("description", e.target.value || null)} />
           </Field>
+          {error?.startsWith(DUPLICATE_ERROR_PREFIX) && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              {error}
+            </div>
+          )}
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
@@ -227,7 +233,7 @@ export function FlyerImportForm() {
             >
               {saving ? "Saving..." : "Save draft"}
             </button>
-            {error?.startsWith("Possible duplicate") && (
+            {error?.startsWith(DUPLICATE_ERROR_PREFIX) && (
               <button
                 type="button"
                 onClick={handleSaveAnyway}

@@ -2,6 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 const MAX_DISTANCE_METERS = 100;
 
+export const DUPLICATE_ERROR_PREFIX = "Possible duplicate";
+
 export interface DuplicateMatch {
   id: string;
   name: string;
@@ -25,6 +27,10 @@ export async function findFlyerDuplicate(
     p_lng: longitude,
     p_max_distance_meters: MAX_DISTANCE_METERS,
   });
-  if (error || !data || data.length === 0) return null;
+  if (error) {
+    console.warn("[flyer-dedup] find_nearby_tournament failed, skipping check:", error);
+    return null;
+  }
+  if (!data || data.length === 0) return null;
   return { id: data[0].id, name: data[0].name };
 }
