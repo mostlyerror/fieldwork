@@ -137,10 +137,14 @@ export default async function TournamentPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      {/* SportsEvent structured data is omitted for non-active (draft) rows so
+          drafts emit no machine-readable listing — consistent with noindex. */}
+      {tournament.status === "active" && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
       <ServerHeader city={city} />
 
       <main className="mx-auto max-w-6xl px-3 sm:px-5 py-10">
