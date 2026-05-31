@@ -92,6 +92,21 @@ export function FlyerImportForm() {
     else setCreatedId(result.id);
   }
 
+  async function handleSaveAnyway() {
+    if (!draft) return;
+    setSaving(true);
+    setError(null);
+    const result = await createFlyerDraft({
+      draft,
+      venue,
+      sourceUrl: sourceUrl || null,
+      ignoreDuplicate: true,
+    });
+    setSaving(false);
+    if ("error" in result) setError(result.error);
+    else setCreatedId(result.id);
+  }
+
   async function handlePublish() {
     if (!createdId) return;
     const result = await publishFlyerDraft(createdId, CITY_SLUG);
@@ -203,14 +218,26 @@ export function FlyerImportForm() {
             <textarea rows={4} className={inputCls} value={draft.description ?? ""}
               onChange={(e) => update("description", e.target.value || null)} />
           </Field>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving || !draft.name.trim()}
-            className="rounded-full bg-green-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
-          >
-            {saving ? "Saving..." : "Save draft"}
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving || !draft.name.trim()}
+              className="rounded-full bg-green-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
+            >
+              {saving ? "Saving..." : "Save draft"}
+            </button>
+            {error?.startsWith("Possible duplicate") && (
+              <button
+                type="button"
+                onClick={handleSaveAnyway}
+                disabled={saving}
+                className="rounded-full bg-amber-600 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-50"
+              >
+                Save anyway
+              </button>
+            )}
+          </div>
         </div>
       )}
 

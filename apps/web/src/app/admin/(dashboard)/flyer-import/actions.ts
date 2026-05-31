@@ -6,11 +6,13 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { upsertVenueFromSelection, type ConfirmedVenue } from "@/lib/venues";
 import { TOURNAMENT_STATUS } from "@/lib/tournament-status";
 import type { FlyerDraftRow } from "@/lib/flyer-extract";
+import { findFlyerDuplicate } from "./dedup";
 
 export interface CreateFlyerDraftInput {
   draft: FlyerDraftRow;
   venue: ConfirmedVenue | null;
   sourceUrl: string | null; // the FB post URL, if known
+  ignoreDuplicate?: boolean; // set true to save anyway after a warning
 }
 
 export async function createFlyerDraft(
@@ -34,6 +36,20 @@ export async function createFlyerDraft(
     longitude = input.venue.longitude ?? null;
     locationName = input.venue.locationName || locationName;
     locationAddress = input.venue.locationAddress || locationAddress;
+  }
+
+  if (!input.ignoreDuplicate) {
+    const dup = await findFlyerDuplicate(
+      admin,
+      input.draft.date_start,
+      latitude,
+      longitude,
+    );
+    if (dup) {
+      return {
+        error: `Possible duplicate of "${dup.name}" (${dup.id}). Re-save with "ignore duplicate" to create anyway.`,
+      };
+    }
   }
 
   const { data: inserted, error } = await admin
