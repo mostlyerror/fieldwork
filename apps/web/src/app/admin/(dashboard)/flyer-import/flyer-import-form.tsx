@@ -38,6 +38,10 @@ export function FlyerImportForm() {
   const [error, setError] = useState<string | null>(null);
 
   async function handleExtract() {
+    if (file && file.size > 3_000_000) {
+      setError("Image must be under 3 MB — please resize before uploading.");
+      return;
+    }
     setExtracting(true);
     setError(null);
     try {
@@ -52,7 +56,10 @@ export function FlyerImportForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error("Extraction failed");
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? `Extraction failed (${res.status})`);
+      }
       const { extraction } = (await res.json()) as { extraction: FlyerExtraction };
       setDraft(mapExtractionToDraftRow(extraction));
       setNotes(extraction.confidenceNotes ?? null);
@@ -101,7 +108,7 @@ export function FlyerImportForm() {
 
   return (
     <div className="space-y-6">
-      {error && (
+      {error && !createdId && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
@@ -210,6 +217,11 @@ export function FlyerImportForm() {
       {/* Post-save: link + outreach + publish */}
       {createdId && (
         <div className="space-y-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
+          {error && (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
           <div>
             <p className="text-sm font-semibold text-gray-700">Private link</p>
             <a href={privateLink} target="_blank" rel="noreferrer"
