@@ -87,6 +87,55 @@ describe("upsertVenueFromSelection", () => {
     expect(calls[0].row.source).toBe("places");
   });
 
+  it("retries with a suffixed slug on a slug unique violation, then succeeds", async () => {
+    const slugs: string[] = [];
+    let call = 0;
+    const admin = {
+      from() {
+        return {
+          upsert(row: Record<string, unknown>, _opts: { onConflict: string }) {
+            slugs.push(row.slug as string);
+            return {
+              select() {
+                return {
+                  single: () => {
+                    call += 1;
+                    return call === 1
+                      ? Promise.resolve({
+                          data: null,
+                          error: {
+                            code: "23505",
+                            message:
+                              'duplicate key value violates unique constraint "venues_slug_key"',
+                          },
+                        })
+                      : Promise.resolve({ data: { id: "venue-99" }, error: null });
+                  },
+                };
+              },
+            };
+          },
+        };
+      },
+    };
+    const id = await upsertVenueFromSelection(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      admin as any,
+      {
+        locationName: "Memorial Park Courts",
+        locationAddress: "",
+        latitude: 29.7644,
+        longitude: -95.3905,
+        placeId: "place-xyz",
+      },
+    );
+    expect(id).toBe("venue-99");
+    expect(slugs).toHaveLength(2);
+    expect(slugs[0]).toBe("memorial-park-courts");
+    expect(slugs[1]).toMatch(/^memorial-park-courts-[a-z0-9]{1,4}$/);
+    expect(slugs[1]).not.toBe(slugs[0]);
+  });
+
   it("returns null when the upsert errors", async () => {
     const admin = {
       from: () => ({

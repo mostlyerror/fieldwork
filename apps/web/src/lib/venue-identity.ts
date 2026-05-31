@@ -1,6 +1,7 @@
 // Web-side duplicate of the scraper's venue identity helpers. Kept in sync with
 // packages/scrapers/src/utils/venue-identity.ts (cross-package import isn't clean;
 // same precedent as venue-slug.ts). "park" is distinctive — NOT noise.
+// nameSimilarity is intentionally omitted: it's only used in the scraper's fuzzy-match logic, not needed web-side.
 const NOISE_TOKENS = new Set([
   "the", "pickleball", "pb", "courts", "court", "club", "center", "centre",
   "complex", "and", "rec", "recreation",

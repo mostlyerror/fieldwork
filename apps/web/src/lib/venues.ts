@@ -2,6 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { venueDedupKey } from "./venue-identity";
 import { venueSlug } from "./venue-slug";
 
+// Structurally identical to VenueSelection in apps/web/src/components/venue-search.tsx.
+// The form passes a VenueSelection where a ConfirmedVenue is expected — keep fields in sync.
 export interface ConfirmedVenue {
   locationName: string;
   locationAddress: string;
@@ -59,7 +61,7 @@ export async function upsertVenueFromSelection(
       .single();
 
   let { data, error } = await attempt(baseSlug);
-  if (error && /slug/i.test(error.message ?? "")) {
+  if (error && error.code === "23505" && /slug/i.test(error.message ?? "")) {
     ({ data, error } = await attempt(`${baseSlug}-${suffix}`));
   }
   if (error) {

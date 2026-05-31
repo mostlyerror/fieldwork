@@ -192,6 +192,7 @@ export function VenueSearch({
         <span className="text-sm text-gray-500">Loading venue details...</span>
         <input type="hidden" name="locationName" value={query} />
         <input type="hidden" name="locationAddress" value="" />
+        <input type="hidden" name="placeId" value="" />
       </div>
     );
   }
