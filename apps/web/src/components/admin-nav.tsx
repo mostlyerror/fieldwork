@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { href: "/admin/tournaments", label: "All Tournaments" },
   { href: "/admin/audience", label: "Audience" },
   { href: "/admin/scraping", label: "Scraping" },
+  { href: "/admin/flyer-import", label: "Flyer Import" },
 ];
 
 export function AdminNav({
