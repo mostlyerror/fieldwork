@@ -48,16 +48,22 @@ export function mapExtractionToDraftRow(e: FlyerExtraction): FlyerDraftRow {
   const dateStart = e.dateStart || null;
   const dateEnd = e.dateEnd || dateStart;
 
+  // Fix B: coerce numeric fields — model may return strings
+  const num = (v: unknown): number | null =>
+    typeof v === "number" && Number.isFinite(v) ? v : null;
+
   const descParts: string[] = [];
   if (e.host) descParts.push(`Host: ${e.host}`);
   if (e.beneficiary) descParts.push(`Benefits: ${e.beneficiary}`);
   if (e.startTime || e.endTime)
     descParts.push(`Time: ${[e.startTime, e.endTime].filter(Boolean).join("–")}`);
-  if (e.eventTypes?.length) descParts.push(`Events: ${e.eventTypes.join(", ")}`);
-  if (e.teamSize) descParts.push(`Team size: ${e.teamSize}`);
-  if (e.earlyBirdPrice != null)
+  // Fix A: guard eventTypes against non-array model output
+  if (Array.isArray(e.eventTypes) && e.eventTypes.length)
+    descParts.push(`Events: ${e.eventTypes.join(", ")}`);
+  if (num(e.teamSize)) descParts.push(`Team size: ${e.teamSize}`);
+  if (num(e.earlyBirdPrice) != null)
     descParts.push(
-      `Early bird: $${e.earlyBirdPrice}${e.earlyBirdEnds ? ` until ${e.earlyBirdEnds}` : ""}`,
+      `Early bird: $${num(e.earlyBirdPrice)}${e.earlyBirdEnds ? ` until ${e.earlyBirdEnds}` : ""}`,
     );
   if (e.registrationContact) descParts.push(`Contact: ${e.registrationContact}`);
   if (e.confidenceNotes) descParts.push(`Notes: ${e.confidenceNotes}`);
@@ -69,7 +75,7 @@ export function mapExtractionToDraftRow(e: FlyerExtraction): FlyerDraftRow {
     location_name: e.venueName ?? "",
     location_address: e.venueAddress ?? null,
     format: e.format ?? null,
-    entry_fee: e.price ?? null,
+    entry_fee: num(e.price),
     registration_url: e.registrationUrl ?? null,
     registration_status: "open",
     description: descParts.length ? descParts.join("\n") : null,
@@ -102,6 +108,14 @@ function stripFences(s: string): string {
   return s.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
 }
 
+// Fix C: extract the first complete JSON object span, robust to prose wrappers
+function extractJsonSpan(s: string): string {
+  const start = s.indexOf("{");
+  const end = s.lastIndexOf("}");
+  if (start !== -1 && end !== -1 && end > start) return s.slice(start, end + 1);
+  return stripFences(s);
+}
+
 export async function extractFlyer(
   input: FlyerExtractInput,
   client: FlyerLlmClient,
@@ -109,7 +123,7 @@ export async function extractFlyer(
   const raw = await client(input);
   let parsed: unknown;
   try {
-    parsed = JSON.parse(stripFences(raw));
+    parsed = JSON.parse(extractJsonSpan(raw));
   } catch {
     throw new Error(`Flyer extraction could not parse model output as JSON`);
   }
@@ -123,7 +137,10 @@ export const realFlyerClient: FlyerLlmClient = async (input) => {
   const anthropic = new Anthropic({ apiKey });
 
   const content: Anthropic.ContentBlockParam[] = [];
-  if (input.imageBase64 && input.imageMediaType) {
+  // Fix D: fail loudly if image bytes are present without a media type
+  if (input.imageBase64) {
+    if (!input.imageMediaType)
+      throw new Error("imageMediaType required when imageBase64 is provided");
     content.push({
       type: "image",
       source: {

@@ -26,6 +26,13 @@ export async function POST(req: NextRequest) {
       { status: 400 },
     );
   }
+  // Fix E: body-size guard — return clean JSON error instead of unhandled 413
+  if (body.imageBase64 && body.imageBase64.length > 4_000_000) {
+    return NextResponse.json(
+      { error: "image too large (max ~3 MB)" },
+      { status: 413 },
+    );
+  }
 
   try {
     const extraction = await extractFlyer(

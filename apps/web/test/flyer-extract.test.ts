@@ -55,6 +55,24 @@ describe("mapExtractionToDraftRow", () => {
     const row = mapExtractionToDraftRow({ ...full, venueName: null });
     expect(row.location_name).toBe("");
   });
+
+  it("tolerates a non-array eventTypes from the model (no crash)", () => {
+    const row = mapExtractionToDraftRow({
+      ...full,
+      // model hallucinated a string instead of string[]
+      eventTypes: "Mixed Doubles" as unknown as string[],
+    });
+    // does not throw; eventTypes simply omitted from the description
+    expect(row.name).toBe("Bayou City Open");
+  });
+
+  it("coerces a non-numeric price to null instead of poisoning the row", () => {
+    const row = mapExtractionToDraftRow({
+      ...full,
+      price: "sixty" as unknown as number,
+    });
+    expect(row.entry_fee).toBeNull();
+  });
 });
 
 describe("extractFlyer", () => {
