@@ -25,16 +25,19 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('packages/scrapers/package-lock.json') }}
+          # Hash the ROOT lockfile — this is a monorepo, there is no
+          # packages/scrapers/package-lock.json, so the old key hashed an empty
+          # set → constant key → permanent cache hit → browser install skipped
+          # forever. When Playwright drifted to a new Chromium build the cached
+          # browser went stale and browserType.launch broke.
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Install Playwright Chromium
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        # Run UNCONDITIONALLY. `playwright install` is idempotent: a fast no-op
+        # when the cache already holds the right build, and it self-heals when
+        # Playwright's version drifts to a new Chromium build. Guarding this on
+        # cache-hit is exactly what left a stale browser and killed every run.
         run: npx playwright install --with-deps chromium
-        working-directory: packages/scrapers
-
-      - name: Install Playwright OS dependencies
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps chromium
         working-directory: packages/scrapers
 
       - name: Run scrapers
