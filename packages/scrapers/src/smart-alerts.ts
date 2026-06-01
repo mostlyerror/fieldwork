@@ -6,10 +6,10 @@
  * alerted on it). One alert per subscriber per week max.
  */
 
-import { Resend } from "resend";
 import { supabase } from "./utils/supabase.js";
 import { sendDiscordAlert } from "./utils/discord.js";
 import { posthog, SCRAPER_ID } from "./utils/posthog.js";
+import { sendEmail } from "./utils/email.js";
 
 const APP_URL = process.env.APP_URL ?? "https://pickleradar.app";
 const SCORE_THRESHOLD = 15;
@@ -341,13 +341,11 @@ export interface SmartAlertOptions {
 }
 
 export async function sendSmartAlerts(opts: SmartAlertOptions = {}): Promise<SmartAlertResult> {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey && !opts.dryRun) {
-    console.log("[smart-alerts] No RESEND_API_KEY, skipping");
+  if (!process.env.BREVO_API_KEY && !opts.dryRun) {
+    console.log("[smart-alerts] No BREVO_API_KEY, skipping");
     return { subscribersChecked: 0, alertsSent: 0, skippedCooldown: 0 };
   }
 
-  const resend = apiKey ? new Resend(apiKey) : null;
   const result: SmartAlertResult = { subscribersChecked: 0, alertsSent: 0, skippedCooldown: 0 };
 
   let subscribers = await getLinkedSubscribers();
@@ -396,14 +394,18 @@ export async function sendSmartAlerts(opts: SmartAlertOptions = {}): Promise<Sma
       continue;
     }
 
-    try {
-      await resend!.emails.send({
-        from: "PickleRadar <alerts@pickleradar.app>",
-        to: sub.email,
-        subject: `🏓 ${best.tournament.name} looks good for you${sub.name ? `, ${sub.name.split(" ")[0]}` : ""}`,
-        html,
-      });
+    const emailResult = await sendEmail({
+      to: sub.email,
+      fromEmail: "alerts@pickleradar.app",
+      fromName: "PickleRadar",
+      subject: `🏓 ${best.tournament.name} looks good for you${sub.name ? `, ${sub.name.split(" ")[0]}` : ""}`,
+      html,
+    });
 
+    if (!emailResult.ok) {
+      posthog?.captureException(new Error(emailResult.error), SCRAPER_ID, { subscriber_id: sub.id });
+      console.error(`[smart-alerts] Send failed for ${sub.email}:`, emailResult.error);
+    } else {
       await supabase.from("tournament_alerts_sent").insert({
         subscriber_id: sub.id,
         tournament_id: best.tournament.id,
@@ -427,9 +429,6 @@ export async function sendSmartAlerts(opts: SmartAlertOptions = {}): Promise<Sma
       console.log(
         `[smart-alerts] ✓ ${sub.email} → ${best.tournament.name} (score=${best.score.total}, reasons=${best.score.reasons.join(",")})`,
       );
-    } catch (err) {
-      posthog?.captureException(err, SCRAPER_ID, { subscriber_id: sub.id });
-      console.error(`[smart-alerts] Send failed for ${sub.email}:`, err);
     }
   }
 

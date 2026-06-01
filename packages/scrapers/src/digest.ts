@@ -6,10 +6,10 @@
  * Runs Monday afternoon via GitHub Actions cron.
  */
 
-import { Resend } from "resend";
 import { supabase } from "./utils/supabase.js";
 import { sendDiscordAlert } from "./utils/discord.js";
 import { posthog, SCRAPER_ID, shutdownPostHog } from "./utils/posthog.js";
+import { sendEmail } from "./utils/email.js";
 
 interface DigestTournament {
   id: string;
@@ -178,13 +178,7 @@ async function sendDigestEmails(
   appUrl: string,
   newThisWeekCount: number,
   comingUpTournaments: DigestTournament[]
-): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.log("[digest] RESEND_API_KEY not set — skipping email send");
-    return;
-  }
-
+): Promise<{ sent: number; failed: number }> {
   const { data: subscribers, error } = await supabase
     .from("email_subscribers")
     .select("email")
@@ -192,39 +186,47 @@ async function sendDigestEmails(
 
   if (error) {
     console.error("[digest] Error fetching subscribers:", error);
-    return;
+    return { sent: 0, failed: 0 };
   }
 
   if (!subscribers || subscribers.length === 0) {
     console.log("[digest] No active subscribers — skipping email send");
-    return;
+    return { sent: 0, failed: 0 };
   }
 
   console.log(`[digest] Sending digest email to ${subscribers.length} subscriber(s)`);
 
-  const resend = new Resend(apiKey);
   const BATCH_SIZE = 50;
+  let totalSent = 0;
+  let totalFailed = 0;
 
   for (let i = 0; i < subscribers.length; i += BATCH_SIZE) {
     const batch = subscribers.slice(i, i + BATCH_SIZE);
     const results = await Promise.allSettled(
       batch.map((sub) =>
-        resend.emails.send({
-          from: "PickleRadar <digest@pickleradar.app>",
+        sendEmail({
           to: sub.email,
+          fromEmail: "digest@pickleradar.app",
+          fromName: "PickleRadar",
           subject: `\u{1F3D3} This Weekend's Houston Pickleball Tournaments`,
           html: buildDigestEmailHtml(tournaments, appUrl, sub.email, newThisWeekCount, comingUpTournaments),
         })
       )
     );
 
-    const failed = results.filter((r) => r.status === "rejected").length;
-    if (failed > 0) {
-      console.warn(`[digest] ${failed}/${batch.length} emails failed in batch`);
+    for (const r of results) {
+      if (r.status === "fulfilled" && r.value.ok) {
+        totalSent++;
+      } else {
+        totalFailed++;
+        const reason = r.status === "rejected" ? r.reason : r.value.error;
+        console.warn(`[digest] Email failed:`, reason);
+      }
     }
   }
 
-  console.log("[digest] Digest emails sent");
+  console.log(`[digest] Digest emails: ${totalSent} sent, ${totalFailed} failed`);
+  return { sent: totalSent, failed: totalFailed };
 }
 
 async function main() {
@@ -323,7 +325,12 @@ async function main() {
   );
 
   // Send digest email to all active subscribers
-  await sendDigestEmails(tournaments, appUrl, newThisWeekCount ?? 0, comingUpTournaments);
+  const { sent: emailSent, failed: emailFailed } = await sendDigestEmails(
+    tournaments,
+    appUrl,
+    newThisWeekCount ?? 0,
+    comingUpTournaments,
+  );
 
   const { count: subscriberCount } = await supabase
     .from("email_subscribers")
@@ -339,15 +346,25 @@ async function main() {
       tournament_count: tournaments.length,
       subscriber_count: subscriberCount ?? 0,
       new_this_week: newThisWeekCount ?? 0,
+      email_sent: emailSent,
+      email_failed: emailFailed,
     },
   });
 
+  const allFailed = emailFailed > 0 && emailSent === 0;
+  const someFailed = emailFailed > 0 && emailSent > 0;
+  const alertTitle = allFailed
+    ? "⚠️ Weekly Digest FAILED (0 delivered)"
+    : "📬 Weekly Digest Sent";
+  const alertColor = allFailed ? 0xef4444 : someFailed ? 0xf59e0b : 0x8b5cf6;
+
   await sendDiscordAlert({
-    title: "📬 Weekly Digest Sent",
+    title: alertTitle,
     description: `${tournaments.length} weekend tournament(s) for ${friday} — ${sunday}`,
-    color: 0x8b5cf6,
+    color: alertColor,
     fields: [
-      { name: "Subscribers", value: String(subscriberCount ?? 0), inline: true },
+      { name: "Delivered", value: String(emailSent), inline: true },
+      { name: "Failed", value: String(emailFailed), inline: true },
       { name: "New This Week", value: String(newThisWeekCount ?? 0), inline: true },
     ],
   });

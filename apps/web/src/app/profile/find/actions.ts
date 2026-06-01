@@ -1,10 +1,10 @@
 "use server";
 
 import crypto from "node:crypto";
-import { Resend } from "resend";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { nameMatches } from "@/lib/player-linker";
 import { posthogServer } from "@/lib/posthog-server";
+import { sendEmail } from "@/lib/email";
 
 export interface PlayerCandidate {
   id: string;
@@ -81,22 +81,20 @@ export async function requestClaim(
     return { status: "error", message: "Couldn't create claim. Try again." };
   }
 
-  const apiKey = process.env.RESEND_API_KEY;
   const appUrl = process.env.APP_URL ?? "https://pickleradar.app";
-  if (apiKey) {
-    try {
-      const { data: player } = await supabase
-        .from("players")
-        .select("name, location, dupr_doubles")
-        .eq("id", playerId)
-        .single();
+  try {
+    const { data: player } = await supabase
+      .from("players")
+      .select("name, location, dupr_doubles")
+      .eq("id", playerId)
+      .single();
 
-      const confirmUrl = `${appUrl}/profile/claim/${token}`;
-      const playerLine = player
-        ? `${player.name}${player.location ? ` · ${player.location}` : ""}${player.dupr_doubles != null ? ` · ${Number(player.dupr_doubles).toFixed(2)}` : ""}`
-        : "this player";
+    const confirmUrl = `${appUrl}/profile/claim/${token}`;
+    const playerLine = player
+      ? `${player.name}${player.location ? ` · ${player.location}` : ""}${player.dupr_doubles != null ? ` · ${Number(player.dupr_doubles).toFixed(2)}` : ""}`
+      : "this player";
 
-      const html = `<!DOCTYPE html>
+    const html = `<!DOCTYPE html>
 <html><body style="margin:0;padding:0;background:#FFFDF7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
 <div style="max-width:520px;margin:0 auto;padding:32px 24px">
   <div style="padding:8px 0 16px">
@@ -117,18 +115,19 @@ export async function requestClaim(
 </div>
 </body></html>`;
 
-      const resend = new Resend(apiKey);
-      await resend.emails.send({
-        from: "PickleRadar <claims@pickleradar.app>",
-        to: normalizedEmail,
-        subject: "Confirm your PickleRadar player profile",
-        html,
-      });
-    } catch (err) {
-      console.error("Failed to send claim email:", err);
+    const result = await sendEmail({
+      to: normalizedEmail,
+      fromEmail: "claims@pickleradar.app",
+      fromName: "PickleRadar",
+      subject: "Confirm your PickleRadar player profile",
+      html,
+    });
+
+    if (!result.ok) {
+      console.error("Failed to send claim email:", result.error);
     }
-  } else {
-    console.log(`[claim] Would send confirm email to ${normalizedEmail} for token ${token}`);
+  } catch (err) {
+    console.error("Failed to send claim email:", err);
   }
 
   posthogServer?.capture({

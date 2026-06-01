@@ -1,9 +1,9 @@
 "use server";
 
-import { Resend } from "resend";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { sendDiscordAlert } from "@/lib/discord";
 import { posthogServer } from "@/lib/posthog-server";
+import { sendEmail } from "@/lib/email";
 
 type SubscribeResult =
   | { status: "success" }
@@ -103,9 +103,6 @@ async function sendWelcomeDigest(
   email: string,
   supabase: ReturnType<typeof getSupabaseAdmin>
 ) {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return;
-
   try {
     const today = new Date().toISOString().split("T")[0];
     const { data: tournaments } = await supabase
@@ -120,14 +117,18 @@ async function sendWelcomeDigest(
 
     const appUrl = process.env.APP_URL ?? "https://pickleradar.app";
     const html = buildWelcomeEmailHtml(tournaments, appUrl, email);
-    const resend = new Resend(apiKey);
 
-    await resend.emails.send({
-      from: "PickleRadar <digest@pickleradar.app>",
+    const result = await sendEmail({
       to: email,
+      fromEmail: "digest@pickleradar.app",
+      fromName: "PickleRadar",
       subject: "\u{1F3D3} Welcome to PickleRadar! Here's what's coming up",
       html,
     });
+
+    if (!result.ok) {
+      console.error("Failed to send welcome digest:", result.error);
+    }
   } catch (err) {
     console.error("Failed to send welcome digest:", err);
   }
