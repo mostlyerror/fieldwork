@@ -194,9 +194,16 @@ export default async function PlayerPage({ params }: PageProps) {
                   Singles
                 </p>
                 {player.dupr_singles != null ? (
-                  <p className="text-2xl sm:text-3xl font-extrabold text-emerald-600 leading-none mt-0.5">
-                    {player.dupr_singles.toFixed(2)}
-                  </p>
+                  <>
+                    <p className="text-2xl sm:text-3xl font-extrabold text-emerald-600 leading-none mt-0.5">
+                      {player.dupr_singles.toFixed(2)}
+                    </p>
+                    {player.dupr_verified && (
+                      <span className="mt-1.5 inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-600">
+                        Verified
+                      </span>
+                    )}
+                  </>
                 ) : (
                   <p className="text-2xl font-extrabold text-gray-200 leading-none mt-0.5">--</p>
                 )}
