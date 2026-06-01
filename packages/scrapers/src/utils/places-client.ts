@@ -41,6 +41,91 @@ export function isEstablishment(types: string[]): boolean {
   return types.includes("establishment") || types.includes("point_of_interest");
 }
 
+// Sports/recreation types a pickleball venue could plausibly be. Used by the
+// Nearby fallback to pick the athletic anchor tenant (e.g. "Life Time") out of
+// a multi-tenant building that also holds spas, salons, clinics, etc.
+const SPORTS_VENUE_TYPES = new Set([
+  "gym",
+  "fitness_center",
+  "sports_complex",
+  "sports_club",
+  "sports_activity_location",
+  "stadium",
+  "arena",
+  "athletic_field",
+  "recreation_center",
+  "park",
+]);
+
+export function isSportsVenue(types: string[]): boolean {
+  return types.some((t) => SPORTS_VENUE_TYPES.has(t));
+}
+
+/**
+ * Pure: from a Nearby Search response, pick the first result that is a
+ * sports/recreation venue. Returns null when none of the nearby establishments
+ * are athletic (so we don't link a tournament to a random massage studio).
+ */
+export function pickSportsVenue(json: SearchTextJson): PlacesVenue | null {
+  for (const p of json.places ?? []) {
+    if (!p.id || !p.displayName?.text) continue;
+    if (!isSportsVenue(p.types ?? [])) continue;
+    return {
+      placeId: p.id,
+      name: p.displayName.text,
+      formattedAddress: p.formattedAddress ?? null,
+      latitude: p.location?.latitude ?? null,
+      longitude: p.location?.longitude ?? null,
+      types: p.types ?? [],
+    };
+  }
+  return null;
+}
+
+export interface NearbyArgs {
+  latitude: number;
+  longitude: number;
+  radiusMeters?: number;
+}
+
+// Injectable for tests (mirrors PlacesClient).
+export type NearbyPlacesClient = (args: NearbyArgs) => Promise<PlacesVenue | null>;
+
+/**
+ * Real Nearby Search: "what athletic venue sits at these coords?" Used when a TD
+ * typed a bare city as the location but PBB gave us precise coordinates.
+ */
+export const realNearbyClient: NearbyPlacesClient = async (args) => {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!apiKey) {
+    console.warn("[places] GOOGLE_PLACES_API_KEY not set — skipping nearby");
+    return null;
+  }
+  const res = await fetch("https://places.googleapis.com/v1/places:searchNearby", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Goog-Api-Key": apiKey,
+      "X-Goog-FieldMask":
+        "places.id,places.displayName,places.formattedAddress,places.location,places.types",
+    },
+    body: JSON.stringify({
+      locationRestriction: {
+        circle: {
+          center: { latitude: args.latitude, longitude: args.longitude },
+          radius: args.radiusMeters ?? 75,
+        },
+      },
+      maxResultCount: 10,
+    }),
+  });
+  if (!res.ok) {
+    console.error(`[places] searchNearby failed: ${res.status}`);
+    return null;
+  }
+  return pickSportsVenue(await res.json());
+};
+
 export interface SearchTextArgs {
   name: string;
   address: string | null;

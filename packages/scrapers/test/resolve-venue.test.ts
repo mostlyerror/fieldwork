@@ -1,6 +1,6 @@
 // packages/scrapers/test/resolve-venue.test.ts
 import { describe, it, expect, vi } from "vitest";
-import { resolveVenue } from "../src/utils/resolve-venue.js";
+import { resolveVenue, qualifyVenueName } from "../src/utils/resolve-venue.js";
 import type { PlacesVenue } from "../src/utils/places-client.js";
 
 // Minimal fake Supabase that records calls and returns scripted results.
@@ -75,25 +75,55 @@ describe("resolveVenue", () => {
     expect(id).toBe("v-existing-place");
   });
 
-  it("leaves the tournament unlinked (null) when Places misses", async () => {
+  it("leaves the tournament unlinked when Places misses and no athletic venue is nearby", async () => {
     const db = fakeDb({ nearby: [], byPlaceId: null });
     const places = vi.fn(async () => null);
+    const nearby = vi.fn(async () => null);
     const id = await resolveVenue(
       { name: "Backyard Courts", address: null, latitude: 30.1, longitude: -95.5 },
-      { db, places },
+      { db, places, nearby },
     );
+    expect(nearby).toHaveBeenCalledTimes(1);
     expect(id).toBeNull();
   });
 
-  it("leaves it unlinked when Places resolves to a bare locality (TD typed just a city)", async () => {
+  it("leaves it unlinked when name is a bare locality and no athletic venue is nearby", async () => {
     const db = fakeDb({ nearby: [], byPlaceId: null });
     const cityHit: PlacesVenue = { placeId: "ChIJcity", name: "Missouri City", formattedAddress: "Missouri City, TX, USA", latitude: 29.6, longitude: -95.5, types: ["locality", "political"] };
     const places = vi.fn(async () => cityHit);
+    const nearby = vi.fn(async () => null);
     const id = await resolveVenue(
       { name: "Missouri City", address: null, latitude: 29.6, longitude: -95.5 },
-      { db, places },
+      { db, places, nearby },
     );
     expect(places).toHaveBeenCalledTimes(1);
+    expect(nearby).toHaveBeenCalledTimes(1);
+    expect(id).toBeNull();
+  });
+
+  it("falls back to Nearby Search and links the athletic venue when the TD typed a bare city", async () => {
+    const db = fakeDb({ nearby: [], byPlaceId: null, insertedId: "v-lifetime" });
+    const cityHit: PlacesVenue = { placeId: "ChIJcity", name: "Missouri City", formattedAddress: "Missouri City, TX", latitude: 29.5424, longitude: -95.5448, types: ["locality", "political"] };
+    const places = vi.fn(async () => cityHit);
+    const lifeTime: PlacesVenue = { placeId: "ChIJlt", name: "Life Time", formattedAddress: "8421 Hwy 6", latitude: 29.5424, longitude: -95.5448, types: ["gym", "fitness_center", "establishment", "point_of_interest"] };
+    const nearby = vi.fn(async () => lifeTime);
+    const id = await resolveVenue(
+      { name: "Missouri City", address: "8421 Hwy 6, Missouri City, TX", latitude: 29.5424, longitude: -95.5448 },
+      { db, places, nearby },
+    );
+    expect(nearby).toHaveBeenCalledTimes(1);
+    expect(id).toBe("v-lifetime");
+  });
+
+  it("ignores a non-athletic nearby result (e.g. a spa) and stays unlinked", async () => {
+    const db = fakeDb({ nearby: [], byPlaceId: null });
+    const places = vi.fn(async () => null);
+    const spa: PlacesVenue = { placeId: "ChIJspa", name: "Serenity Spa", formattedAddress: "x", latitude: 29.6, longitude: -95.5, types: ["spa", "establishment", "point_of_interest"] };
+    const nearby = vi.fn(async () => spa);
+    const id = await resolveVenue(
+      { name: "Missouri City", address: null, latitude: 29.6, longitude: -95.5 },
+      { db, places, nearby },
+    );
     expect(id).toBeNull();
   });
 
@@ -106,5 +136,28 @@ describe("resolveVenue", () => {
     );
     expect(places).not.toHaveBeenCalled();
     expect(id).toBeNull();
+  });
+});
+
+describe("qualifyVenueName", () => {
+  it("appends the locality to a Places brand label", () => {
+    expect(qualifyVenueName("Life Time", "Missouri City")).toBe(
+      "Life Time Missouri City",
+    );
+  });
+  it("is a no-op when the brand already contains the locality", () => {
+    expect(qualifyVenueName("Life Time Greenway", "Greenway")).toBe(
+      "Life Time Greenway",
+    );
+  });
+  it("appends only the city token, not a full City/ST/ZIP", () => {
+    expect(qualifyVenueName("Life Time", "Houston, TX, 77007")).toBe(
+      "Life Time Houston",
+    );
+  });
+  it("leaves an already location-specific brand untouched", () => {
+    expect(
+      qualifyVenueName("Elite Pickleball Club - The Heights", "Houston, TX, 77007"),
+    ).toBe("Elite Pickleball Club - The Heights");
   });
 });
