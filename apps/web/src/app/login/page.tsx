@@ -35,6 +35,15 @@ export default async function LoginPage({
           <LoginForm redirect={redirect} />
         </div>
 
+        <p className="mt-4 text-center text-sm text-gray-500">
+          <Link
+            href="/forgot-password"
+            className="font-medium text-green-600 hover:text-green-700"
+          >
+            Forgot password?
+          </Link>
+        </p>
+
         <DevQuickLogin />
       </div>
     </div>
