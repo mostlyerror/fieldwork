@@ -147,7 +147,7 @@ export function TournamentDetail({
               tournamentId={tournament.id}
               tournamentName={tournament.name}
               dateRange={formatDateRange(tournament.date_start, tournament.date_end)}
-              venue={tournament.location_name}
+              venue={tournament.venue_name || tournament.location_name}
               registered={tournament.total_registered ?? undefined}
               eventCount={tournament.event_count ?? undefined}
               liveRatings={tournament.total_live_dupr ?? undefined}
@@ -171,16 +171,16 @@ export function TournamentDetail({
           {tournament.venue_slug && citySlug ? (
             <Link
               href={`/${citySlug}/venues/${tournament.venue_slug}`}
-              className="text-xl text-gray-500 font-medium hover:text-emerald-700 hover:underline underline-offset-2"
+              className="text-xl font-medium text-emerald-700 underline decoration-emerald-300 decoration-2 underline-offset-2 hover:decoration-emerald-600"
             >
-              {tournament.location_name}
+              {tournament.venue_name || tournament.location_name}
             </Link>
           ) : (
             <a
               href={mapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xl text-gray-500 font-medium hover:text-emerald-700 hover:underline underline-offset-2"
+              className="text-xl font-medium text-emerald-700 underline decoration-emerald-300 decoration-2 underline-offset-2 hover:decoration-emerald-600"
             >
               {tournament.location_name}
             </a>
@@ -250,7 +250,7 @@ export function TournamentDetail({
               tournamentId={tournament.id}
               tournamentName={tournament.name}
               dateRange={formatDateRange(tournament.date_start, tournament.date_end)}
-              venue={tournament.location_name}
+              venue={tournament.venue_name || tournament.location_name}
               registered={tournament.total_registered ?? undefined}
               eventCount={tournament.event_count ?? undefined}
               liveRatings={tournament.total_live_dupr ?? undefined}

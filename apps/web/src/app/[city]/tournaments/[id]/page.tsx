@@ -182,7 +182,7 @@ export default async function TournamentPage({ params }: PageProps) {
           <section className="mt-12">
             <div className="mb-4 flex items-baseline justify-between gap-3">
               <h2 className="text-lg font-bold text-gray-800">
-                More at {tournament.location_name}
+                More at {tournament.venue_name || tournament.location_name}
               </h2>
               {tournament.venue_slug && (
                 <Link

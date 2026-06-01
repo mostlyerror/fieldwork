@@ -7,6 +7,7 @@ import { getCityBySlug } from "@/lib/cities";
 import { TournamentCard } from "@/components/tournament-card";
 import { ServerHeader } from "@/components/server-header";
 import { Footer } from "@/components/footer";
+import { BackLink } from "@/components/back-link";
 
 const MiniMap = dynamic(() => import("@/components/mini-map"));
 
@@ -85,9 +86,11 @@ export default async function VenuePage({ params }: PageProps) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <ServerHeader city={city} />
       <main className="mx-auto max-w-6xl px-3 sm:px-5 py-10">
-        <Link href={`/${citySlug}`} className="mb-8 inline-flex items-center text-sm text-gray-400 hover:text-emerald-700">
-          &larr; Back to {city.name}
-        </Link>
+        <BackLink
+          fallbackHref={`/${citySlug}`}
+          fallbackLabel={`Back to ${city.name}`}
+          className="mb-8 inline-flex items-center text-sm text-gray-400 hover:text-emerald-700"
+        />
         <header className="mb-6">
           <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">{venue.name}</h1>
           {venue.formatted_address && <p className="mt-1 text-gray-500">{venue.formatted_address}</p>}

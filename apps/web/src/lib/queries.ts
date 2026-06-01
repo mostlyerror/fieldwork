@@ -46,7 +46,7 @@ export async function getTournament(
   // to a plain select if the venues relationship doesn't exist yet (pre-024).
   let { data, error } = await supabase
     .from("tournaments")
-    .select("*, venues(slug)")
+    .select("*, venues(slug, name)")
     .eq("id", id)
     .single();
 
@@ -63,10 +63,13 @@ export async function getTournament(
     return null;
   }
 
-  const row = data as Tournament & { venues?: { slug: string } | null };
+  const row = data as Tournament & {
+    venues?: { slug: string; name: string } | null;
+  };
   const tournament: Tournament = {
     ...row,
     venue_slug: row.venues?.slug ?? null,
+    venue_name: row.venues?.name ?? null,
   };
 
   // Attach intelligence aggregates for single tournament
