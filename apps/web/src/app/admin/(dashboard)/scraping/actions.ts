@@ -28,3 +28,15 @@ export async function triggerScraper() {
 
   return { success: true };
 }
+
+/**
+ * Scoped "run now" for a single source card.
+ *
+ * NOTE: the scrape.yml workflow currently takes no per-source input — a dispatch
+ * runs every source. So this triggers the same full run regardless of `source`;
+ * the argument is accepted for UI attribution + future per-source dispatch. When
+ * the workflow grows a `source` input, thread it through the body below.
+ */
+export async function runSource(_source?: string) {
+  return triggerScraper();
+}
