@@ -1,5 +1,34 @@
+import Link from "next/link";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
-import { PendingTournamentCard } from "@/components/pending-tournament-card";
+import {
+  worstStatus,
+  ADMIN_STATUS,
+  type AdminStatus,
+} from "@/lib/admin-status";
+import {
+  AttentionBanner,
+  type ProblemChip,
+} from "@/components/admin/attention-banner";
+import { StatusChip } from "@/components/admin/status-chip";
+import { AgeBadge } from "@/components/admin/age-badge";
+import { RunStrip, type RunStripItem } from "@/components/admin/run-strip";
+import { RunNowButton } from "./scraping/run-now-button";
+import { ReviewQueue, type PendingTournament } from "./review-queue";
+
+interface ScraperRun {
+  id: string;
+  source_platform: string;
+  started_at: string;
+  status: string;
+}
+
+const HOUR = 3_600_000;
+const DAY = 24 * HOUR;
+const SCRAPER_STALE_MS = 3 * HOUR;
+const SCRAPER_DOWN_MS = 24 * HOUR;
+/** A submission is "aging" past 1 day, urgent past 3. */
+const QUEUE_STALE_MS = DAY;
+const QUEUE_CRITICAL_MS = 3 * DAY;
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -12,6 +41,27 @@ function timeAgo(dateStr: string): string {
   return `${days}d ago`;
 }
 
+/** Calendar-day diff from today (today = 0, tomorrow = +1). */
+function daysUntil(dateStr: string): number {
+  const d = new Date(dateStr + "T00:00:00");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.round((d.getTime() - today.getTime()) / DAY);
+}
+
+function hasCoords(t: PendingTournament): boolean {
+  return t.latitude != null && t.longitude != null;
+}
+
+/** Urgency score for a pending submission: lower sorts first. */
+function urgencyKey(t: PendingTournament): number {
+  // Primary: soonest start date (passed dates are most urgent of all).
+  const days = daysUntil(t.date_start);
+  // Secondary tiebreak: oldest submission first.
+  const submittedAt = new Date(t.created_at).getTime();
+  return days * 1e13 + submittedAt;
+}
+
 export default async function AdminPage() {
   const supabase = getSupabaseAdmin();
 
@@ -19,7 +69,8 @@ export default async function AdminPage() {
     { data: pending },
     { count: activeCount },
     { count: subscriberCount },
-    { data: lastScrapeData },
+    { data: recentRuns },
+    { count: activeGeocodeGaps },
   ] = await Promise.all([
     supabase
       .from("tournaments")
@@ -36,84 +87,413 @@ export default async function AdminPage() {
       .eq("status", "active"),
     supabase
       .from("scraper_runs")
-      .select("started_at, status")
+      .select("id, source_platform, started_at, status")
       .order("started_at", { ascending: false })
-      .limit(1),
+      .limit(50),
+    supabase
+      .from("tournaments")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "active")
+      .is("latitude", null),
   ]);
 
-  const tournaments = pending ?? [];
-  const lastScrape = lastScrapeData?.[0] ?? null;
+  const tournaments = (pending ?? []) as PendingTournament[];
+  const runs = (recentRuns ?? []) as ScraperRun[];
 
-  const stats = [
-    {
-      label: "Pending Review",
-      value: tournaments.length,
-      color: "text-amber-600",
-      bg: "bg-amber-50 ring-amber-100",
-    },
-    {
-      label: "Active Tournaments",
-      value: activeCount ?? 0,
-      color: "text-green-600",
-      bg: "bg-green-50 ring-green-100",
-    },
-    {
-      label: "Email Subscribers",
-      value: subscriberCount ?? 0,
-      color: "text-blue-600",
-      bg: "bg-blue-50 ring-blue-100",
-    },
-    {
-      label: "Last Scrape",
-      value: lastScrape ? timeAgo(lastScrape.started_at) : "never",
-      color: "text-gray-600",
-      bg: "bg-gray-50 ring-gray-100",
-    },
-  ];
+  // ── Sort the queue by urgency (soonest date, then oldest submission) ──
+  const sortedQueue = [...tournaments].sort(
+    (a, b) => urgencyKey(a) - urgencyKey(b)
+  );
+
+  // ── Scraper health (mirrors the scraping page's per-source model) ──
+  const sourceMap = new Map<string, ScraperRun[]>();
+  for (const r of runs) {
+    const list = sourceMap.get(r.source_platform) ?? [];
+    list.push(r);
+    sourceMap.set(r.source_platform, list);
+  }
+  const sourceStatuses: { name: string; status: AdminStatus }[] = [];
+  for (const [name, srcRuns] of sourceMap) {
+    const lastRun = srcRuns[0];
+    const lastSuccess = srcRuns.find((r) => r.status === "success");
+    const sinceSuccess = lastSuccess
+      ? Date.now() - new Date(lastSuccess.started_at).getTime()
+      : Infinity;
+    const lastErrored = lastRun.status === "error";
+    let status: AdminStatus = "healthy";
+    if (sinceSuccess >= SCRAPER_DOWN_MS) status = "critical";
+    else if (lastErrored && sinceSuccess >= SCRAPER_STALE_MS) status = "critical";
+    else if (lastErrored || sinceSuccess >= SCRAPER_STALE_MS) status = "attention";
+    sourceStatuses.push({ name, status });
+  }
+  const scraperStatus = worstStatus(...sourceStatuses.map((s) => s.status));
+  const lastRunOverall = runs[0] ?? null;
+  const scraperStrip: RunStripItem[] = runs
+    .slice(0, 12)
+    .map(
+      (r): RunStripItem => ({
+        status: r.status === "error" ? "error" : "success",
+      })
+    )
+    .reverse();
+  const brokenSources = sourceStatuses.filter((s) => s.status !== "healthy");
+
+  // ── Aging review queue ──
+  const now = Date.now();
+  const agingQueue = tournaments.filter((t) => {
+    const age = now - new Date(t.created_at).getTime();
+    const days = daysUntil(t.date_start);
+    // Critical if it has waited long OR its date is near/passed.
+    return age >= QUEUE_STALE_MS || days <= 7;
+  });
+  const queueCritical = tournaments.some((t) => {
+    const age = now - new Date(t.created_at).getTime();
+    const days = daysUntil(t.date_start);
+    return age >= QUEUE_CRITICAL_MS || days <= 3;
+  });
+  const queueStatus: AdminStatus =
+    tournaments.length === 0
+      ? "healthy"
+      : queueCritical
+        ? "critical"
+        : agingQueue.length > 0
+          ? "attention"
+          : "healthy";
+  const oldestPending = sortedQueue.length
+    ? [...tournaments].sort(
+        (a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      )[0]
+    : null;
+
+  // ── Geocode gaps (pending + active that won't show on the map) ──
+  const pendingGaps = tournaments.filter((t) => !hasCoords(t));
+  const activeGaps = activeGeocodeGaps ?? 0;
+  const totalGaps = pendingGaps.length + activeGaps;
+  const geocodeStatus: AdminStatus =
+    totalGaps === 0 ? "healthy" : totalGaps >= 5 ? "critical" : "attention";
+  const pendingGeocodedPct =
+    tournaments.length === 0
+      ? 100
+      : Math.round(
+          ((tournaments.length - pendingGaps.length) / tournaments.length) * 100
+        );
+
+  // ── Worst-of system banner ──
+  const overall = worstStatus(scraperStatus, queueStatus, geocodeStatus);
+
+  const chips: ProblemChip[] = [];
+  if (scraperStatus !== "healthy") {
+    const broken = brokenSources[0];
+    chips.push({
+      label: lastRunOverall
+        ? `Scraper ${scraperStatus === "critical" ? "down" : "stale"} — ${broken?.name ?? "source"} last ran ${timeAgo(lastRunOverall.started_at)}`
+        : "No scraper runs recorded",
+      level: scraperStatus,
+      href: "/admin/scraping",
+    });
+  }
+  if (queueStatus !== "healthy") {
+    chips.push({
+      label: `${agingQueue.length} submission${agingQueue.length === 1 ? "" : "s"} ${queueCritical ? "urgent / aging" : "aging"}`,
+      level: queueStatus,
+      href: "#queue",
+    });
+  }
+  if (geocodeStatus !== "healthy") {
+    chips.push({
+      label: `${totalGaps} missing geocode${pendingGaps.length ? ` (${pendingGaps.length} pending)` : ""}`,
+      level: geocodeStatus,
+      href: "#queue",
+    });
+  }
+
+  const bannerTitle =
+    overall === "healthy"
+      ? "All systems healthy"
+      : `${chips.length} thing${chips.length === 1 ? "" : "s"} need${chips.length === 1 ? "s" : ""} you before ${chips.length === 1 ? "it rots" : "they rot"}`;
+
+  // Triage rail verdict labels.
+  const scraperVerdictLabel =
+    scraperStatus === "critical"
+      ? "Stale"
+      : scraperStatus === "attention"
+        ? "Degraded"
+        : "Healthy";
+  const queueVerdictLabel =
+    queueStatus === "critical"
+      ? "Urgent"
+      : queueStatus === "attention"
+        ? "Aging"
+        : tournaments.length === 0
+          ? "Clear"
+          : "On pace";
 
   return (
     <>
-      {/* Quick stats */}
-      <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className={`rounded-xl p-4 shadow-sm ring-1 ${stat.bg}`}
-          >
-            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-              {stat.label}
-            </p>
-            <p className={`mt-1 text-2xl font-bold ${stat.color}`}>
-              {stat.value}
-            </p>
-          </div>
-        ))}
-      </div>
+      {/* ── System-status banner ── */}
+      <AttentionBanner
+        state={overall}
+        title={bannerTitle}
+        chips={chips}
+        action={
+          scraperStatus !== "healthy" ? (
+            <RunNowButton
+              label="Run scraper now"
+              variant={scraperStatus === "critical" ? "alarm" : "primary"}
+            />
+          ) : undefined
+        }
+        className="mb-6"
+      />
 
-      {/* Page header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Pending Review</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          {tournaments.length} submission{tournaments.length !== 1 && "s"}{" "}
-          awaiting review
-        </p>
-      </div>
+      {/* ── Triage rail: needs you now ── */}
+      <div className="mb-7 grid gap-3.5 lg:grid-cols-3">
+        {/* Review queue */}
+        <TriageCard
+          label="Review queue"
+          verdict={queueStatus}
+          verdictLabel={queueVerdictLabel}
+          jumpHref="#queue"
+          jumpLabel="Review →"
+        >
+          <BigNum value={tournaments.length} unit="waiting" />
+          {oldestPending ? (
+            <p className="mt-2 text-[12.5px] leading-snug text-emerald-900/65">
+              Oldest sat{" "}
+              <span className="font-bold text-emerald-950">
+                {timeAgo(oldestPending.created_at)}
+              </span>
+              {(() => {
+                const soon = tournaments.filter(
+                  (t) => daysUntil(t.date_start) <= 7
+                ).length;
+                return soon > 0 ? (
+                  <>
+                    {" · "}
+                    <span className="font-bold text-emerald-950">{soon}</span>{" "}
+                    start{soon === 1 ? "s" : ""} within a week
+                  </>
+                ) : null;
+              })()}
+            </p>
+          ) : (
+            <p className="mt-2 text-[12.5px] text-emerald-900/55">
+              Queue is clear — nothing waiting.
+            </p>
+          )}
+          {oldestPending && (
+            <AgeBadge
+              timestamp={oldestPending.created_at}
+              prefix="oldest"
+              staleMs={QUEUE_STALE_MS}
+              criticalMs={QUEUE_CRITICAL_MS}
+              className="mt-2.5"
+            />
+          )}
+        </TriageCard>
 
-      {tournaments.length === 0 ? (
-        <div className="rounded-2xl bg-white p-16 text-center shadow-sm ring-1 ring-gray-100">
-          <p className="text-4xl">{"\u{1F3D3}"}</p>
-          <p className="mt-3 text-lg font-bold text-gray-300">All clear</p>
-          <p className="mt-1 text-sm text-gray-400">
-            No pending submissions right now.
+        {/* Scraper pipeline */}
+        <TriageCard
+          label="Scraper pipeline"
+          verdict={scraperStatus}
+          verdictLabel={scraperVerdictLabel}
+          jumpHref="/admin/scraping"
+          jumpLabel="Scraping →"
+        >
+          {lastRunOverall ? (
+            <>
+              <div className="flex items-center gap-3">
+                <StatusChip
+                  status={
+                    lastRunOverall.status === "error" ? "critical" : "healthy"
+                  }
+                  label={lastRunOverall.status === "error" ? "Failed" : "Success"}
+                />
+                <span className="text-[12.5px] text-emerald-900/55">
+                  last run{" "}
+                  <span className="font-bold text-emerald-950">
+                    {timeAgo(lastRunOverall.started_at)}
+                  </span>
+                </span>
+              </div>
+              {scraperStrip.length > 0 && (
+                <RunStrip
+                  runs={scraperStrip}
+                  caption={[
+                    `last ${scraperStrip.length} runs`,
+                    `${sourceStatuses.length} source${sourceStatuses.length === 1 ? "" : "s"}`,
+                  ]}
+                  className="mt-3"
+                />
+              )}
+              <AgeBadge
+                timestamp={lastRunOverall.started_at}
+                prefix="last run"
+                staleMs={SCRAPER_STALE_MS}
+                criticalMs={SCRAPER_DOWN_MS}
+                className="mt-2.5"
+              />
+            </>
+          ) : (
+            <p className="mt-2 text-[12.5px] text-emerald-900/55">
+              No runs recorded yet.
+            </p>
+          )}
+        </TriageCard>
+
+        {/* Data quality */}
+        <TriageCard
+          label="Data quality"
+          verdict={geocodeStatus}
+          verdictLabel={totalGaps === 0 ? "Clean" : `${totalGaps} gaps`}
+          jumpHref="#queue"
+          jumpLabel="Fix geocode →"
+        >
+          <BigNum value={totalGaps} unit="geocode gaps" />
+          <p className="mt-2 text-[12.5px] leading-snug text-emerald-900/65">
+            {totalGaps === 0 ? (
+              "Every tournament has coordinates — all mappable."
+            ) : (
+              <>
+                <span className="font-bold text-emerald-950">
+                  {pendingGaps.length}
+                </span>{" "}
+                pending ({pendingGeocodedPct}% geocoded)
+                {activeGaps > 0 && (
+                  <>
+                    {" · "}
+                    <span className="font-bold text-emerald-950">
+                      {activeGaps}
+                    </span>{" "}
+                    live but off-map
+                  </>
+                )}
+              </>
+            )}
           </p>
+        </TriageCard>
+      </div>
+
+      {/* ── Pending review queue (urgency-sorted, inline approve/edit) ── */}
+      <div id="queue" className="scroll-mt-6">
+        <ReviewQueue items={sortedQueue} />
+      </div>
+
+      {/* ── Demoted vanity / context strip ── */}
+      <section className="mt-8 grid gap-5 border-t border-emerald-900/10 pt-5 sm:grid-cols-3">
+        <ContextStat
+          title="Catalog"
+          value={activeCount ?? 0}
+          label="active tournaments"
+        />
+        <ContextStat
+          title="Audience"
+          value={subscriberCount ?? 0}
+          label="subscribers"
+        />
+        <div>
+          <div className="mb-2 text-[10px] font-extrabold uppercase tracking-[0.1em] text-emerald-900/35">
+            Scraper · recent
+          </div>
+          <div className="text-[12.5px] text-emerald-900/60">
+            {runs.length} run{runs.length === 1 ? "" : "s"} tracked ·{" "}
+            <span className="font-bold text-emerald-900/80">
+              {sourceStatuses.length}
+            </span>{" "}
+            source{sourceStatuses.length === 1 ? "" : "s"}
+            {lastRunOverall && (
+              <> · last {timeAgo(lastRunOverall.started_at)}</>
+            )}
+          </div>
+          <Link
+            href="/admin/scraping"
+            className="mt-1 inline-block text-[12px] font-bold text-emerald-700 hover:text-emerald-800"
+          >
+            Pipeline detail →
+          </Link>
         </div>
-      ) : (
-        <div className="space-y-4">
-          {tournaments.map((t) => (
-            <PendingTournamentCard key={t.id} tournament={t} />
-          ))}
-        </div>
-      )}
+      </section>
     </>
+  );
+}
+
+function TriageCard({
+  label,
+  verdict,
+  verdictLabel,
+  jumpHref,
+  jumpLabel,
+  children,
+}: {
+  label: string;
+  verdict: AdminStatus;
+  verdictLabel: string;
+  jumpHref: string;
+  jumpLabel: string;
+  children: React.ReactNode;
+}) {
+  const tokens = ADMIN_STATUS[verdict];
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-emerald-900/10 bg-white p-4 pb-11">
+      <div className="mb-2.5 flex items-center justify-between">
+        <span className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-emerald-900/40">
+          {label}
+        </span>
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10.5px] font-bold ${tokens.bg} ${tokens.text}`}
+        >
+          <span
+            aria-hidden="true"
+            className={`h-1.5 w-1.5 rounded-full ${tokens.dot}`}
+          />
+          {verdictLabel}
+        </span>
+      </div>
+      {children}
+      <Link
+        href={jumpHref}
+        className="absolute bottom-3.5 right-4 text-[11.5px] font-bold text-emerald-700 hover:text-emerald-800"
+      >
+        {jumpLabel}
+      </Link>
+    </div>
+  );
+}
+
+function BigNum({ value, unit }: { value: number; unit: string }) {
+  return (
+    <div className="flex items-baseline gap-1.5">
+      <span className="text-[38px] font-extrabold leading-none tracking-tight text-emerald-950">
+        {value}
+      </span>
+      <span className="text-[14px] font-semibold text-emerald-900/45">
+        {unit}
+      </span>
+    </div>
+  );
+}
+
+function ContextStat({
+  title,
+  value,
+  label,
+}: {
+  title: string;
+  value: number;
+  label: string;
+}) {
+  return (
+    <div>
+      <div className="mb-2 text-[10px] font-extrabold uppercase tracking-[0.1em] text-emerald-900/35">
+        {title}
+      </div>
+      <div className="flex items-baseline gap-2">
+        <span className="text-[24px] font-extrabold tracking-tight text-emerald-900/75">
+          {value.toLocaleString()}
+        </span>
+        <span className="text-[12px] text-emerald-900/45">{label}</span>
+      </div>
+    </div>
   );
 }
