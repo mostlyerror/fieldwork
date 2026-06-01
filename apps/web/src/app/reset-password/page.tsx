@@ -59,14 +59,24 @@ export default function ResetPasswordPage() {
       setPending(false);
       return;
     }
-    const { error } = await supabase.auth.updateUser({ password });
-    setPending(false);
-    if (error) {
-      setError(error.message);
-      return;
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) {
+        console.error("[reset-password]", error);
+        setError(
+          error.message ||
+            "Couldn't update the password. Request a new reset link and try again.",
+        );
+        return;
+      }
+      setStatus("done");
+      setTimeout(() => router.push("/admin"), 1600);
+    } catch (e) {
+      console.error("[reset-password]", e);
+      setError(e instanceof Error ? e.message : "Something went wrong. Try again.");
+    } finally {
+      setPending(false);
     }
-    setStatus("done");
-    setTimeout(() => router.push("/admin"), 1600);
   }
 
   return (

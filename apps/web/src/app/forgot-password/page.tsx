@@ -14,13 +14,30 @@ export default function ForgotPasswordPage() {
   async function handleSubmit(formData: FormData) {
     setPending(true);
     setError(null);
-    const email = String(formData.get("email") || "");
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    setPending(false);
-    if (error) setError(error.message);
-    else setSent(true);
+    try {
+      const email = String(formData.get("email") || "");
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) {
+        console.error("[forgot-password]", error);
+        setError(
+          error.message ||
+            "Couldn't send the reset email — check the email and try again in a minute.",
+        );
+      } else {
+        setSent(true);
+      }
+    } catch (e) {
+      console.error("[forgot-password]", e);
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Something went wrong sending the email. Please try again.",
+      );
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
