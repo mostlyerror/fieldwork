@@ -6,7 +6,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:web": "mkdir -p logs && : > logs/web.log && PORT=$(sh -c 'p=3000; while lsof -iTCP:$p -sTCP:LISTEN >/dev/null 2>&1; do p=$((p+1)); done; echo $p') && npm run dev --workspace=apps/web -- --port $PORT 2>&1 | tee logs/web.log",
+    "dev:web": "mkdir -p logs && : > logs/web.log && PORT=$(sh -c 'p=3000; while lsof -iTCP:$p -sTCP:LISTEN >/dev/null 2>&1; do p=$((p+1)); done; echo $p') && NODE_OPTIONS=--max-http-header-size=65536 npm run dev --workspace=apps/web -- --port $PORT 2>&1 | tee logs/web.log",
     "build:web": "npm run build --workspace=apps/web",
     "scrape": "npm run start --workspace=packages/scrapers",
     "scrape:pickleballbrackets": "npm run start:pickleballbrackets --workspace=packages/scrapers",
