@@ -33,9 +33,13 @@ function timeAgo(dateStr: string): string {
   if (mins < 1) return "just now";
   if (mins < 60) return `${mins}m ago`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) {
+    const rem = mins % 60;
+    return rem ? `${hours}h ${rem}m ago` : `${hours}h ago`;
+  }
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  const remH = hours % 24;
+  return remH ? `${days}d ${remH}h ago` : `${days}d ago`;
 }
 
 function duration(start: string, end: string | null): string {
@@ -86,16 +90,22 @@ export default async function ScrapingPage() {
     sourceMap.set(run.source_platform, list);
   }
 
-  // 24h throughput context (kept muted/secondary).
+  // 24h throughput context.
   const oneDayAgo = new Date(Date.now() - DOWN_MS).toISOString();
   const recentRuns = allRuns.filter((r) => r.started_at > oneDayAgo);
+  const succeeded24h = recentRuns.filter((r) => r.status === "success").length;
+  const errors24h = recentRuns.filter((r) => r.status === "error").length;
   const stats24h = {
     runs: recentRuns.length,
-    found: recentRuns.reduce((s, r) => s + r.tournaments_found, 0),
+    succeeded: succeeded24h,
+    failed: errors24h,
     new: recentRuns.reduce((s, r) => s + r.tournaments_new, 0),
     updated: recentRuns.reduce((s, r) => s + r.tournaments_updated, 0),
     deduped: recentRuns.reduce((s, r) => s + r.tournaments_deduplicated, 0),
-    errors: recentRuns.filter((r) => r.status === "error").length,
+    successRate:
+      recentRuns.length > 0
+        ? Math.round((succeeded24h / recentRuns.length) * 100)
+        : null,
   };
 
   // Per-source health model.
@@ -170,12 +180,12 @@ export default async function ScrapingPage() {
       {/* Page head */}
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-[25px] font-extrabold tracking-tight text-emerald-950">
+          <h1 className="text-[24px] font-extrabold tracking-tight text-emerald-950 lg:text-[26px]">
             Scraping Health
           </h1>
-          <p className="mt-0.5 text-[13px] text-emerald-900/45">
+          <p className="mt-1 text-[13px] font-medium text-emerald-900/45">
             {sources.length} source{sources.length === 1 ? "" : "s"} monitored ·
-            last 50 runs
+            last {allRuns.length} runs
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -183,7 +193,7 @@ export default async function ScrapingPage() {
             href="https://github.com/mostlyerror/pickleradar/actions/workflows/scrape.yml"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-full border border-emerald-900/15 bg-white px-4 py-2 text-sm font-bold text-emerald-900 transition hover:border-emerald-900/30"
+            className="hidden items-center gap-1.5 rounded-full border border-emerald-900/15 bg-white px-4 py-2 text-sm font-bold text-emerald-900 transition hover:border-emerald-900/30 sm:inline-flex"
           >
             Workflow logs ↗
           </a>
@@ -208,6 +218,68 @@ export default async function ScrapingPage() {
         className="mb-7"
       />
 
+      {/* 24h throughput */}
+      <SectionLabel>Last 24h throughput</SectionLabel>
+      <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:mb-9 lg:grid-cols-6 lg:gap-0 lg:overflow-hidden lg:rounded-2xl lg:border lg:border-emerald-900/10 lg:bg-white lg:shadow-sm">
+        {[
+          {
+            label: "Runs",
+            value: stats24h.runs,
+            cls: "text-emerald-950",
+            sub: `across ${sources.length} source${sources.length === 1 ? "" : "s"}`,
+          },
+          {
+            label: "Succeeded",
+            value: stats24h.succeeded,
+            cls: "text-emerald-700",
+            sub:
+              stats24h.successRate === null
+                ? "no runs yet"
+                : `${stats24h.successRate}% success rate`,
+          },
+          {
+            label: "Failed",
+            value: stats24h.failed,
+            cls: stats24h.failed > 0 ? "text-red-600" : "text-emerald-950",
+            sub:
+              stats24h.failed > 0 ? "needs attention" : "all runs healthy",
+          },
+          {
+            label: "New",
+            value: stats24h.new,
+            cls: "text-emerald-600",
+            sub: "added to pipeline",
+          },
+          {
+            label: "Updated",
+            value: stats24h.updated,
+            cls: "text-blue-600",
+            sub: "existing records",
+          },
+          {
+            label: "Deduped",
+            value: stats24h.deduped,
+            cls: "text-amber-600",
+            sub: "cross-source merges",
+          },
+        ].map((st) => (
+          <div
+            key={st.label}
+            className="flex flex-col gap-2 rounded-2xl border border-emerald-900/10 bg-white p-4 shadow-sm lg:rounded-none lg:border-0 lg:border-r lg:border-emerald-900/10 lg:p-[18px] lg:shadow-none lg:last:border-r-0"
+          >
+            <div className={`text-[28px] font-extrabold leading-none tracking-tight lg:text-[25px] ${st.cls}`}>
+              {st.value}
+            </div>
+            <div className="text-[10.5px] font-bold uppercase tracking-[0.07em] text-emerald-900/50">
+              {st.label}
+            </div>
+            <div className="text-[12px] font-medium text-emerald-900/55">
+              {st.sub}
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* Source cards */}
       <SectionLabel>Sources</SectionLabel>
       {sources.length === 0 ? (
@@ -215,10 +287,11 @@ export default async function ScrapingPage() {
           No scraper runs recorded yet. Trigger a run to populate this view.
         </div>
       ) : (
-        <div className="mb-8 grid gap-4 lg:grid-cols-2">
+        <div className="mb-9 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 [@media(min-width:1700px)]:grid-cols-4">
           {sources.map((src) => {
             const tokens = ADMIN_STATUS[src.status];
             const isDown = src.status === "critical";
+            const isDegraded = src.status === "attention";
             const chipLabel =
               src.status === "critical"
                 ? "Down"
@@ -228,26 +301,33 @@ export default async function ScrapingPage() {
             return (
               <div
                 key={src.name}
-                className={`relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm ${
+                className={`relative flex flex-col overflow-hidden rounded-2xl border bg-white p-5 shadow-sm ${
                   isDown
-                    ? "border-red-200 shadow-red-900/5"
-                    : "border-emerald-900/10"
+                    ? "border-red-200 shadow-red-900/10"
+                    : isDegraded
+                      ? "border-amber-200"
+                      : "border-emerald-900/10"
                 }`}
               >
-                {isDown && (
-                  <span
-                    aria-hidden="true"
-                    className="absolute inset-y-4 left-0 w-1 rounded-r bg-red-500"
-                  />
-                )}
+                {/* Status accent rail */}
+                <span
+                  aria-hidden="true"
+                  className={`absolute inset-y-0 left-0 w-1 ${
+                    isDown
+                      ? "bg-red-500"
+                      : isDegraded
+                        ? "bg-amber-500"
+                        : "bg-emerald-200"
+                  }`}
+                />
 
                 {/* Card head */}
                 <div className="mb-3.5 flex items-start justify-between gap-3">
-                  <div>
-                    <div className="text-[16.5px] font-extrabold tracking-tight text-emerald-950">
+                  <div className="min-w-0">
+                    <div className="truncate text-[16.5px] font-extrabold tracking-tight text-emerald-950">
                       {src.name}
                     </div>
-                    <div className="mt-0.5 text-[11.5px] text-emerald-900/40">
+                    <div className="mt-1 text-[11.5px] font-medium text-emerald-900/40">
                       {src.windowCount} run{src.windowCount === 1 ? "" : "s"} in
                       window · {src.okCount}/{src.windowCount} ok
                     </div>
@@ -257,13 +337,17 @@ export default async function ScrapingPage() {
 
                 {/* Hero: last successful run */}
                 <div className="mb-3.5 flex items-end justify-between gap-3">
-                  <div>
-                    <div className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-emerald-900/40">
+                  <div className="min-w-0">
+                    <div className="text-[11px] font-bold uppercase tracking-[0.07em] text-emerald-900/45">
                       Last successful run
                     </div>
                     <div
-                      className={`mt-1 text-[34px] font-extrabold leading-none tracking-tight ${
-                        isDown ? "text-red-600" : "text-emerald-950"
+                      className={`mt-2 text-[34px] font-extrabold leading-none tracking-tight ${
+                        isDown
+                          ? "text-red-600"
+                          : isDegraded
+                            ? "text-amber-600"
+                            : "text-emerald-950"
                       }`}
                     >
                       {src.lastSuccess
@@ -271,9 +355,9 @@ export default async function ScrapingPage() {
                         : "never"}
                     </div>
                     <div
-                      className={`mt-1.5 text-[12px] ${isDown ? "text-red-700/80" : "text-emerald-900/55"}`}
+                      className={`mt-2 text-[12px] ${isDown ? "text-red-700/80" : "text-emerald-900/55"}`}
                     >
-                      Last run: {timeAgo(src.lastRun.started_at)} ·{" "}
+                      Last run {timeAgo(src.lastRun.started_at)} ·{" "}
                       <span
                         className={
                           src.lastRun.status === "error"
@@ -285,8 +369,7 @@ export default async function ScrapingPage() {
                       </span>
                       {src.lastRun.completed_at && (
                         <>
-                          {" "}
-                          · ran{" "}
+                          {" · ran "}
                           {duration(
                             src.lastRun.started_at,
                             src.lastRun.completed_at
@@ -326,12 +409,12 @@ export default async function ScrapingPage() {
                 {/* Latest error inline */}
                 {src.latestError && src.status !== "healthy" && (
                   <div className="mb-3.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3">
-                    <div className="mb-1 flex justify-between text-[11px] font-bold text-red-700">
-                      <span>
-                        ERROR · {timeAgo(src.latestError.started_at)}
-                      </span>
+                    <div className="mb-1.5 flex justify-between gap-2 text-[11px] font-bold text-red-700">
+                      <span>ERROR · {timeAgo(src.latestError.started_at)}</span>
                       {src.consecutiveFails > 1 && (
-                        <span>repeated ×{src.consecutiveFails}</span>
+                        <span className="flex-none">
+                          repeated ×{src.consecutiveFails}
+                        </span>
                       )}
                     </div>
                     <p className="break-words font-mono text-[12px] leading-snug text-red-800/90">
@@ -382,13 +465,14 @@ export default async function ScrapingPage() {
                   ))}
                 </div>
 
-                {/* Scoped action */}
-                <div className="flex items-center gap-2">
+                {/* Scoped action — pinned to card bottom */}
+                <div className="mt-auto">
                   <RunNowButton
                     source={src.name}
                     label="Re-run this source"
                     size="sm"
                     variant={isDown ? "alarm" : "calm"}
+                    className="w-full justify-center sm:w-auto"
                   />
                 </div>
               </div>
@@ -397,134 +481,224 @@ export default async function ScrapingPage() {
         </div>
       )}
 
-      {/* 24h throughput context — muted/secondary */}
-      <SectionLabel>Last 24 hours · throughput</SectionLabel>
-      <div className="mb-8 grid grid-cols-3 gap-3 rounded-2xl border border-emerald-900/10 bg-white p-4 sm:grid-cols-6">
-        {[
-          { label: "Runs", value: stats24h.runs, cls: "text-emerald-900/70" },
-          { label: "Found", value: stats24h.found, cls: "text-emerald-900/70" },
-          { label: "New", value: stats24h.new, cls: "text-emerald-600" },
-          { label: "Updated", value: stats24h.updated, cls: "text-blue-600" },
-          { label: "Deduped", value: stats24h.deduped, cls: "text-amber-600" },
-          {
-            label: "Errors",
-            value: stats24h.errors,
-            cls: stats24h.errors > 0 ? "text-red-600" : "text-emerald-900/70",
-          },
-        ].map((st) => (
-          <div key={st.label} className="text-center">
-            <div className={`text-[22px] font-extrabold tracking-tight ${st.cls}`}>
-              {st.value}
-            </div>
-            <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.05em] text-emerald-900/40">
-              {st.label}
-            </div>
-          </div>
-        ))}
-      </div>
-
       {/* Run history */}
-      <SectionLabel>Run history · last {allRuns.length}</SectionLabel>
+      <SectionLabel
+        meta={
+          allRuns.length > 0
+            ? `${stats24h.failed} err / 24h`
+            : undefined
+        }
+      >
+        Run history · last {allRuns.length}
+      </SectionLabel>
       {allRuns.length === 0 ? (
         <div className="rounded-2xl border border-emerald-900/10 bg-white p-8 text-center text-sm text-emerald-900/50">
           No runs yet.
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-emerald-900/10 bg-white">
-          <div className="flex items-center justify-between border-b border-emerald-900/10 px-4 py-3">
-            <span className="text-[13px] font-bold text-emerald-950">
-              All runs
-            </span>
-            <span className="text-xs text-emerald-900/40">
-              {stats24h.errors} error{stats24h.errors === 1 ? "" : "s"} in last
-              24h
-            </span>
+        <>
+          {/* Mobile: stacked run cards */}
+          <div className="flex flex-col gap-3 lg:hidden">
+            {allRuns.map((run) => {
+              const errored = run.status === "error";
+              return (
+                <div
+                  key={run.id}
+                  className={`relative overflow-hidden rounded-2xl border bg-white p-4 shadow-sm ${
+                    errored ? "border-red-200" : "border-emerald-900/10"
+                  }`}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`absolute inset-y-0 left-0 w-1 ${errored ? "bg-red-500" : "bg-emerald-200"}`}
+                  />
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <span className="truncate text-[15px] font-bold text-emerald-950">
+                      {run.source_platform}
+                    </span>
+                    <StatusPill status={run.status} />
+                  </div>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1.5 text-[12.5px] font-medium text-emerald-900/60">
+                    <span>{timeAgo(run.started_at)}</span>
+                    <span>{duration(run.started_at, run.completed_at)}</span>
+                    {errored ? (
+                      <span className="text-emerald-900/35">— found</span>
+                    ) : (
+                      <>
+                        <span>
+                          <b className="font-bold text-emerald-900/80">
+                            {run.tournaments_found}
+                          </b>{" "}
+                          found
+                        </span>
+                        <span>
+                          <b className="font-bold text-emerald-600">
+                            {run.tournaments_new}
+                          </b>{" "}
+                          new
+                        </span>
+                        <span>
+                          <b className="font-bold text-blue-600">
+                            {run.tournaments_updated}
+                          </b>{" "}
+                          upd
+                        </span>
+                        <span>
+                          <b className="font-bold text-amber-600">
+                            {run.tournaments_deduplicated}
+                          </b>{" "}
+                          dedup
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  {errored && run.error_message && (
+                    <div className="mt-3 break-words rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 font-mono text-[12px] leading-snug text-red-800/90">
+                      {run.error_message}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-          <div className="overflow-x-auto">
+
+          {/* Desktop: wide table */}
+          <div className="hidden overflow-hidden rounded-2xl border border-emerald-900/10 bg-white shadow-sm lg:block">
+            <div className="flex items-center justify-between border-b border-emerald-900/10 px-5 py-3.5">
+              <span className="text-[13px] font-bold text-emerald-950">
+                All runs
+              </span>
+              <span className="text-xs font-medium text-emerald-900/40">
+                {stats24h.failed} error{stats24h.failed === 1 ? "" : "s"} in last
+                24h
+              </span>
+            </div>
             <table className="w-full text-left text-[13.5px]">
               <thead>
                 <tr className="border-b border-emerald-900/10 text-[10.5px] font-bold uppercase tracking-[0.06em] text-emerald-900/40">
-                  <th className="px-4 py-3">Source</th>
-                  <th className="px-4 py-3">When</th>
-                  <th className="px-4 py-3">Duration</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Found</th>
-                  <th className="px-4 py-3 text-right">New</th>
-                  <th className="px-4 py-3 text-right">Updated</th>
-                  <th className="px-4 py-3 text-right">Deduped</th>
+                  <th className="px-5 py-3">Source</th>
+                  <th className="px-5 py-3">When</th>
+                  <th className="px-5 py-3">Duration</th>
+                  <th className="px-5 py-3">Status</th>
+                  <th className="px-5 py-3 text-right">Found</th>
+                  <th className="px-5 py-3 text-right">New</th>
+                  <th className="px-5 py-3 text-right">Updated</th>
+                  <th className="px-5 py-3 text-right">Deduped</th>
                 </tr>
               </thead>
               <tbody>
                 {allRuns.map((run) => {
                   const errored = run.status === "error";
-                  return (
+                  return [
                     <tr
                       key={run.id}
                       className={`border-b border-emerald-900/[0.06] last:border-0 ${errored ? "bg-red-50/40" : ""}`}
                     >
-                      <td className="px-4 py-2.5 font-semibold text-emerald-950">
+                      <td className="px-5 py-2.5 font-semibold text-emerald-950">
                         {run.source_platform}
                       </td>
-                      <td className="px-4 py-2.5 text-emerald-900/55">
+                      <td className="px-5 py-2.5 text-emerald-900/55">
                         {timeAgo(run.started_at)}
                       </td>
-                      <td className="px-4 py-2.5 text-emerald-900/55">
+                      <td className="px-5 py-2.5 text-emerald-900/55">
                         {duration(run.started_at, run.completed_at)}
                       </td>
-                      <td className="px-4 py-2.5">
-                        <span
-                          className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.04em] ${
-                            run.status === "success"
-                              ? "bg-emerald-50 text-emerald-700"
-                              : errored
-                                ? "bg-red-50 text-red-700"
-                                : "bg-amber-50 text-amber-700"
-                          }`}
-                        >
-                          {run.status}
-                        </span>
+                      <td className="px-5 py-2.5">
+                        <StatusPill status={run.status} />
                       </td>
-                      <td className="px-4 py-2.5 text-right text-emerald-900/70">
+                      <td className="px-5 py-2.5 text-right text-emerald-900/70">
                         {errored ? (
                           <span className="text-emerald-900/25">—</span>
                         ) : (
                           run.tournaments_found
                         )}
                       </td>
-                      <td className="px-4 py-2.5 text-right font-bold text-emerald-600">
-                        {run.tournaments_new || (
+                      <td className="px-5 py-2.5 text-right font-bold text-emerald-600">
+                        {errored ? (
                           <span className="text-emerald-900/25">—</span>
+                        ) : (
+                          run.tournaments_new || (
+                            <span className="text-emerald-900/25">—</span>
+                          )
                         )}
                       </td>
-                      <td className="px-4 py-2.5 text-right text-blue-600">
-                        {run.tournaments_updated || (
+                      <td className="px-5 py-2.5 text-right text-blue-600">
+                        {errored ? (
                           <span className="text-emerald-900/25">—</span>
+                        ) : (
+                          run.tournaments_updated || (
+                            <span className="text-emerald-900/25">—</span>
+                          )
                         )}
                       </td>
-                      <td className="px-4 py-2.5 text-right text-amber-600">
-                        {run.tournaments_deduplicated || (
+                      <td className="px-5 py-2.5 text-right text-amber-600">
+                        {errored ? (
                           <span className="text-emerald-900/25">—</span>
+                        ) : (
+                          run.tournaments_deduplicated || (
+                            <span className="text-emerald-900/25">—</span>
+                          )
                         )}
                       </td>
-                    </tr>
-                  );
+                    </tr>,
+                    errored && run.error_message ? (
+                      <tr key={`${run.id}-err`} className="bg-red-50/40">
+                        <td
+                          colSpan={8}
+                          className="px-5 pb-3 pt-0 font-mono text-[11.5px] leading-snug text-red-800/85"
+                        >
+                          {run.error_message}
+                        </td>
+                      </tr>
+                    ) : null,
+                  ];
                 })}
               </tbody>
             </table>
           </div>
-        </div>
+        </>
       )}
     </>
   );
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+/** Status pill shared by the mobile run cards and the desktop history table. */
+function StatusPill({ status }: { status: string }) {
+  const errored = status === "error";
+  const success = status === "success";
+  return (
+    <span
+      className={`inline-block flex-none rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.04em] ${
+        success
+          ? "bg-emerald-50 text-emerald-700"
+          : errored
+            ? "bg-red-50 text-red-700"
+            : "bg-amber-50 text-amber-700"
+      }`}
+    >
+      {status}
+    </span>
+  );
+}
+
+function SectionLabel({
+  children,
+  meta,
+}: {
+  children: React.ReactNode;
+  meta?: string;
+}) {
   return (
     <div className="mb-3 flex items-center gap-2.5">
       <h3 className="text-[12px] font-bold uppercase tracking-[0.09em] text-emerald-900/40">
         {children}
       </h3>
       <span className="h-px flex-1 bg-emerald-900/10" />
+      {meta && (
+        <span className="flex-none text-[13px] font-semibold text-emerald-900/40">
+          {meta}
+        </span>
+      )}
     </div>
   );
 }

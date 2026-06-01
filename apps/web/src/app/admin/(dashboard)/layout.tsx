@@ -24,7 +24,9 @@ export default async function AdminDashboardLayout({
             redirect("/login");
           }}
         />
-        <main className="mx-auto max-w-[1180px] px-6 py-7">{children}</main>
+        <main className="mx-auto w-full max-w-[1800px] px-4 py-6 pb-24 sm:px-6 lg:px-8 lg:py-7 lg:pb-7">
+          {children}
+        </main>
       </div>
     </ToastProvider>
   );

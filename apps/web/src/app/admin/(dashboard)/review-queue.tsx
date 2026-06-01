@@ -120,9 +120,9 @@ export function ReviewQueue({ items }: { items: PendingTournament[] }) {
 
   return (
     <>
-      <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between lg:mb-3.5">
         <div>
-          <h2 className="text-[19px] font-extrabold tracking-tight text-emerald-950">
+          <h2 className="text-[19px] font-extrabold tracking-tight text-emerald-950 lg:text-[20px]">
             Pending review
           </h2>
           <p className="mt-0.5 text-[12.5px] text-emerald-900/45">
@@ -133,7 +133,33 @@ export function ReviewQueue({ items }: { items: PendingTournament[] }) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2.5">
+      {/* ── Desktop column headers (table-like wide rows). Venue + Source
+            fold away between lg and xl so the row never overflows. ── */}
+      <div className="mb-1.5 hidden items-center gap-3 px-5 lg:flex 2xl:gap-4">
+        <span className="min-w-0 flex-1 text-[10px] font-extrabold uppercase tracking-[0.07em] text-emerald-900/35">
+          Tournament
+        </span>
+        <span className="w-[120px] flex-none text-[10px] font-extrabold uppercase tracking-[0.07em] text-emerald-900/35 2xl:w-[140px]">
+          When
+        </span>
+        <span className="hidden w-[200px] flex-none text-[10px] font-extrabold uppercase tracking-[0.07em] text-emerald-900/35 2xl:block">
+          Venue
+        </span>
+        <span className="hidden w-[140px] flex-none text-[10px] font-extrabold uppercase tracking-[0.07em] text-emerald-900/35 2xl:block">
+          Source
+        </span>
+        <span className="w-[120px] flex-none text-[10px] font-extrabold uppercase tracking-[0.07em] text-emerald-900/35 2xl:w-[130px]">
+          Geocode
+        </span>
+        <span className="w-[96px] flex-none text-[10px] font-extrabold uppercase tracking-[0.07em] text-emerald-900/35 2xl:w-[110px]">
+          Waiting
+        </span>
+        <span className="w-[200px] flex-none text-right text-[10px] font-extrabold uppercase tracking-[0.07em] text-emerald-900/35 2xl:w-[210px]">
+          Actions
+        </span>
+      </div>
+
+      <div className="flex flex-col gap-2.5 lg:gap-2.5">
         {visible.map((t) => (
           <QueueRow
             key={t.id}
@@ -195,43 +221,100 @@ function QueueRow({
     },
   });
 
+  // Shared approve / collapse-edit / reject button cluster. `compact` shrinks
+  // padding for the dense desktop row; mobile uses full-bleed equal buttons.
+  const approveBtn = clean ? (
+    <button
+      type="button"
+      onClick={approve.run}
+      disabled={approve.pending || reject.pending}
+      className="inline-flex items-center justify-center gap-1.5 rounded-full bg-emerald-600 px-5 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      {approve.pending ? "Approving…" : "Approve"}
+    </button>
+  ) : (
+    <button
+      type="button"
+      onClick={onToggle}
+      className="inline-flex items-center justify-center gap-1.5 rounded-full border border-emerald-900/15 bg-white px-4 py-2 text-sm font-bold text-emerald-900 transition hover:border-emerald-900/30"
+    >
+      {open ? "Collapse ▴" : "Review & edit ▾"}
+    </button>
+  );
+
+  const rejectBtn = (
+    <button
+      type="button"
+      onClick={reject.run}
+      disabled={approve.pending || reject.pending}
+      className="rounded-full px-2.5 py-2 text-[12px] font-bold text-emerald-900/35 transition hover:text-red-600 disabled:opacity-50"
+    >
+      {reject.pending ? "…" : "Reject"}
+    </button>
+  );
+
+  const editForm = open ? (
+    <EditForm
+      t={t}
+      missing={missing}
+      hasCoords={hasCoords}
+      onDone={onDone}
+      onCancel={onToggle}
+    />
+  ) : null;
+
   return (
     <div
-      className={`flex overflow-hidden rounded-2xl border bg-white transition ${
+      className={`overflow-hidden rounded-2xl border bg-white transition lg:rounded-[14px] ${
         open
           ? "border-amber-200 shadow-md shadow-amber-900/5"
           : "border-emerald-900/10 hover:shadow-md hover:shadow-emerald-900/5"
       }`}
     >
-      {/* Urgency stripe */}
-      <span aria-hidden="true" className={`w-1.5 flex-none ${STRIPE[stripe]}`} />
-
-      <div className="min-w-0 flex-1">
-        {/* Compact summary row */}
-        <div className="flex flex-col gap-3 p-3.5 sm:flex-row sm:items-center sm:gap-4">
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-[15px] font-bold tracking-tight text-emerald-950">
-              {t.name || (
-                <span className="italic text-emerald-900/40">Untitled</span>
-              )}
+      {/* ════════════ MOBILE CARD (<lg) ════════════ */}
+      <div className="lg:hidden">
+        <div className="flex">
+          <span
+            aria-hidden="true"
+            className={`w-1 flex-none ${STRIPE[stripe]}`}
+          />
+          <div className="min-w-0 flex-1 p-4">
+            <div className="flex items-start justify-between gap-2.5">
+              <div className="min-w-0 text-[16px] font-bold leading-tight tracking-tight text-emerald-950">
+                {t.name || (
+                  <span className="italic text-emerald-900/40">Untitled</span>
+                )}
+              </div>
+              <AgeBadge
+                timestamp={t.created_at}
+                prefix="waiting"
+                staleMs={DAY_MS}
+                criticalMs={3 * DAY_MS}
+                className="flex-none"
+              />
             </div>
-            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[12px] text-emerald-900/45">
+
+            <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[12.5px]">
               <span
                 className={`font-bold ${dateSoon ? "text-red-600" : "text-emerald-900/70"}`}
               >
                 {formatStart(t.date_start)}
               </span>
               {t.location_name && (
-                <span className="text-emerald-900/65">{t.location_name}</span>
+                <span className="text-emerald-900/55">
+                  · {t.location_name}
+                </span>
               )}
               {sourceName && (
-                <span className="rounded-full border border-emerald-900/10 bg-emerald-900/[0.04] px-2 py-0.5 text-[10.5px] font-bold text-emerald-900/60">
+                <span className="rounded-full border border-emerald-900/10 bg-emerald-900/[0.04] px-2.5 py-1 text-[11px] font-bold text-emerald-900/60">
                   {sourceName}
                 </span>
               )}
               <span
-                className={`inline-flex items-center gap-1.5 font-semibold ${
-                  hasCoords ? "text-emerald-900/45" : "text-amber-600"
+                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                  hasCoords
+                    ? "bg-emerald-50 text-emerald-700"
+                    : "bg-amber-50 text-amber-700"
                 }`}
               >
                 <span
@@ -240,56 +323,107 @@ function QueueRow({
                 />
                 {hasCoords ? "geocoded" : "no coordinates"}
               </span>
+            </div>
+
+            {editForm}
+
+            {/* When the editor is open, its own footer carries Save & approve /
+                Cancel — so the plain row cluster is hidden to avoid duplicates. */}
+            <div className={`mt-3 flex items-stretch gap-2 ${open ? "hidden" : ""}`}>
+              {clean ? (
+                <button
+                  type="button"
+                  onClick={approve.run}
+                  disabled={approve.pending || reject.pending}
+                  className="flex h-11 flex-1 items-center justify-center rounded-full bg-emerald-600 text-[15px] font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {approve.pending ? "Approving…" : "Approve"}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onToggle}
+                  className="flex h-11 flex-1 items-center justify-center rounded-full border border-emerald-900/15 bg-white text-[15px] font-bold text-emerald-900 transition active:opacity-70"
+                >
+                  {open ? "Collapse ▴" : "Review & edit ▾"}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={reject.run}
+                disabled={approve.pending || reject.pending}
+                className="flex h-11 flex-none items-center justify-center rounded-full border border-emerald-900/15 bg-white px-5 text-[15px] font-bold text-emerald-900/55 transition hover:text-red-600 disabled:opacity-50"
+              >
+                {reject.pending ? "…" : "Reject"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ════════════ DESKTOP TABLE ROW (lg+) ════════════ */}
+      <div className="hidden lg:flex lg:flex-col">
+        <div className="flex items-stretch">
+          <span
+            aria-hidden="true"
+            className={`w-[5px] flex-none ${STRIPE[stripe]}`}
+          />
+          <div className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3.5 2xl:gap-4">
+            <div className="min-w-0 flex-1 truncate text-[15px] font-bold tracking-tight text-emerald-950">
+              {t.name || (
+                <span className="italic text-emerald-900/40">Untitled</span>
+              )}
+            </div>
+            <div className="w-[120px] flex-none text-[12px] 2xl:w-[140px]">
+              <span
+                className={`font-bold ${dateSoon ? "text-red-600" : "text-emerald-900/65"}`}
+              >
+                {formatStart(t.date_start)}
+              </span>
+            </div>
+            <div className="hidden w-[200px] flex-none truncate text-[12px] font-medium text-emerald-900/65 2xl:block">
+              {t.location_name || (
+                <span className="text-emerald-900/30">—</span>
+              )}
+            </div>
+            <div className="hidden w-[140px] flex-none 2xl:block">
+              {sourceName ? (
+                <span className="rounded-full border border-emerald-900/10 bg-emerald-900/[0.04] px-2 py-0.5 text-[10.5px] font-bold text-emerald-900/60">
+                  {sourceName}
+                </span>
+              ) : (
+                <span className="text-[12px] text-emerald-900/30">—</span>
+              )}
+            </div>
+            <div className="w-[120px] flex-none 2xl:w-[130px]">
+              <span
+                className={`inline-flex items-center gap-1.5 text-[12px] font-semibold ${
+                  hasCoords ? "text-emerald-900/55" : "text-amber-600"
+                }`}
+              >
+                <span
+                  aria-hidden="true"
+                  className={`h-[7px] w-[7px] flex-none rounded-full ${hasCoords ? "bg-emerald-500" : "bg-amber-500"}`}
+                />
+                {hasCoords ? "geocoded" : "no coords"}
+              </span>
+            </div>
+            <div className="w-[96px] flex-none 2xl:w-[110px]">
               <AgeBadge
                 timestamp={t.created_at}
-                prefix="waiting"
                 staleMs={DAY_MS}
                 criticalMs={3 * DAY_MS}
               />
             </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex flex-none items-center gap-2">
-            {clean ? (
-              <button
-                type="button"
-                onClick={approve.run}
-                disabled={approve.pending || reject.pending}
-                className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-5 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {approve.pending ? "Approving…" : "Approve"}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={onToggle}
-                className="inline-flex items-center gap-1.5 rounded-full border border-emerald-900/15 bg-white px-4 py-2 text-sm font-bold text-emerald-900 transition hover:border-emerald-900/30"
-              >
-                {open ? "Collapse ▴" : "Review & edit ▾"}
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={reject.run}
-              disabled={approve.pending || reject.pending}
-              className="rounded-full px-2.5 py-2 text-[12px] font-bold text-emerald-900/35 transition hover:text-red-600 disabled:opacity-50"
-            >
-              {reject.pending ? "…" : "Reject"}
-            </button>
+            <div className="flex w-[200px] flex-none items-center justify-end gap-2 2xl:w-[210px]">
+              {approveBtn}
+              {rejectBtn}
+            </div>
           </div>
         </div>
 
-        {/* Expanded edit form (reuses updateAndApproveTournament) */}
-        {open && (
-          <EditForm
-            t={t}
-            missing={missing}
-            hasCoords={hasCoords}
-            onDone={onDone}
-            onCancel={onToggle}
-          />
-        )}
+        {/* Expanded edit form spans the full row width (reuses updateAndApprove) */}
+        {editForm}
       </div>
     </div>
   );
@@ -362,15 +496,15 @@ function EditForm({
     "mb-1 block text-[10px] font-extrabold uppercase tracking-[0.07em] text-emerald-900/40";
 
   return (
-    <div className="border-t border-dashed border-emerald-900/15 bg-amber-50/30 p-4">
+    <div className="mt-3 border-t border-dashed border-emerald-900/15 pt-4 lg:mt-0 lg:bg-amber-50/30 lg:px-[22px] lg:pb-5 lg:pt-[18px]">
       {fixNotes.length > 0 && (
-        <div className="mb-3.5 flex items-center gap-2 text-[12px] font-semibold text-amber-700">
+        <div className="mb-3.5 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-[12px] font-semibold text-amber-700 lg:border-0 lg:bg-transparent lg:p-0">
           <span aria-hidden="true">⚠</span>
           Needs a fix before approve: {fixNotes.join(" · ")}
         </div>
       )}
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <div>
           <label className={labelCls}>Name</label>
           <input
@@ -486,12 +620,12 @@ function EditForm({
         </a>
       )}
 
-      <div className="mt-4 flex items-center justify-end gap-2.5">
+      <div className="mt-4 flex items-stretch justify-end gap-2.5 lg:items-center">
         <button
           type="button"
           onClick={onCancel}
           disabled={save.pending}
-          className="rounded-full px-3 py-2 text-[12px] font-bold text-emerald-900/40 transition hover:text-emerald-900/70 disabled:opacity-50"
+          className="flex h-11 flex-none items-center justify-center rounded-full border border-emerald-900/15 bg-white px-5 text-[14px] font-bold text-emerald-900/55 transition hover:text-emerald-900/80 disabled:opacity-50 lg:h-auto lg:border-0 lg:px-3 lg:py-2 lg:text-[12px] lg:text-emerald-900/40 lg:hover:text-emerald-900/70"
         >
           Cancel
         </button>
@@ -499,7 +633,7 @@ function EditForm({
           type="button"
           onClick={save.run}
           disabled={save.pending}
-          className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-5 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full bg-emerald-600 text-[15px] font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 lg:h-auto lg:flex-none lg:px-5 lg:py-2 lg:text-sm"
         >
           {save.pending ? "Saving…" : "Save & approve"}
         </button>

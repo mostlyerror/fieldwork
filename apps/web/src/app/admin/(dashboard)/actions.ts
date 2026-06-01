@@ -29,6 +29,21 @@ export async function rejectTournament(id: string) {
   return { success: true };
 }
 
+/**
+ * Archive a tournament — pull it off public surfaces without deleting it.
+ * Sets status to 'draft' (the only non-public, non-duplicate status the app
+ * writes). Used by the "Archive" action on stale / past-date catalog rows.
+ */
+export async function archiveTournament(id: string) {
+  await requireAdmin();
+  const { error } = await getSupabaseAdmin()
+    .from("tournaments")
+    .update({ status: "draft" })
+    .eq("id", id);
+  if (error) throw new Error("Failed to archive tournament");
+  return { success: true };
+}
+
 export async function updateAndApproveTournament(
   id: string,
   fields: {

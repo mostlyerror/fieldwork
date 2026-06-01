@@ -229,9 +229,13 @@ export default async function AdminPage() {
           ? "Clear"
           : "On pace";
 
+  const soonCount = tournaments.filter(
+    (t) => daysUntil(t.date_start) <= 7
+  ).length;
+
   return (
     <>
-      {/* ── System-status banner ── */}
+      {/* ── System-status banner (full-bleed across the top) ── */}
       <AttentionBanner
         state={overall}
         title={bannerTitle}
@@ -244,176 +248,193 @@ export default async function AdminPage() {
             />
           ) : undefined
         }
-        className="mb-6"
+        className="mb-5 lg:mb-6"
       />
 
-      {/* ── Triage rail: needs you now ── */}
-      <div className="mb-7 grid gap-3.5 lg:grid-cols-3">
-        {/* Review queue */}
-        <TriageCard
-          label="Review queue"
-          verdict={queueStatus}
-          verdictLabel={queueVerdictLabel}
-          jumpHref="#queue"
-          jumpLabel="Review →"
-        >
-          <BigNum value={tournaments.length} unit="waiting" />
-          {oldestPending ? (
-            <p className="mt-2 text-[12.5px] leading-snug text-emerald-900/65">
-              Oldest sat{" "}
-              <span className="font-bold text-emerald-950">
-                {timeAgo(oldestPending.created_at)}
-              </span>
-              {(() => {
-                const soon = tournaments.filter(
-                  (t) => daysUntil(t.date_start) <= 7
-                ).length;
-                return soon > 0 ? (
-                  <>
-                    {" · "}
-                    <span className="font-bold text-emerald-950">{soon}</span>{" "}
-                    start{soon === 1 ? "s" : ""} within a week
-                  </>
-                ) : null;
-              })()}
-            </p>
-          ) : (
-            <p className="mt-2 text-[12.5px] text-emerald-900/55">
-              Queue is clear — nothing waiting.
-            </p>
-          )}
-          {oldestPending && (
-            <AgeBadge
-              timestamp={oldestPending.created_at}
-              prefix="oldest"
-              staleMs={QUEUE_STALE_MS}
-              criticalMs={QUEUE_CRITICAL_MS}
-              className="mt-2.5"
-            />
-          )}
-        </TriageCard>
+      {/* ──────────────────────────────────────────────────────────────
+          COCKPIT: triage rail + wide queue.
+          · base  — rail cards stack above the queue (mobile cards)
+          · lg    — rail becomes a 3-across row above a full-width queue
+          · xl    — rail folds into a sticky 360px left column beside the
+                    wide table (full-bleed desktop, per admin-desktop.html)
+         ────────────────────────────────────────────────────────────── */}
+      <div className="grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)] xl:items-start xl:gap-6">
+        {/* ── Triage rail ── */}
+        <aside className="flex flex-col gap-4 xl:sticky xl:top-[72px]">
+          <div className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-emerald-900/35 lg:-mb-1">
+            Needs you now
+          </div>
+          <div className="grid gap-4 lg:grid-cols-3 xl:grid-cols-1">
 
-        {/* Scraper pipeline */}
-        <TriageCard
-          label="Scraper pipeline"
-          verdict={scraperStatus}
-          verdictLabel={scraperVerdictLabel}
-          jumpHref="/admin/scraping"
-          jumpLabel="Scraping →"
-        >
-          {lastRunOverall ? (
-            <>
-              <div className="flex items-center gap-3">
-                <StatusChip
-                  status={
-                    lastRunOverall.status === "error" ? "critical" : "healthy"
-                  }
-                  label={lastRunOverall.status === "error" ? "Failed" : "Success"}
-                />
-                <span className="text-[12.5px] text-emerald-900/55">
-                  last run{" "}
-                  <span className="font-bold text-emerald-950">
-                    {timeAgo(lastRunOverall.started_at)}
-                  </span>
-                </span>
-              </div>
-              {scraperStrip.length > 0 && (
-                <RunStrip
-                  runs={scraperStrip}
-                  caption={[
-                    `last ${scraperStrip.length} runs`,
-                    `${sourceStatuses.length} source${sourceStatuses.length === 1 ? "" : "s"}`,
-                  ]}
-                  className="mt-3"
-                />
-              )}
-              <AgeBadge
-                timestamp={lastRunOverall.started_at}
-                prefix="last run"
-                staleMs={SCRAPER_STALE_MS}
-                criticalMs={SCRAPER_DOWN_MS}
-                className="mt-2.5"
-              />
-            </>
-          ) : (
-            <p className="mt-2 text-[12.5px] text-emerald-900/55">
-              No runs recorded yet.
-            </p>
-          )}
-        </TriageCard>
-
-        {/* Data quality */}
-        <TriageCard
-          label="Data quality"
-          verdict={geocodeStatus}
-          verdictLabel={totalGaps === 0 ? "Clean" : `${totalGaps} gaps`}
-          jumpHref="#queue"
-          jumpLabel="Fix geocode →"
-        >
-          <BigNum value={totalGaps} unit="geocode gaps" />
-          <p className="mt-2 text-[12.5px] leading-snug text-emerald-900/65">
-            {totalGaps === 0 ? (
-              "Every tournament has coordinates — all mappable."
-            ) : (
-              <>
+          {/* Review queue */}
+          <TriageCard
+            label="Review queue"
+            verdict={queueStatus}
+            verdictLabel={queueVerdictLabel}
+            jumpHref="#queue"
+            jumpLabel="Review →"
+          >
+            <BigNum value={tournaments.length} unit="waiting" />
+            {oldestPending ? (
+              <p className="mt-2 text-[12.5px] leading-snug text-emerald-900/65">
+                Oldest sat{" "}
                 <span className="font-bold text-emerald-950">
-                  {pendingGaps.length}
-                </span>{" "}
-                pending ({pendingGeocodedPct}% geocoded)
-                {activeGaps > 0 && (
+                  {timeAgo(oldestPending.created_at)}
+                </span>
+                {soonCount > 0 && (
                   <>
                     {" · "}
                     <span className="font-bold text-emerald-950">
-                      {activeGaps}
+                      {soonCount}
                     </span>{" "}
-                    live but off-map
+                    start{soonCount === 1 ? "s" : ""} within a week
                   </>
                 )}
-              </>
+              </p>
+            ) : (
+              <p className="mt-2 text-[12.5px] text-emerald-900/55">
+                Queue is clear — nothing waiting.
+              </p>
             )}
-          </p>
-        </TriageCard>
-      </div>
-
-      {/* ── Pending review queue (urgency-sorted, inline approve/edit) ── */}
-      <div id="queue" className="scroll-mt-6">
-        <ReviewQueue items={sortedQueue} />
-      </div>
-
-      {/* ── Demoted vanity / context strip ── */}
-      <section className="mt-8 grid gap-5 border-t border-emerald-900/10 pt-5 sm:grid-cols-3">
-        <ContextStat
-          title="Catalog"
-          value={activeCount ?? 0}
-          label="active tournaments"
-        />
-        <ContextStat
-          title="Audience"
-          value={subscriberCount ?? 0}
-          label="subscribers"
-        />
-        <div>
-          <div className="mb-2 text-[10px] font-extrabold uppercase tracking-[0.1em] text-emerald-900/35">
-            Scraper · recent
-          </div>
-          <div className="text-[12.5px] text-emerald-900/60">
-            {runs.length} run{runs.length === 1 ? "" : "s"} tracked ·{" "}
-            <span className="font-bold text-emerald-900/80">
-              {sourceStatuses.length}
-            </span>{" "}
-            source{sourceStatuses.length === 1 ? "" : "s"}
-            {lastRunOverall && (
-              <> · last {timeAgo(lastRunOverall.started_at)}</>
+            {oldestPending && (
+              <AgeBadge
+                timestamp={oldestPending.created_at}
+                prefix="oldest"
+                staleMs={QUEUE_STALE_MS}
+                criticalMs={QUEUE_CRITICAL_MS}
+                className="mt-2.5"
+              />
             )}
-          </div>
-          <Link
-            href="/admin/scraping"
-            className="mt-1 inline-block text-[12px] font-bold text-emerald-700 hover:text-emerald-800"
+          </TriageCard>
+
+          {/* Scraper pipeline */}
+          <TriageCard
+            label="Scraper pipeline"
+            verdict={scraperStatus}
+            verdictLabel={scraperVerdictLabel}
+            jumpHref="/admin/scraping"
+            jumpLabel="Scraping →"
           >
-            Pipeline detail →
-          </Link>
-        </div>
-      </section>
+            {lastRunOverall ? (
+              <>
+                <div className="flex items-center gap-3">
+                  <StatusChip
+                    status={
+                      lastRunOverall.status === "error" ? "critical" : "healthy"
+                    }
+                    label={
+                      lastRunOverall.status === "error" ? "Failed" : "Success"
+                    }
+                  />
+                  <span className="text-[12.5px] text-emerald-900/55">
+                    last run{" "}
+                    <span className="font-bold text-emerald-950">
+                      {timeAgo(lastRunOverall.started_at)}
+                    </span>
+                  </span>
+                </div>
+                {scraperStrip.length > 0 && (
+                  <RunStrip
+                    runs={scraperStrip}
+                    caption={[
+                      `last ${scraperStrip.length} runs`,
+                      `${sourceStatuses.length} source${sourceStatuses.length === 1 ? "" : "s"}`,
+                    ]}
+                    className="mt-3"
+                  />
+                )}
+                <AgeBadge
+                  timestamp={lastRunOverall.started_at}
+                  prefix="last run"
+                  staleMs={SCRAPER_STALE_MS}
+                  criticalMs={SCRAPER_DOWN_MS}
+                  className="mt-2.5"
+                />
+              </>
+            ) : (
+              <p className="mt-2 text-[12.5px] text-emerald-900/55">
+                No runs recorded yet.
+              </p>
+            )}
+          </TriageCard>
+
+          {/* Data quality */}
+          <TriageCard
+            label="Data quality"
+            verdict={geocodeStatus}
+            verdictLabel={totalGaps === 0 ? "Clean" : `${totalGaps} gaps`}
+            jumpHref="#queue"
+            jumpLabel="Fix geocode →"
+          >
+            <div className="flex items-center gap-3.5">
+              <GeocodeRing pct={pendingGeocodedPct} status={geocodeStatus} />
+              <p className="min-w-0 text-[12.5px] leading-snug text-emerald-900/65">
+                {totalGaps === 0 ? (
+                  "Every tournament has coordinates — all mappable."
+                ) : (
+                  <>
+                    <span className="font-bold text-emerald-950">
+                      {pendingGaps.length}
+                    </span>{" "}
+                    of {tournaments.length} pending have no coordinates — won&apos;t
+                    appear on the map until fixed.
+                    {activeGaps > 0 && (
+                      <>
+                        {" "}
+                        <span className="font-bold text-emerald-950">
+                          {activeGaps}
+                        </span>{" "}
+                        live but off-map.
+                      </>
+                    )}
+                  </>
+                )}
+              </p>
+            </div>
+          </TriageCard>
+          </div>
+        </aside>
+
+        {/* ── Wide pending review queue (urgency-sorted, inline approve/edit) ── */}
+        <section id="queue" className="min-w-0 scroll-mt-[64px]">
+          <ReviewQueue items={sortedQueue} />
+
+          {/* ── Demoted vanity / context strip ── */}
+          <div className="mt-8 grid gap-5 border-t border-emerald-900/10 pt-5 sm:grid-cols-3">
+            <ContextStat
+              title="Catalog"
+              value={activeCount ?? 0}
+              label="active tournaments"
+            />
+            <ContextStat
+              title="Audience"
+              value={subscriberCount ?? 0}
+              label="subscribers"
+            />
+            <div>
+              <div className="mb-2 text-[10px] font-extrabold uppercase tracking-[0.1em] text-emerald-900/35">
+                Scraper · recent
+              </div>
+              <div className="text-[12.5px] text-emerald-900/60">
+                {runs.length} run{runs.length === 1 ? "" : "s"} tracked ·{" "}
+                <span className="font-bold text-emerald-900/80">
+                  {sourceStatuses.length}
+                </span>{" "}
+                source{sourceStatuses.length === 1 ? "" : "s"}
+                {lastRunOverall && (
+                  <> · last {timeAgo(lastRunOverall.started_at)}</>
+                )}
+              </div>
+              <Link
+                href="/admin/scraping"
+                className="mt-1 inline-block text-[12px] font-bold text-emerald-700 hover:text-emerald-800"
+              >
+                Pipeline detail →
+              </Link>
+            </div>
+          </div>
+        </section>
+      </div>
     </>
   );
 }
@@ -457,6 +478,28 @@ function TriageCard({
       >
         {jumpLabel}
       </Link>
+    </div>
+  );
+}
+
+/** Conic-gradient progress ring showing % of pending submissions geocoded. */
+function GeocodeRing({ pct, status }: { pct: number; status: AdminStatus }) {
+  const fill =
+    status === "critical"
+      ? "#dc2626"
+      : status === "attention"
+        ? "#d97706"
+        : "#16a34a";
+  return (
+    <div
+      className="grid h-[58px] w-[58px] flex-none place-items-center rounded-full"
+      style={{
+        background: `conic-gradient(${fill} ${pct}%, #eef1ec 0)`,
+      }}
+    >
+      <div className="grid h-[42px] w-[42px] place-items-center rounded-full bg-white text-[13px] font-extrabold text-emerald-950">
+        {pct}%
+      </div>
     </div>
   );
 }
