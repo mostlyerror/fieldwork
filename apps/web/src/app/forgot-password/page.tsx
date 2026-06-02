@@ -57,7 +57,13 @@ export default function ForgotPasswordPage() {
               Open it and set a new password.
             </p>
           ) : (
-            <form action={handleSubmit} className="space-y-4">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmit(new FormData(e.currentTarget));
+              }}
+              className="space-y-4"
+            >
               {error && (
                 <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
                   {error}

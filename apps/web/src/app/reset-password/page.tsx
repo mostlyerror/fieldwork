@@ -118,7 +118,13 @@ export default function ResetPasswordPage() {
           )}
 
           {status === "ready" && (
-            <form action={handleSubmit} className="space-y-4">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmit(new FormData(e.currentTarget));
+              }}
+              className="space-y-4"
+            >
               {error && (
                 <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
                   {error}
