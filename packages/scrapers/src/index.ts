@@ -177,6 +177,26 @@ async function main() {
 
   await runHealthCheck(results);
 
+  // Auto-archive tournaments that ended >30 days ago: flip 'active' → 'archived'
+  // (terminal, off public surfaces, still reachable by direct link). Past events
+  // stay discoverable for 30 days for results; after that they retire here.
+  try {
+    const { data: archivedCount, error } = await supabase.rpc(
+      "archive_past_tournaments",
+    );
+    if (error) {
+      console.error("[auto-archive] RPC failed:", error.message);
+    } else if (typeof archivedCount === "number" && archivedCount > 0) {
+      console.log(`[auto-archive] Archived ${archivedCount} past tournament(s).`);
+      await sendDiscordAlert({
+        title: "🗄️ Auto-archived past tournaments",
+        description: `${archivedCount} tournament(s) >30 days past their end date moved to archived.`,
+      });
+    }
+  } catch (err) {
+    console.error("[auto-archive] Error:", err);
+  }
+
   // Check for active tournaments that weren't seen in this scrape (may have been cancelled)
   try {
     const successfulSources = results.filter((r) => r.ok).map((r) => r.name);

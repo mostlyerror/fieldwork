@@ -36,25 +36,33 @@ function daysFromToday(dateStr: string): number {
  * filters on. Everything here is derived from real columns — no invented data.
  */
 function classify(t: RawTournament): AdminTournamentRow {
+  const status = t.status ?? "active";
+  // Archived = deliberately retired. A terminal state — exempt from every
+  // data-quality / attention dimension (it's intentionally off public surfaces).
+  const archived = status === "archived";
   const hasCoords = t.latitude != null && t.longitude != null;
-  const pending = t.status === "pending_review" || t.status === "draft";
-  const isDuplicate = t.status === "duplicate";
+  const pending = !archived && (status === "pending_review" || status === "draft");
+  const isDuplicate = status === "duplicate";
 
-  // Missing-data signals (date / fee / venue).
+  // Missing-data signals (date / fee / venue) — not flagged once archived.
   const missing: string[] = [];
-  if (!t.date_start) missing.push("No date");
-  if (t.entry_fee == null) missing.push("No fee");
-  if (!t.location_name?.trim()) missing.push("No venue");
+  if (!archived) {
+    if (!t.date_start) missing.push("No date");
+    if (t.entry_fee == null) missing.push("No fee");
+    if (!t.location_name?.trim()) missing.push("No venue");
+  }
 
-  // Past-end-date stale: an active tournament whose end has passed.
+  // Stale: an active tournament that ended >30 days ago and hasn't been archived
+  // yet. The scraper auto-archives these each run; this flag catches stragglers.
   const endRef = t.date_end ?? t.date_start;
-  const ended = endRef ? daysFromToday(endRef) < 0 : false;
-  const stale = t.status === "active" && ended;
+  const endedLongAgo = endRef ? daysFromToday(endRef) < -30 : false;
+  const stale = status === "active" && endedLongAgo;
 
-  const noGeo = !hasCoords && !isDuplicate;
+  const noGeo = !hasCoords && !isDuplicate && !archived;
   const hasMissing = missing.length > 0;
 
-  const needsAttention = pending || noGeo || hasMissing || isDuplicate || stale;
+  const needsAttention =
+    !archived && (pending || noGeo || hasMissing || isDuplicate || stale);
 
   return {
     id: t.id,
@@ -62,7 +70,7 @@ function classify(t: RawTournament): AdminTournamentRow {
     date_start: t.date_start,
     date_end: t.date_end,
     location_name: t.location_name,
-    status: t.status ?? "active",
+    status,
     source_platform: t.source_platform,
     source_url: t.source_url,
     entry_fee: t.entry_fee,
@@ -72,6 +80,7 @@ function classify(t: RawTournament): AdminTournamentRow {
     isDuplicate,
     stale,
     noGeo,
+    archived,
     missing,
     needsAttention,
   };

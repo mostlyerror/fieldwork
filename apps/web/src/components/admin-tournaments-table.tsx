@@ -48,6 +48,8 @@ export interface AdminTournamentRow {
   isDuplicate: boolean;
   stale: boolean;
   noGeo: boolean;
+  /** Deliberately retired — terminal state, off public surfaces. */
+  archived: boolean;
   /** Human labels for missing fields, e.g. ["No date", "No fee"]. */
   missing: string[];
   needsAttention: boolean;
@@ -62,6 +64,7 @@ type QualityKey =
   | "missing"
   | "dupes"
   | "stale"
+  | "archived"
   | null;
 
 const SOURCE_OPTIONS = [
@@ -101,8 +104,9 @@ function formatWhen(start: string | null, end: string | null): {
 /** Status pill label/tone derived from the real status string. */
 function statusPill(row: AdminTournamentRow): {
   label: string;
-  tone: "active" | "pending" | "stale" | "dupe";
+  tone: "active" | "pending" | "stale" | "dupe" | "archived";
 } {
+  if (row.archived) return { label: "Archived", tone: "archived" };
   if (row.pending) return { label: "Pending", tone: "pending" };
   if (row.isDuplicate) return { label: "Duplicate", tone: "dupe" };
   if (row.stale) return { label: "Stale", tone: "stale" };
@@ -114,12 +118,14 @@ const STATUS_PILL_CLS: Record<string, string> = {
   pending: "bg-red-50 text-red-700",
   stale: "bg-amber-900/[0.06] text-amber-800",
   dupe: "bg-amber-50 text-amber-700",
+  archived: "bg-slate-100 text-slate-500",
 };
 const STATUS_DOT_CLS: Record<string, string> = {
   active: "bg-emerald-500",
   pending: "bg-red-500",
   stale: "bg-amber-700",
   dupe: "bg-amber-500",
+  archived: "bg-slate-400",
 };
 
 // ───────────────────────────────────────────────────────── main view
@@ -149,44 +155,47 @@ export function AdminTournamentsView({ rows }: { rows: AdminTournamentRow[] }) {
       missing: 0,
       dupes: 0,
       stale: 0,
+      archived: 0,
       geocoded: 0,
     };
     for (const r of live) {
       if (r.needsAttention) c.attention++;
-      else c.healthy++;
+      else if (!r.archived) c.healthy++;
       if (r.pending) c.pending++;
       if (r.status === "active") c.active++;
       if (r.noGeo) c.noGeo++;
       if (r.missing.length > 0) c.missing++;
       if (r.isDuplicate) c.dupes++;
       if (r.stale) c.stale++;
+      if (r.archived) c.archived++;
       if (r.hasCoords) c.geocoded++;
     }
     return c;
   }, [live]);
 
   // Catalog health %: share of rows that are complete & geocoded.
-  const health =
-    counts.total === 0
-      ? 100
-      : Math.round(
-          (live.filter((r) => r.hasCoords && r.missing.length === 0 && !r.pending)
-            .length /
-            counts.total) *
-            100
-        );
+  const health = (() => {
+    // Archived rows are retired — exclude them from the data-quality score.
+    const base = live.filter((r) => !r.archived);
+    if (base.length === 0) return 100;
+    const ok = base.filter(
+      (r) => r.hasCoords && r.missing.length === 0 && !r.pending,
+    ).length;
+    return Math.round((ok / base.length) * 100);
+  })();
 
   // Apply view + quality + source + search.
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return live.filter((r) => {
       if (view === "attention" && !r.needsAttention) return false;
-      if (view === "healthy" && r.needsAttention) return false;
+      if (view === "healthy" && (r.needsAttention || r.archived)) return false;
       if (quality === "pending" && !r.pending) return false;
       if (quality === "noGeo" && !r.noGeo) return false;
       if (quality === "missing" && r.missing.length === 0) return false;
       if (quality === "dupes" && !r.isDuplicate) return false;
       if (quality === "stale" && !r.stale) return false;
+      if (quality === "archived" && !r.archived) return false;
       if (source) {
         const plat = r.source_platform ?? "manual";
         if (plat !== source) return false;
@@ -344,6 +353,13 @@ export function AdminTournamentsView({ rows }: { rows: AdminTournamentRow[] }) {
               count={counts.stale}
               on={quality === "stale"}
               onClick={() => toggleQuality("stale")}
+            />
+            <RailItem
+              dot="bg-slate-400"
+              label="Archived"
+              count={counts.archived}
+              on={quality === "archived"}
+              onClick={() => toggleQuality("archived")}
             />
           </RailCard>
 
@@ -734,7 +750,7 @@ function MobileFilterPills({
   setView: (v: ViewKey) => void;
   quality: QualityKey;
   toggleQuality: (k: Exclude<QualityKey, null>) => void;
-  counts: { attention: number; total: number; healthy: number; pending: number; noGeo: number; missing: number; dupes: number; stale: number };
+  counts: { attention: number; total: number; healthy: number; pending: number; noGeo: number; missing: number; dupes: number; stale: number; archived: number };
 }) {
   return (
     <div className="lg:hidden">
@@ -755,6 +771,7 @@ function MobileFilterPills({
         <Pill dot="bg-amber-500" on={quality === "missing"} onClick={() => toggleQuality("missing")} label="Missing data" count={counts.missing} />
         <Pill dot="bg-blue-500" on={quality === "dupes"} onClick={() => toggleQuality("dupes")} label="Possible dupes" count={counts.dupes} />
         <Pill dot="bg-emerald-900/25" on={quality === "stale"} onClick={() => toggleQuality("stale")} label="Stale / past" count={counts.stale} />
+        <Pill dot="bg-slate-400" on={quality === "archived"} onClick={() => toggleQuality("archived")} label="Archived" count={counts.archived} />
       </div>
     </div>
   );

@@ -30,15 +30,18 @@ export async function rejectTournament(id: string) {
 }
 
 /**
- * Archive a tournament — pull it off public surfaces without deleting it.
- * Sets status to 'draft' (the only non-public, non-duplicate status the app
- * writes). Used by the "Archive" action on stale / past-date catalog rows.
+ * Archive a tournament — pull it off public discovery surfaces without deleting
+ * it. Sets status to 'archived' (a terminal, retired state, distinct from
+ * 'draft'/never-published). The detail page stays reachable by direct link and
+ * the tournament still appears in player histories. Used by the "Archive" action
+ * on stale / past-date catalog rows; the scraper also auto-archives rows >30 days
+ * past their end date (see archive_past_tournaments()).
  */
 export async function archiveTournament(id: string) {
   await requireAdmin();
   const { error } = await getSupabaseAdmin()
     .from("tournaments")
-    .update({ status: "draft" })
+    .update({ status: "archived" })
     .eq("id", id);
   if (error) throw new Error("Failed to archive tournament");
   return { success: true };

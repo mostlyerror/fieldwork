@@ -3,12 +3,16 @@ import type { Tournament, TournamentSource, TournamentEvent, TournamentMatch, Ev
 import { getCityBySlug, getDefaultCity } from "./cities";
 
 export async function getTournaments(): Promise<Tournament[]> {
-  const today = new Date().toISOString().split("T")[0];
+  // 30-day discovery grace: recently-ended tournaments stay findable for results.
+  // Mirrors the tournaments_near RPC (the city/search surface).
+  const cutoff = new Date(Date.now() - 30 * 86_400_000)
+    .toISOString()
+    .split("T")[0];
   const { data, error } = await supabase
     .from("tournaments")
     .select("*")
     .eq("status", "active")
-    .gte("date_end", today)
+    .gte("date_end", cutoff)
     .order("date_start", { ascending: true });
 
   if (error) {
