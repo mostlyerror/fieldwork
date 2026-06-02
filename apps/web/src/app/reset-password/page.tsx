@@ -16,9 +16,14 @@ import {
 
 /**
  * Password-recovery handler. Supabase's reset email lands here with the recovery
- * token in the URL hash (#access_token=...&type=recovery); the browser client
- * parses it on load and establishes a short-lived recovery session, which lets
- * us call updateUser({ password }) to set a new password.
+ * token in the URL hash (#access_token=...&refresh_token=...&type=recovery).
+ *
+ * We CANNOT rely on the client auto-detecting it: @supabase/ssr's browser client
+ * defaults to the PKCE flow, whose detectSessionInUrl only handles a ?code= query
+ * param and ignores the implicit #access_token hash entirely. So we parse the hash
+ * ourselves and call setSession() explicitly — that establishes the short-lived
+ * recovery session regardless of flow type, after which updateUser({ password })
+ * can set the new password.
  */
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -30,26 +35,49 @@ export default function ResetPasswordPage() {
   const [pending, setPending] = useState(false);
 
   useEffect(() => {
-    let resolved = false;
-    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "PASSWORD_RECOVERY" || session) {
-        resolved = true;
-        setStatus("ready");
+    let active = true;
+
+    async function establish() {
+      const raw = window.location.hash.startsWith("#")
+        ? window.location.hash.slice(1)
+        : window.location.hash;
+      const params = new URLSearchParams(raw);
+
+      // Supabase puts a failed/expired verification's error in the hash.
+      if (params.get("error_code") || params.get("error")) {
+        if (active) setStatus("invalid");
+        return;
       }
-    });
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        resolved = true;
-        setStatus("ready");
+
+      const access_token = params.get("access_token");
+      const refresh_token = params.get("refresh_token");
+
+      // The recovery link delivers tokens in the hash → set the session explicitly.
+      if (access_token && refresh_token) {
+        const { error } = await supabase.auth.setSession({
+          access_token,
+          refresh_token,
+        });
+        if (!active) return;
+        if (error) {
+          console.error("[reset-password] setSession failed", error);
+          setStatus("invalid");
+        } else {
+          // Strip the tokens from the URL so they aren't left in history.
+          window.history.replaceState(null, "", window.location.pathname);
+          setStatus("ready");
+        }
+        return;
       }
-    });
-    // No recovery session materialised → the link is missing or expired.
-    const t = setTimeout(() => {
-      if (!resolved) setStatus("invalid");
-    }, 2500);
+
+      // No hash tokens — fall back to an existing (e.g. cookie) session.
+      const { data } = await supabase.auth.getSession();
+      if (active) setStatus(data.session ? "ready" : "invalid");
+    }
+
+    establish();
     return () => {
-      sub.subscription.unsubscribe();
-      clearTimeout(t);
+      active = false;
     };
   }, [supabase]);
 
