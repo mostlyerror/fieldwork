@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { FooterSubscribe } from "./footer-subscribe";
 
 export function Footer({ citySlug }: { citySlug?: string }) {
   const browseHref = citySlug ? `/${citySlug}` : "/houston";
@@ -7,7 +6,7 @@ export function Footer({ citySlug }: { citySlug?: string }) {
   return (
     <footer className="mt-20 border-t-2 border-gray-900">
       <div className="mx-auto max-w-6xl px-3 sm:px-5 py-12">
-        <div className="grid gap-6 sm:gap-10 sm:grid-cols-3">
+        <div className="grid gap-6 sm:gap-10 sm:grid-cols-2">
           {/* Brand */}
           <div>
             <p className="text-lg font-extrabold tracking-tight text-gray-900">
@@ -35,26 +34,15 @@ export function Footer({ citySlug }: { citySlug?: string }) {
               <a href="mailto:hello@pickleradar.app" className="text-gray-600 hover:text-emerald-700">
                 Contact us
               </a>
+              <a
+                href="https://instagram.com/pickleradar"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-600 hover:text-emerald-700"
+              >
+                Instagram
+              </a>
             </div>
-          </div>
-
-          {/* Social + subscribe hook */}
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
-              Stay in the loop
-            </p>
-            <p className="mt-3 text-sm text-gray-500">
-              Weekly tournament updates delivered to your inbox.
-            </p>
-            <FooterSubscribe />
-            <a
-              href="https://instagram.com/pickleradar"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 inline-block text-sm text-gray-600 hover:text-emerald-700"
-            >
-              Instagram
-            </a>
           </div>
         </div>
 

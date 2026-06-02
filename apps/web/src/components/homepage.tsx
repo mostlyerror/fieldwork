@@ -83,9 +83,33 @@ export function Homepage({
           {" · "}
           {duprCount} verified ratings
         </p>
+      </div>
 
-        {/* Inline email subscribe bar */}
-        <div className="mt-4 flex flex-col gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 sm:flex-row sm:items-center sm:gap-4">
+      {/* Personalized recommendations */}
+      {recommendations && (
+        <section className="mx-auto max-w-6xl px-3 sm:px-5 pt-6">
+          {recommendations}
+        </section>
+      )}
+
+      {/* Tournament browser */}
+      <section className="mx-auto max-w-6xl px-3 sm:px-5 pt-6 pb-16">
+        <TournamentBrowser tournaments={tournaments} citySlug={city?.slug} />
+      </section>
+
+      {/* Submit CTA — single line */}
+      <div className="mx-auto max-w-6xl px-3 sm:px-5 pb-10 text-sm text-gray-400">
+        Know about a tournament?{" "}
+        <Link href="/submit" className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline">
+          Submit it here →
+        </Link>
+      </div>
+
+      {seoContent}
+
+      {/* Email subscribe — end-of-page CTA, just before the footer */}
+      <section className="mx-auto max-w-6xl px-3 sm:px-5 pt-2 pb-14">
+        <div className="flex flex-col gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 sm:flex-row sm:items-center sm:gap-4">
           <div className="flex items-center gap-2 text-sm font-medium text-emerald-700">
             <span aria-hidden="true">📬</span>
             <span>Get weekly updates</span>
@@ -149,29 +173,7 @@ export function Homepage({
             </p>
           )}
         </div>
-      </div>
-
-      {/* Personalized recommendations */}
-      {recommendations && (
-        <section className="mx-auto max-w-6xl px-3 sm:px-5 pt-6">
-          {recommendations}
-        </section>
-      )}
-
-      {/* Tournament browser */}
-      <section className="mx-auto max-w-6xl px-3 sm:px-5 pt-6 pb-16">
-        <TournamentBrowser tournaments={tournaments} citySlug={city?.slug} />
       </section>
-
-      {/* Submit CTA — single line */}
-      <div className="mx-auto max-w-6xl px-3 sm:px-5 pb-10 text-sm text-gray-400">
-        Know about a tournament?{" "}
-        <Link href="/submit" className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline">
-          Submit it here →
-        </Link>
-      </div>
-
-      {seoContent}
 
       <Footer citySlug={city?.slug} />
     </div>
