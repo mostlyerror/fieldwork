@@ -40,3 +40,6 @@ begin
   return archived_count;
 end;
 $$ language plpgsql;
+
+-- One-time backfill: retire tournaments that already ended >30 days ago.
+select archive_past_tournaments();
