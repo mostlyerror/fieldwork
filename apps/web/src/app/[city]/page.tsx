@@ -4,6 +4,7 @@ import { getCityBySlug, CITIES } from "@/lib/cities";
 import { getTournamentsByCity } from "@/lib/queries";
 import { getUser } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { isTournamentPast } from "@/lib/format";
 import { Homepage } from "@/components/homepage";
 import { RecommendedTournamentsWrapper } from "@/components/recommended-tournaments-wrapper";
 
@@ -59,6 +60,11 @@ export default async function CityPage({ params }: PageProps) {
       .then((r: { count: number | null }) => r.count ?? 0),
   ]);
   const tournaments = tournamentsResult;
+  // The query now includes a 30-day grace of recently-finished tournaments (for
+  // results/findability). For counts and SEO "upcoming" structured data, use only
+  // the genuinely-upcoming ones; the full list still flows to the Homepage so it
+  // can render the separate "Recent results" section.
+  const upcomingTournaments = tournaments.filter((t) => !isTournamentPast(t));
 
   const jsonLdWebSite = {
     "@context": "https://schema.org",
@@ -78,8 +84,8 @@ export default async function CityPage({ params }: PageProps) {
     "@type": "ItemList",
     name: `Upcoming ${city.name} Pickleball Tournaments`,
     itemListOrder: "https://schema.org/ItemListOrderAscending",
-    numberOfItems: tournaments.length,
-    itemListElement: tournaments.slice(0, 10).map((t, i) => ({
+    numberOfItems: upcomingTournaments.length,
+    itemListElement: upcomingTournaments.slice(0, 10).map((t, i) => ({
       "@type": "ListItem",
       position: i + 1,
       item: {
@@ -98,9 +104,10 @@ export default async function CityPage({ params }: PageProps) {
     })),
   };
 
-  const upcomingCount = tournaments.length;
-  const nextTournament = tournaments[0];
-  const venueCount = new Set(tournaments.map((t) => t.location_name)).size;
+  const upcomingCount = upcomingTournaments.length;
+  const venueCount = new Set(
+    upcomingTournaments.map((t) => t.location_name),
+  ).size;
 
   return (
     <>
@@ -120,7 +127,7 @@ export default async function CityPage({ params }: PageProps) {
         tournamentCount={upcomingCount}
         recommendations={
           <RecommendedTournamentsWrapper
-            tournaments={tournaments}
+            tournaments={upcomingTournaments}
             citySlug={city.slug}
           />
         }

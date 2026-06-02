@@ -23,6 +23,24 @@ export function formatCurrency(amount: number): string {
   return `$${amount.toFixed(0)}`;
 }
 
+/** The calendar date a tournament finishes by — its end, or start if no end. */
+export function tournamentEndDate(t: {
+  date_start: string;
+  date_end: string | null;
+}): Date {
+  return new Date((t.date_end ?? t.date_start) + "T00:00:00");
+}
+
+/** True once a tournament has finished (its end date is before today). */
+export function isTournamentPast(
+  t: { date_start: string; date_end: string | null },
+  now: Date = new Date(),
+): boolean {
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  return tournamentEndDate(t) < today;
+}
+
 export function relativeDate(dateStr: string): string | null {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
