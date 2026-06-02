@@ -76,15 +76,19 @@ async function main() {
 
   console.log(`[content-prompt] Day ${daysSinceStart}, posting #${postIndex + 1}: ${post.title}`);
 
+  // Put the full post text (caption + hashtags) in a fenced code block so Discord
+  // shows a one-tap copy button and it pastes into IG verbatim — no labels, no
+  // separators, no edits. The screenshot note stays as a short guidance line.
+  const copyText = `${post.caption}\n\n${post.hashtags}`;
   await sendDiscordAlert({
     title: `📸 IG Post #${postIndex + 1}: ${post.title}`,
-    description: "Time to post! Here's today's content:",
+    description:
+      `📱 Screenshot: ${post.screenshot}\n\n` +
+      `👇 Copy-paste this into the IG caption:\n` +
+      "```\n" +
+      copyText +
+      "\n```",
     color: 0xf97316,
-    fields: [
-      { name: "📱 Screenshot This", value: post.screenshot },
-      { name: "📝 Caption (copy this)", value: post.caption },
-      { name: "#️⃣ Hashtags (copy this)", value: post.hashtags },
-    ],
   });
 
   console.log("[content-prompt] Discord prompt sent.");
