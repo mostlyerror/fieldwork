@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { requestPasswordReset } from "./actions";
 import {
   AuthShell,
   authButtonClass,
@@ -16,7 +16,6 @@ import {
 
 /** Request a password-reset email that links back to /reset-password. */
 export default function ForgotPasswordPage() {
-  const [supabase] = useState(() => createSupabaseBrowserClient());
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -26,40 +25,20 @@ export default function ForgotPasswordPage() {
     setError(null);
     try {
       const email = String(formData.get("email") || "");
-      // Race against a timeout — Supabase's recover endpoint can hang ~30s when
-      // its SMTP send times out, freezing the button. Fail fast with a useful hint.
-      const { error } = await Promise.race([
-        supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/reset-password`,
-        }),
-        new Promise<never>((_, reject) =>
-          setTimeout(
-            () =>
-              reject(
-                new Error(
-                  "The email service didn't respond. Supabase is likely timing out sending via SMTP — check the SMTP host/port/credentials in Supabase Auth settings.",
-                ),
-              ),
-            12000,
-          ),
-        ),
-      ]);
-      if (error) {
-        console.error("[forgot-password]", error);
-        setError(
-          error.message ||
-            "Couldn't send the reset email — check the email and try again in a minute.",
-        );
-      } else {
+      // Routes through the admin generateLink + Brevo API path (see ./actions.ts),
+      // bypassing Supabase's flaky custom SMTP entirely. Fast (~1s) and reliable.
+      const result = await requestPasswordReset(email, window.location.origin);
+      if (result.ok) {
         setSent(true);
+      } else {
+        setError(
+          result.error ||
+            "Couldn't send the reset email — try again in a minute.",
+        );
       }
     } catch (e) {
       console.error("[forgot-password]", e);
-      setError(
-        e instanceof Error
-          ? e.message
-          : "Something went wrong sending the email. Please try again.",
-      );
+      setError("Something went wrong sending the email. Please try again.");
     } finally {
       setPending(false);
     }
