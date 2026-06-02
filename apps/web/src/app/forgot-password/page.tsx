@@ -16,9 +16,24 @@ export default function ForgotPasswordPage() {
     setError(null);
     try {
       const email = String(formData.get("email") || "");
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
+      // Race against a timeout — Supabase's recover endpoint can hang ~30s when
+      // its SMTP send times out, freezing the button. Fail fast with a useful hint.
+      const { error } = await Promise.race([
+        supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () =>
+              reject(
+                new Error(
+                  "The email service didn't respond. Supabase is likely timing out sending via SMTP — check the SMTP host/port/credentials in Supabase Auth settings.",
+                ),
+              ),
+            12000,
+          ),
+        ),
+      ]);
       if (error) {
         console.error("[forgot-password]", error);
         setError(
