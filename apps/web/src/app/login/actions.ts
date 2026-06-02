@@ -5,11 +5,14 @@ import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { posthogServer } from "@/lib/posthog-server";
 
+// Hard gate for the one-click dev-login bypass: it must be IMPOSSIBLE in
+// production. NODE_ENV is "production" on every Vercel build (prod AND preview)
+// and "development" under `next dev`, so this is safe-by-construction — it can't
+// drift via a missing/forgotten env var the way the old URL-comparison gate could.
+// Defense-in-depth on top of this: the localhost-only UI check in dev-quick-login,
+// and devLogin still requires DEV_ADMIN_* / DEV_USER_* creds to exist at all.
 function isDevEnvironment() {
-  return (
-    process.env.NEXT_PUBLIC_SUPABASE_URL !==
-    process.env.NEXT_PUBLIC_SUPABASE_PROD_URL
-  );
+  return process.env.NODE_ENV !== "production";
 }
 
 export async function devLogin(role: "admin" | "user") {
