@@ -4,6 +4,15 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
+import {
+  AuthShell,
+  authButtonClass,
+  authErrorClass,
+  authHeadingClass,
+  authInputClass,
+  authLabelClass,
+  authSubcopyClass,
+} from "@/components/auth/auth-shell";
 
 /**
  * Password-recovery handler. Supabase's reset email lands here with the recovery
@@ -80,101 +89,83 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-green-50/50 via-white to-amber-50/30 px-4">
-      <div className="w-full max-w-sm">
-        <Link href="/" className="mb-8 flex items-center justify-center gap-2">
-          <span className="text-3xl">{"\u{1F3D3}"}</span>
-          <span className="text-2xl font-bold text-green-700">PickleRadar</span>
-        </Link>
-        <div className="rounded-2xl bg-white p-8 shadow-sm ring-1 ring-gray-100">
-          <h1 className="mb-6 text-center text-xl font-bold text-gray-900">
-            Set a new password
-          </h1>
+    <AuthShell>
+      <h1 className={authHeadingClass}>Set a new password</h1>
+      <p className={authSubcopyClass}>
+        Choose something you haven&rsquo;t used before. You&rsquo;ll be signed in
+        automatically once it&rsquo;s saved.
+      </p>
 
-          {status === "loading" && (
-            <p className="text-center text-sm text-gray-500">
-              Verifying your reset link&hellip;
-            </p>
-          )}
+      {status === "loading" && (
+        <p className="text-[0.83rem] text-[#6b7280]">
+          Verifying your reset link&hellip;
+        </p>
+      )}
 
-          {status === "invalid" && (
-            <div className="space-y-4 text-center">
-              <p className="text-sm text-red-600">
-                This reset link is invalid or has expired.
-              </p>
-              <Link
-                href="/forgot-password"
-                className="inline-block rounded-full bg-green-600 px-5 py-2 text-sm font-semibold text-white hover:bg-green-700"
-              >
-                Request a new link
-              </Link>
-            </div>
-          )}
-
-          {status === "done" && (
-            <p className="text-center text-sm font-medium text-green-700">
-              Password updated. Redirecting&hellip;
-            </p>
-          )}
-
-          {status === "ready" && (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSubmit(new FormData(e.currentTarget));
-              }}
-              className="space-y-4"
-            >
-              {error && (
-                <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
-                  {error}
-                </div>
-              )}
-              <div>
-                <label
-                  htmlFor="password"
-                  className="mb-1 block text-sm font-medium text-gray-700"
-                >
-                  New password
-                </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  minLength={8}
-                  autoComplete="new-password"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="confirm"
-                  className="mb-1 block text-sm font-medium text-gray-700"
-                >
-                  Confirm password
-                </label>
-                <input
-                  id="confirm"
-                  name="confirm"
-                  type="password"
-                  required
-                  minLength={8}
-                  autoComplete="new-password"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={pending}
-                className="w-full rounded-full bg-green-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
-              >
-                {pending ? "Updating…" : "Update password"}
-              </button>
-            </form>
-          )}
+      {status === "invalid" && (
+        <div className="space-y-4">
+          <p className="rounded-[10px] border border-red-200 bg-red-50 p-3 text-[0.83rem] text-red-700">
+            This reset link is invalid or has expired.
+          </p>
+          <Link href="/forgot-password" className={authButtonClass}>
+            Request a new link
+          </Link>
         </div>
-      </div>
-    </div>
+      )}
+
+      {status === "done" && (
+        <p className="rounded-[10px] border border-[#a7f3d0] bg-[#ecfdf5] p-4 text-[0.83rem] font-medium text-[#065f46]">
+          Password updated. Redirecting&hellip;
+        </p>
+      )}
+
+      {status === "ready" && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit(new FormData(e.currentTarget));
+          }}
+          noValidate
+        >
+          {error && <div className={authErrorClass}>{error}</div>}
+
+          <div className="mb-4">
+            <label htmlFor="password" className={authLabelClass}>
+              New password
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              minLength={8}
+              autoComplete="new-password"
+              placeholder="At least 8 characters"
+              className={authInputClass}
+            />
+          </div>
+
+          <div className="mb-5">
+            <label htmlFor="confirm" className={authLabelClass}>
+              Confirm password
+            </label>
+            <input
+              id="confirm"
+              name="confirm"
+              type="password"
+              required
+              minLength={8}
+              autoComplete="new-password"
+              placeholder="Re-enter it"
+              className={authInputClass}
+            />
+          </div>
+
+          <button type="submit" disabled={pending} className={authButtonClass}>
+            {pending ? "Updating…" : "Update password"}
+          </button>
+        </form>
+      )}
+    </AuthShell>
   );
 }

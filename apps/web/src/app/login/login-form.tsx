@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { login } from "./actions";
+import {
+  authButtonClass,
+  authErrorClass,
+  authInputClass,
+  authLabelClass,
+  authLinkClass,
+} from "@/components/auth/auth-shell";
 
 export function LoginForm({ redirect }: { redirect?: string }) {
   const [error, setError] = useState<string | null>(null);
@@ -18,36 +26,34 @@ export function LoginForm({ redirect }: { redirect?: string }) {
   }
 
   return (
-    <form action={handleSubmit} className="space-y-4">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSubmit(new FormData(e.currentTarget));
+      }}
+      noValidate
+    >
       {redirect && <input type="hidden" name="redirect" value={redirect} />}
 
-      {error && (
-        <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
-          {error}
-        </div>
-      )}
+      {error && <div className={authErrorClass}>{error}</div>}
 
-      <div>
-        <label
-          htmlFor="email"
-          className="mb-1 block text-sm font-medium text-gray-700"
-        >
-          Email
+      <div className="mb-4">
+        <label htmlFor="email" className={authLabelClass}>
+          Email address
         </label>
         <input
           id="email"
           name="email"
           type="email"
           required
-          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+          autoComplete="email"
+          placeholder="you@example.com"
+          className={authInputClass}
         />
       </div>
 
-      <div>
-        <label
-          htmlFor="password"
-          className="mb-1 block text-sm font-medium text-gray-700"
-        >
+      <div className="mb-4">
+        <label htmlFor="password" className={authLabelClass}>
           Password
         </label>
         <input
@@ -56,16 +62,21 @@ export function LoginForm({ redirect }: { redirect?: string }) {
           type="password"
           required
           minLength={6}
-          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+          autoComplete="current-password"
+          placeholder="Your password"
+          className={authInputClass}
         />
       </div>
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="w-full rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
+      <Link
+        href="/forgot-password"
+        className={`-mt-1 mb-5 block text-right text-[0.78rem] ${authLinkClass}`}
       >
-        {pending ? "Logging in..." : "Log in"}
+        Forgot password?
+      </Link>
+
+      <button type="submit" disabled={pending} className={authButtonClass}>
+        {pending ? "Signing in…" : "Sign in"}
       </button>
     </form>
   );

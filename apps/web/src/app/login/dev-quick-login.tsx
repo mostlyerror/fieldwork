@@ -26,31 +26,46 @@ export function DevQuickLogin() {
   }
 
   return (
-    <div className="mt-6 rounded-lg border-2 border-dashed border-gray-300 p-4">
-      <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-400">
-        Dev Quick Login
+    <div
+      className="mt-7 rounded-xl border-2 border-dashed border-[#d1d5db] bg-[#f9fafb] px-[18px] py-4"
+      role="region"
+      aria-label="Developer quick login"
+    >
+      <span className="mb-2.5 inline-flex items-center gap-1.5 rounded-full bg-[#fef3c7] px-2 py-[3px] text-[0.65rem] font-bold uppercase tracking-[0.06em] text-[#92400e]">
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M8 2L14.9 14H1.1L8 2Z" stroke="#92400e" strokeWidth="1.5" strokeLinejoin="round" />
+          <path d="M8 7v3" stroke="#92400e" strokeWidth="1.5" strokeLinecap="round" />
+          <circle cx="8" cy="12.5" r="0.8" fill="#92400e" />
+        </svg>
+        Dev only &nbsp;&middot;&nbsp; localhost
+      </span>
+
+      <p className="mb-2.5 text-[0.78rem] font-semibold text-[#374151]">
+        Quick login &mdash; skip the form
       </p>
 
       {error && (
-        <div className="mb-3 rounded-lg bg-red-50 p-2 text-center text-xs text-red-600">
+        <div className="mb-2.5 rounded-lg bg-red-50 p-2 text-center text-[0.72rem] text-red-600">
           {error}
         </div>
       )}
 
-      <div className="flex gap-3">
+      <div className="flex gap-2">
         <button
+          type="button"
           onClick={() => handleClick("admin")}
           disabled={pending !== null}
-          className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:opacity-50"
+          className="flex-1 rounded-lg border-[1.5px] border-[#d1d5db] bg-white px-3 py-[9px] text-[0.78rem] font-semibold text-[#374151] transition hover:bg-[#f3f4f6] disabled:opacity-50"
         >
-          {pending === "admin" ? "Logging in..." : "Admin"}
+          {pending === "admin" ? "Signing in…" : "Admin user"}
         </button>
         <button
+          type="button"
           onClick={() => handleClick("user")}
           disabled={pending !== null}
-          className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:opacity-50"
+          className="flex-1 rounded-lg border-[1.5px] border-[#d1d5db] bg-white px-3 py-[9px] text-[0.78rem] font-semibold text-[#374151] transition hover:bg-[#f3f4f6] disabled:opacity-50"
         >
-          {pending === "user" ? "Logging in..." : "User"}
+          {pending === "user" ? "Signing in…" : "Regular user"}
         </button>
       </div>
     </div>
