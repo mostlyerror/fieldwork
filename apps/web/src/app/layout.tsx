@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { DevIndicator } from "@/components/dev-indicator";
+import { RecoveryRedirect } from "@/components/recovery-redirect";
 import { PostHogProvider } from "@/components/posthog-provider";
 import "./globals.css";
 
@@ -29,6 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={jakarta.variable}>
       <body className="font-sans text-foreground antialiased">
+        <RecoveryRedirect />
         <PostHogProvider>
           {children}
         </PostHogProvider>
