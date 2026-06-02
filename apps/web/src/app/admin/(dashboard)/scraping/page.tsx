@@ -7,7 +7,6 @@ import {
 import { AttentionBanner, type ProblemChip } from "@/components/admin/attention-banner";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { StatusChip } from "@/components/admin/status-chip";
-import { AgeBadge } from "@/components/admin/age-badge";
 import { RunStrip, type RunStripItem } from "@/components/admin/run-strip";
 import { SOURCE_DISPLAY_NAMES } from "@/lib/constants";
 import { RunNowButton } from "./run-now-button";
@@ -351,7 +350,7 @@ export default async function ScrapingPage() {
                         : "never"}
                     </div>
                     <div
-                      className={`mt-2 text-[12px] ${isDown ? "text-red-700/80" : "text-emerald-900/55"}`}
+                      className={`mt-2 min-h-[2.5em] text-[12px] leading-tight ${isDown ? "text-red-700/80" : "text-emerald-900/55"}`}
                     >
                       Last run {timeAgo(src.lastRun.started_at)} ·{" "}
                       <span
@@ -374,11 +373,6 @@ export default async function ScrapingPage() {
                       )}
                     </div>
                   </div>
-                  <AgeBadge
-                    timestamp={src.lastRun.started_at}
-                    prefix="last run"
-                    className="flex-none"
-                  />
                 </div>
 
                 {/* Reliability strip */}
