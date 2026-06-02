@@ -2,14 +2,12 @@
 
 import { requireAdmin } from "@/lib/auth";
 
-export async function triggerScraper() {
-  await requireAdmin();
-
+async function dispatchWorkflow(workflow: string) {
   const token = process.env.GITHUB_PAT;
   if (!token) throw new Error("GITHUB_PAT not configured");
 
   const res = await fetch(
-    "https://api.github.com/repos/mostlyerror/pickleradar/actions/workflows/scrape.yml/dispatches",
+    `https://api.github.com/repos/mostlyerror/pickleradar/actions/workflows/${workflow}/dispatches`,
     {
       method: "POST",
       headers: {
@@ -29,14 +27,20 @@ export async function triggerScraper() {
   return { success: true };
 }
 
+export async function triggerScraper() {
+  await requireAdmin();
+  return dispatchWorkflow("scrape.yml");
+}
+
 /**
- * Scoped "run now" for a single source card.
- *
- * NOTE: the scrape.yml workflow currently takes no per-source input — a dispatch
- * runs every source. So this triggers the same full run regardless of `source`;
- * the argument is accepted for UI attribution + future per-source dispatch. When
- * the workflow grows a `source` input, thread it through the body below.
+ * Scoped "run now" for a single source card. The urgent-refresh lane dispatches
+ * its own hourly workflow; every other source dispatches the full scrape
+ * (scrape.yml takes no per-source input, so it re-runs all PBB sources — the
+ * `source` arg is otherwise just for UI attribution).
  */
-export async function runSource(_source?: string) {
-  return triggerScraper();
+export async function runSource(source?: string) {
+  await requireAdmin();
+  return dispatchWorkflow(
+    source === "urgent_refresh" ? "urgent-refresh.yml" : "scrape.yml"
+  );
 }

@@ -37,7 +37,8 @@ export async function completeRun(
     tournamentsUpdated: number;
     tournamentsDeduplicated: number;
     newTournamentIds?: string[];
-  }
+  },
+  opts?: { silent?: boolean }
 ): Promise<void> {
   if (run.id === "unknown") return;
 
@@ -62,6 +63,9 @@ export async function completeRun(
         `updated: ${stats.tournamentsUpdated}, deduped: ${stats.tournamentsDeduplicated}`
     );
   }
+
+  // Caller (e.g. urgent refresh) sends its own summary — log the run silently.
+  if (opts?.silent) return;
 
   const hasNew = stats.tournamentsNew > 0;
   let newTournamentLinks = "";

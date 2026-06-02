@@ -9,6 +9,7 @@ import { AdminPageHeader } from "@/components/admin/page-header";
 import { StatusChip } from "@/components/admin/status-chip";
 import { AgeBadge } from "@/components/admin/age-badge";
 import { RunStrip, type RunStripItem } from "@/components/admin/run-strip";
+import { SOURCE_DISPLAY_NAMES } from "@/lib/constants";
 import { RunNowButton } from "./run-now-button";
 
 interface ScraperRun {
@@ -320,7 +321,7 @@ export default async function ScrapingPage() {
                 <div className="mb-3.5 flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="truncate text-[16.5px] font-extrabold tracking-tight text-emerald-950">
-                      {src.name}
+                      {SOURCE_DISPLAY_NAMES[src.name] ?? src.name}
                     </div>
                     <div className="mt-1 text-[11.5px] font-medium text-emerald-900/40">
                       {src.windowCount} run{src.windowCount === 1 ? "" : "s"} in

@@ -36,6 +36,7 @@ export const SOURCE_DISPLAY_NAMES: Record<string, string> = {
   pickleballbrackets: "PickleballBrackets",
   pickleball_den: "Pickleball Den",
   manual: "Direct Link",
+  urgent_refresh: "Urgent Refresh",
 };
 
 const defaultCity = getDefaultCity();
