@@ -26,6 +26,7 @@ import {
   archiveTournament,
 } from "@/app/admin/(dashboard)/actions";
 import { useOptimisticAction } from "@/components/admin/use-optimistic-action";
+import { AdminPageHeader } from "@/components/admin/page-header";
 import { AgeBadge } from "@/components/admin/age-badge";
 import { formatCurrency } from "@/lib/format";
 import { SOURCE_DISPLAY_NAMES } from "@/lib/constants";
@@ -221,26 +222,22 @@ export function AdminTournamentsView({ rows }: { rows: AdminTournamentRow[] }) {
   return (
     <>
       {/* ── Header ── */}
-      <div className="mb-3.5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-emerald-950 lg:text-[25px]">
-            All Tournaments
-          </h1>
-          <p className="mt-1 text-[13px] font-medium text-emerald-900/45">
-            {counts.total} in catalog · {counts.attention} need attention
-          </p>
-        </div>
-        <div className="hidden items-center gap-2 sm:flex">
-          <button
-            type="button"
-            disabled
-            className="cursor-not-allowed rounded-full border border-emerald-900/10 bg-white px-3.5 py-2 text-[12.5px] font-bold text-emerald-900/40 shadow-sm"
-            title="Export not yet wired"
-          >
-            Export CSV
-          </button>
-        </div>
-      </div>
+      <AdminPageHeader
+        title="All Tournaments"
+        subtitle={`${counts.total} in catalog · ${counts.attention} need attention`}
+        action={
+          <div className="hidden items-center gap-2 sm:flex">
+            <button
+              type="button"
+              disabled
+              className="cursor-not-allowed rounded-full border border-emerald-900/10 bg-white px-3.5 py-2 text-[12.5px] font-bold text-emerald-900/40 shadow-sm"
+              title="Export not yet wired"
+            >
+              Export CSV
+            </button>
+          </div>
+        }
+      />
 
       {/* ── Aging queue callout (only when there are pending submissions) ── */}
       {counts.pending > 0 && <PendingCallout count={counts.pending} />}

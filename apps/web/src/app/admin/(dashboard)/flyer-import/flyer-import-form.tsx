@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { VenueSearch, type VenueSelection } from "@/components/venue-search";
 import { useToast } from "@/components/admin/toast";
+import { AdminPageHeader } from "@/components/admin/page-header";
 import {
   mapExtractionToDraftRow,
   type FlyerExtraction,
@@ -163,23 +164,16 @@ export function FlyerImportForm() {
 
   return (
     <div className="text-emerald-950">
-      {/* ── Page header + city pill ── */}
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-4 lg:mb-4">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight lg:text-[26px]">
-            Flyer Import
-          </h1>
-          <p className="mt-1.5 max-w-[620px] text-[13px] text-emerald-900/70 lg:text-[13.5px]">
-            Paste the post, drop the flyer, let Claude take a first pass — then
-            verify against the source, confirm the venue, and ship a private
-            draft to the organizer.
-          </p>
-        </div>
-        <div className="hidden items-center gap-2 rounded-full border border-emerald-900/10 bg-white px-3.5 py-2 text-xs font-semibold text-emerald-900/70 sm:flex">
-          <span className="h-[7px] w-[7px] rounded-full bg-emerald-600 shadow-[0_0_0_3px_#ecfdf3]" />
-          Houston · only configured city
-        </div>
-      </div>
+      <AdminPageHeader
+        title="Flyer Import"
+        subtitle="Paste the post, drop the flyer, let Claude take a first pass — then verify against the source, confirm the venue, and ship a private draft to the organizer."
+        action={
+          <div className="hidden items-center gap-2 rounded-full border border-emerald-900/10 bg-white px-3.5 py-2 text-xs font-semibold text-emerald-900/70 sm:flex">
+            <span className="h-[7px] w-[7px] rounded-full bg-emerald-600 shadow-[0_0_0_3px_#ecfdf3]" />
+            Houston · only configured city
+          </div>
+        }
+      />
 
       {/* ── Stepper ── */}
       <Stepper step={step} />

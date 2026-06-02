@@ -5,6 +5,7 @@ import {
   type AdminStatus,
 } from "@/lib/admin-status";
 import { AttentionBanner, type ProblemChip } from "@/components/admin/attention-banner";
+import { AdminPageHeader } from "@/components/admin/page-header";
 import { StatusChip } from "@/components/admin/status-chip";
 import { AgeBadge } from "@/components/admin/age-badge";
 import { RunStrip, type RunStripItem } from "@/components/admin/run-strip";
@@ -177,29 +178,23 @@ export default async function ScrapingPage() {
 
   return (
     <>
-      {/* Page head */}
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-[24px] font-extrabold tracking-tight text-emerald-950 lg:text-[26px]">
-            Scraping Health
-          </h1>
-          <p className="mt-1 text-[13px] font-medium text-emerald-900/45">
-            {sources.length} source{sources.length === 1 ? "" : "s"} monitored ·
-            last {allRuns.length} runs
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <a
-            href="https://github.com/mostlyerror/pickleradar/actions/workflows/scrape.yml"
-            target="_blank"
-            rel="noreferrer"
-            className="hidden items-center gap-1.5 rounded-full border border-emerald-900/15 bg-white px-4 py-2 text-sm font-bold text-emerald-900 transition hover:border-emerald-900/30 sm:inline-flex"
-          >
-            Workflow logs ↗
-          </a>
-          <RunNowButton label="Run all sources" />
-        </div>
-      </div>
+      <AdminPageHeader
+        title="Scraping Health"
+        subtitle={`${sources.length} source${sources.length === 1 ? "" : "s"} monitored · last ${allRuns.length} runs`}
+        action={
+          <div className="flex items-center gap-2">
+            <a
+              href="https://github.com/mostlyerror/pickleradar/actions/workflows/scrape.yml"
+              target="_blank"
+              rel="noreferrer"
+              className="hidden items-center gap-1.5 rounded-full border border-emerald-900/15 bg-white px-4 py-2 text-sm font-bold text-emerald-900 transition hover:border-emerald-900/30 sm:inline-flex"
+            >
+              Workflow logs ↗
+            </a>
+            <RunNowButton label="Run all sources" />
+          </div>
+        }
+      />
 
       {/* Verdict banner — worst across sources */}
       <AttentionBanner

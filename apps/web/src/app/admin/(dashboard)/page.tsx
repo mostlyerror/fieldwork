@@ -9,6 +9,7 @@ import {
   AttentionBanner,
   type ProblemChip,
 } from "@/components/admin/attention-banner";
+import { AdminPageHeader } from "@/components/admin/page-header";
 import { StatusChip } from "@/components/admin/status-chip";
 import { AgeBadge } from "@/components/admin/age-badge";
 import { RunStrip, type RunStripItem } from "@/components/admin/run-strip";
@@ -235,6 +236,11 @@ export default async function AdminPage() {
 
   return (
     <>
+      <AdminPageHeader
+        title="Review"
+        subtitle="Triage incoming submissions and keep the catalog healthy."
+      />
+
       {/* ── System-status banner (full-bleed across the top) ── */}
       <AttentionBanner
         state={overall}

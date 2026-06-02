@@ -1,5 +1,6 @@
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { AttentionBanner } from "@/components/admin/attention-banner";
+import { AdminPageHeader } from "@/components/admin/page-header";
 import { SocialQueue, type SocialPost } from "@/components/admin/social-queue";
 import {
   SubscriberTable,
@@ -136,6 +137,11 @@ export default async function AudiencePage() {
 
   return (
     <div className="space-y-7">
+      <AdminPageHeader
+        title="Audience"
+        subtitle={`${active} active subscriber${active === 1 ? "" : "s"} · ${newWk} new this week`}
+      />
+
       {/* ── ATTENTION BANNER (needs you now) ─────────────────────────── */}
       <AttentionBanner
         state={failedCount > 0 ? "critical" : queuedCount > 0 ? "attention" : "healthy"}
