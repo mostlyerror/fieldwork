@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { TournamentEvent } from "@/lib/types";
 import { IntelSectionHeader } from "@/components/intel-section-header";
+import { cleanEventName } from "@/lib/event-name";
 
 const MEDAL: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
 
@@ -22,7 +23,7 @@ export function TournamentPodium({ events }: { events: TournamentEvent[] }) {
 
           return (
             <div key={event.id} className="px-4 sm:px-5 py-4">
-              <h4 className="t-body font-bold text-gray-900 mb-3">{event.name}</h4>
+              <h4 className="t-body font-bold text-gray-900 mb-3">{cleanEventName(event)}</h4>
               <div className="flex flex-col gap-2">
                 {medalists.map((p) => {
                   const names = [p.player_name, p.partner_name].filter(Boolean).join(" & ");

@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { cleanEventName } from "@/lib/event-name";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -137,7 +138,7 @@ async function fetchCardData(eventId: string, playerId: string): Promise<CardDat
 
   const { data: event } = await supabase
     .from("tournament_events")
-    .select("name, tournament_id")
+    .select("name, tournament_id, skill_level_min, skill_level_max")
     .eq("id", eventId)
     .single();
   if (!event) return null;
@@ -175,7 +176,11 @@ async function fetchCardData(eventId: string, playerId: string): Promise<CardDat
     placement: ep.placement as number,
     dupr: (ep.enriched_dupr ?? ep.dupr_rating) as number | null,
     partnerDupr: (ep.partner_enriched_dupr ?? ep.partner_dupr_rating) as number | null,
-    eventName: event.name as string,
+    eventName: cleanEventName({
+      name: event.name as string,
+      skill_level_min: (event.skill_level_min as number | null) ?? null,
+      skill_level_max: (event.skill_level_max as number | null) ?? null,
+    }),
     tournamentName: tournament.name as string,
     tournamentDate: dateStr,
     venue: tournament.location_name as string,

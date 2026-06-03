@@ -7,6 +7,7 @@ import { IntelSectionHeader } from "@/components/intel-section-header";
 import { DuprDistribution } from "./dupr-distribution";
 import { TeamLeaderboard } from "./team-leaderboard";
 import { FieldHonesty } from "./field-honesty";
+import { cleanEventName } from "@/lib/event-name";
 import { FieldStrengthBadge } from "./field-strength-badge";
 import { effectiveAvgDupr, avgDuprPair } from "@/lib/dupr-utils";
 import { registrantLabel } from "@/lib/field-intel";
@@ -123,7 +124,7 @@ export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
                         isSelected ? "text-emerald-900" : "text-gray-900"
                       }`}
                     >
-                      {event.name}
+                      {cleanEventName(event)}
                     </span>
                     <div className="mt-1 flex items-center gap-3 t-caption text-gray-400">
                       {event.registered_count > 0 && (
@@ -153,7 +154,7 @@ export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
         {/* Right panel: selected event details */}
         <div className="overflow-y-auto bg-white p-6">
           <h3 className="t-h2 text-gray-900">
-            {selectedEvent.name}
+            {cleanEventName(selectedEvent)}
           </h3>
 
           <div className="mt-2 flex flex-wrap gap-5 t-body text-gray-500">

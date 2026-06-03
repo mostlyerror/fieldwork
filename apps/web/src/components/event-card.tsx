@@ -7,6 +7,7 @@ import { DuprDistribution } from "./dupr-distribution";
 import { FieldHonesty } from "./field-honesty";
 import { FieldStrip } from "./field-strip";
 import { eventIntel, registrantLabel } from "@/lib/field-intel";
+import { cleanEventName } from "@/lib/event-name";
 
 /** Listed → live average transition shown on the right of the card header. */
 function RateTransition({ listed, live }: { listed: number | null; live: number | null }) {
@@ -56,7 +57,7 @@ export function EventCard({ event }: { event: TournamentEvent }) {
         )}
 
         <div className="min-w-0 flex-1">
-          <div className="truncate t-body font-bold tracking-tight text-gray-900">{event.name}</div>
+          <div className="truncate t-body font-bold tracking-tight text-gray-900">{cleanEventName(event)}</div>
           {event.registered_count > 0 && (
             <div className="mt-0.5 t-caption text-gray-400">
               {registrantLabel(event.registered_count, event.event_type)}

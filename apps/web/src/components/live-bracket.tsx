@@ -3,6 +3,7 @@
 import type { TournamentMatch, TournamentEvent } from "@/lib/types";
 import { winProbability, formatProbability } from "@/lib/predictions";
 import { IntelSectionHeader } from "@/components/intel-section-header";
+import { cleanEventName } from "@/lib/event-name";
 import { useState } from "react";
 
 // --- Pool standings ---
@@ -312,7 +313,7 @@ function groupByEventId(
   matches: TournamentMatch[],
   events: TournamentEvent[],
 ): Map<string, { name: string; matches: TournamentMatch[] }> {
-  const eventNames = new Map(events.map((e) => [e.id, e.name]));
+  const eventNames = new Map(events.map((e) => [e.id, cleanEventName(e)]));
   const groups = new Map<string, { name: string; matches: TournamentMatch[] }>();
 
   for (const m of matches) {

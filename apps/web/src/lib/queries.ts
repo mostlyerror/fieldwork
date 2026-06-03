@@ -1,6 +1,16 @@
 import { supabase } from "./supabase";
 import type { Tournament, TournamentSource, TournamentEvent, TournamentMatch, EventPlayer, Player, Match, PlayerRecord, FrequentPartner, ResultCardData, Venue } from "./types";
 import { getCityBySlug, getDefaultCity } from "./cities";
+import { cleanEventName } from "./event-name";
+
+/** Tidy an event name from a raw query row carrying name + skill bounds. */
+function cleanRowEventName(event: Record<string, unknown>): string {
+  return cleanEventName({
+    name: event.name as string,
+    skill_level_min: (event.skill_level_min as number | null) ?? null,
+    skill_level_max: (event.skill_level_max as number | null) ?? null,
+  });
+}
 
 export async function getTournaments(): Promise<Tournament[]> {
   // 30-day discovery grace: recently-ended tournaments stay findable for results.
@@ -130,7 +140,7 @@ export async function getResultCardData(
 
   const { data: event } = await supabase
     .from("tournament_events")
-    .select("name, tournament_id")
+    .select("name, tournament_id, skill_level_min, skill_level_max")
     .eq("id", eventId)
     .single();
 
@@ -169,7 +179,7 @@ export async function getResultCardData(
     placement: ep.placement as number,
     dupr: (ep.enriched_dupr as number | null) ?? (ep.dupr_rating as number | null),
     partnerDupr: (ep.partner_enriched_dupr as number | null) ?? (ep.partner_dupr_rating as number | null),
-    eventName: event.name as string,
+    eventName: cleanRowEventName(event),
     eventId,
     tournamentName: tournament.name as string,
     tournamentDate: dateStr,
@@ -350,6 +360,8 @@ export async function getPlayerTournamentHistory(
       event_id,
       tournament_events!inner (
         name,
+        skill_level_min,
+        skill_level_max,
         tournament_id,
         tournaments!inner (
           id,
@@ -370,7 +382,7 @@ export async function getPlayerTournamentHistory(
       tournamentId: tournament.id as string,
       tournamentName: tournament.name as string,
       dateStart: tournament.date_start as string,
-      eventName: event.name as string,
+      eventName: cleanRowEventName(event),
       duprRating: row.dupr_rating as number | null,
       partnerName: row.partner_name as string | null,
     };
@@ -510,6 +522,8 @@ export async function getPlayerUpcomingTournaments(
       dupr_rating,
       tournament_events!inner (
         name,
+        skill_level_min,
+        skill_level_max,
         tournament_id,
         tournaments!inner (
           id,
@@ -537,7 +551,7 @@ export async function getPlayerUpcomingTournaments(
       {
         tournamentId: tournament.id as string,
         tournamentName: tournament.name as string,
-        eventName: event.name as string,
+        eventName: cleanRowEventName(event),
         dateStart,
         listedDupr: row.dupr_rating as number | null,
       },
