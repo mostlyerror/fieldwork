@@ -239,7 +239,7 @@ export function AdminTournamentsView({ rows }: { rows: AdminTournamentRow[] }) {
             <button
               type="button"
               disabled
-              className="cursor-not-allowed rounded-full border border-emerald-900/10 bg-white px-3.5 py-2 text-[12.5px] font-bold text-emerald-900/40 shadow-sm"
+              className="t-small cursor-not-allowed rounded-full border border-emerald-900/10 bg-white px-3.5 py-2 font-bold text-emerald-900/40 shadow-sm"
               title="Export not yet wired"
             >
               Export CSV
@@ -381,10 +381,10 @@ export function AdminTournamentsView({ rows }: { rows: AdminTournamentRow[] }) {
 
           <RailCard title="Catalog health">
             <div className="px-3.5 pb-4 pt-1">
-              <div className="text-[22px] font-extrabold leading-none tracking-tight text-emerald-950">
+              <div className="t-h2 leading-none text-emerald-950">
                 {health}%
               </div>
-              <div className="mt-1 text-[11px] font-medium text-emerald-900/45">
+              <div className="t-caption mt-1 text-emerald-900/45">
                 complete &amp; geocoded
               </div>
               <Meter value={health} />
@@ -429,7 +429,7 @@ export function AdminTournamentsView({ rows }: { rows: AdminTournamentRow[] }) {
                   key={key}
                   type="button"
                   onClick={() => setView(key)}
-                  className={`px-3.5 py-2.5 text-[12px] font-semibold transition ${
+                  className={`t-caption px-3.5 py-2.5 font-semibold transition ${
                     view === key
                       ? "bg-emerald-50 text-emerald-700"
                       : "text-emerald-900/45 hover:text-emerald-900/70"
@@ -464,10 +464,10 @@ export function AdminTournamentsView({ rows }: { rows: AdminTournamentRow[] }) {
 
           {/* Section label */}
           <div className="mb-2 mt-4 flex items-center gap-2">
-            <span className="text-[11px] font-extrabold uppercase tracking-[0.09em] text-emerald-900/55">
+            <span className="t-label font-extrabold text-emerald-900/55">
               {sectionLabel}
             </span>
-            <span className="rounded-full bg-emerald-900/[0.06] px-2 py-0.5 text-[11px] font-bold text-emerald-900/45">
+            <span className="t-caption rounded-full bg-emerald-900/[0.06] px-2 py-0.5 font-bold text-emerald-900/45">
               {visibleRows.length}
             </span>
             <span className="h-px flex-1 bg-emerald-900/10" />
@@ -488,7 +488,7 @@ export function AdminTournamentsView({ rows }: { rows: AdminTournamentRow[] }) {
                 <col className="w-[176px]" />
               </colgroup>
               <thead>
-                <tr className="bg-[#fcfcf6] text-left text-[10px] font-bold uppercase tracking-[0.07em] text-emerald-900/40">
+                <tr className="t-label bg-[#fcfcf6] text-left text-emerald-900/40">
                   <th className="border-b border-emerald-900/10 px-4 py-3">
                     Tournament
                   </th>
@@ -516,7 +516,7 @@ export function AdminTournamentsView({ rows }: { rows: AdminTournamentRow[] }) {
                   <tr>
                     <td
                       colSpan={9}
-                      className="px-4 py-14 text-center text-[13px] text-emerald-900/40"
+                      className="t-small px-4 py-14 text-center text-emerald-900/40"
                     >
                       No tournaments match your filters.
                     </td>
@@ -528,7 +528,7 @@ export function AdminTournamentsView({ rows }: { rows: AdminTournamentRow[] }) {
               <button
                 type="button"
                 onClick={() => setShowHealthy(true)}
-                className="flex w-full items-center justify-center gap-2 border-t border-emerald-900/5 bg-[#fcfcf6] py-3 text-[12.5px] font-semibold text-emerald-900/45 transition hover:text-emerald-900/70"
+                className="t-small flex w-full items-center justify-center gap-2 border-t border-emerald-900/5 bg-[#fcfcf6] py-3 font-semibold text-emerald-900/45 transition hover:text-emerald-900/70"
               >
                 <span className="h-[7px] w-[7px] rounded-full bg-emerald-500" />
                 {healthyHidden.length} healthy tournaments hidden — show all
@@ -542,7 +542,7 @@ export function AdminTournamentsView({ rows }: { rows: AdminTournamentRow[] }) {
               <MobileCard key={r.id} r={r} onRemove={() => remove(r.id)} />
             ))}
             {visibleRows.length === 0 && (
-              <div className="rounded-2xl border border-emerald-900/10 bg-white px-4 py-12 text-center text-[14px] text-emerald-900/40">
+              <div className="t-body rounded-2xl border border-emerald-900/10 bg-white px-4 py-12 text-center text-emerald-900/40">
                 No tournaments match your filters.
               </div>
             )}
@@ -550,7 +550,7 @@ export function AdminTournamentsView({ rows }: { rows: AdminTournamentRow[] }) {
               <button
                 type="button"
                 onClick={() => setShowHealthy(true)}
-                className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-2xl border border-emerald-900/10 bg-[#fcfcf6] py-3.5 text-[14px] font-semibold text-emerald-900/45 transition active:opacity-70"
+                className="t-body flex min-h-[44px] w-full items-center justify-center gap-2 rounded-2xl border border-emerald-900/10 bg-[#fcfcf6] py-3.5 font-semibold text-emerald-900/45 transition active:opacity-70"
               >
                 <span className="h-[7px] w-[7px] rounded-full bg-emerald-500" />
                 {healthyHidden.length} healthy tournaments hidden — show all
@@ -579,16 +579,16 @@ function PendingCallout({ count }: { count: number }) {
         <span className="absolute inset-0 animate-ping rounded-xl border-2 border-amber-500 opacity-40" />
       </div>
       <div className="flex-1">
-        <div className="text-[15px] font-extrabold text-amber-900">
+        <div className="t-body font-extrabold text-amber-900">
           {count} submission{count === 1 ? "" : "s"} waiting in the queue
         </div>
-        <div className="mt-0.5 text-[12.5px] font-medium text-amber-800/80">
+        <div className="t-small mt-0.5 text-amber-800/80">
           Review before they go stale.
         </div>
       </div>
       <a
         href="/admin"
-        className="inline-flex items-center justify-center rounded-full bg-amber-600 px-4 py-2.5 text-[12.5px] font-bold text-white shadow-sm transition hover:bg-amber-700"
+        className="t-small inline-flex items-center justify-center rounded-full bg-amber-600 px-4 py-2.5 font-bold text-white shadow-sm transition hover:bg-amber-700"
       >
         Review queue →
       </a>
@@ -602,13 +602,13 @@ function HealthTile({ health }: { health: number }) {
   return (
     <div className="flex flex-col justify-between rounded-2xl border border-emerald-900/10 bg-white p-4 shadow-sm">
       <div>
-        <div className="text-[10px] font-bold uppercase tracking-[0.08em] text-emerald-900/40">
+        <div className="t-label text-emerald-900/40">
           Catalog health
         </div>
-        <div className="mt-1.5 text-2xl font-extrabold leading-none tracking-tight text-emerald-950 lg:text-[24px]">
+        <div className="t-h1 mt-1.5 leading-none text-emerald-950">
           {health}%
         </div>
-        <div className="mt-1 text-[11px] font-medium text-emerald-900/45">
+        <div className="t-caption mt-1 text-emerald-900/45">
           complete &amp; geocoded
         </div>
       </div>
@@ -653,16 +653,16 @@ function StatTile({
           : "border-emerald-900/10 hover:border-emerald-900/20"
       }`}
     >
-      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-emerald-900/40">
+      <div className="t-label flex items-center gap-1.5 text-emerald-900/40">
         <span className={`h-[7px] w-[7px] rounded-full ${t.dot}`} />
         {label}
       </div>
       <div
-        className={`mt-1.5 text-2xl font-extrabold leading-none tracking-tight lg:text-[24px] ${t.val}`}
+        className={`t-h1 mt-1.5 leading-none ${t.val}`}
       >
         {value}
       </div>
-      <div className="mt-1 text-[11px] font-medium text-emerald-900/45">
+      <div className="t-caption mt-1 text-emerald-900/45">
         {meta}
       </div>
     </button>
@@ -693,7 +693,7 @@ function RailCard({
 }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-emerald-900/10 bg-white shadow-sm">
-      <div className="px-3.5 pb-2 pt-3.5 text-[10px] font-bold uppercase tracking-[0.09em] text-emerald-900/40">
+      <div className="t-label px-3.5 pb-2 pt-3.5 text-emerald-900/40">
         {title}
       </div>
       <div className="px-2 pb-2.5">{children}</div>
@@ -718,7 +718,7 @@ function RailItem({
     <button
       type="button"
       onClick={onClick}
-      className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[12.5px] font-semibold transition ${
+      className={`t-small flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left font-semibold transition ${
         on
           ? "bg-emerald-50 text-emerald-700"
           : "text-emerald-900/65 hover:bg-emerald-900/[0.04]"
@@ -727,7 +727,7 @@ function RailItem({
       {dot && <span className={`h-[7px] w-[7px] flex-none rounded-full ${dot}`} />}
       <span className="truncate">{label}</span>
       <span
-        className={`ml-auto rounded-full px-2 py-px text-[11px] font-bold ${
+        className={`t-caption ml-auto rounded-full px-2 py-px font-bold ${
           on ? "bg-white text-emerald-700" : "bg-emerald-900/[0.06] text-emerald-900/45"
         }`}
       >
@@ -794,7 +794,7 @@ function Pill({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex min-h-[44px] items-center gap-2 rounded-full border px-3.5 py-2.5 text-[14px] font-bold transition active:opacity-70 ${
+      className={`t-body inline-flex min-h-[44px] items-center gap-2 rounded-full border px-3.5 py-2.5 font-bold transition active:opacity-70 ${
         on
           ? "border-emerald-200 bg-emerald-50 text-emerald-700"
           : "border-emerald-900/10 bg-white text-emerald-900/65"
@@ -803,7 +803,7 @@ function Pill({
       {dot && <span className={`h-[7px] w-[7px] flex-none rounded-full ${dot}`} />}
       {label}
       <span
-        className={`rounded-full px-2 py-px text-[13px] font-bold ${
+        className={`t-small rounded-full px-2 py-px font-bold ${
           on ? "bg-white text-emerald-700" : "bg-emerald-900/[0.06] text-emerald-900/45"
         }`}
       >
@@ -818,14 +818,14 @@ function Pill({
 function GeoChip({ row }: { row: AdminTournamentRow }) {
   if (row.hasCoords) {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11.5px] font-bold text-emerald-700">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 t-caption font-bold text-emerald-700">
         <span className="h-[7px] w-[7px] rounded-full bg-emerald-500" />
         Resolved
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-[11.5px] font-bold text-red-700">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 t-caption font-bold text-red-700">
       <span className="h-[7px] w-[7px] rounded-full bg-red-500" />
       Missing
     </span>
@@ -843,7 +843,7 @@ function ProblemChips({ row }: { row: AdminTournamentRow }) {
 
   if (chips.length === 0) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10.5px] font-bold text-emerald-700">
+      <span className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 t-caption font-bold text-emerald-700">
         ✓ Clean
       </span>
     );
@@ -853,7 +853,7 @@ function ProblemChips({ row }: { row: AdminTournamentRow }) {
       {chips.map((c, i) => (
         <span
           key={i}
-          className={`whitespace-nowrap rounded-md border px-2 py-0.5 text-[10.5px] font-bold ${
+          className={`whitespace-nowrap rounded-md border px-2 py-0.5 t-caption font-bold ${
             c.tone === "red"
               ? "border-red-200 bg-red-50 text-red-700"
               : "border-amber-200 bg-amber-50 text-amber-700"
@@ -932,7 +932,7 @@ function DesktopRow({
       }`}
     >
       <td className={`px-4 py-3 align-middle ${stripe}`}>
-        <div className="truncate text-[13.5px] font-bold text-emerald-950">
+        <div className="t-small truncate font-bold text-emerald-950">
           <a
             href={`/tournaments/${r.id}`}
             target="_blank"
@@ -942,7 +942,7 @@ function DesktopRow({
             {r.name}
           </a>
         </div>
-        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-emerald-900/40">
+        <div className="t-caption mt-0.5 flex flex-wrap items-center gap-x-2 text-emerald-900/40">
           <AgeBadge timestamp={r.created_at} prefix="added" className="bg-transparent px-0 normal-case text-emerald-900/40" />
           {r.isDuplicate && (
             <span className="font-semibold text-blue-600">flagged duplicate</span>
@@ -953,21 +953,21 @@ function DesktopRow({
         </div>
       </td>
       <td className="px-4 py-3 align-middle">
-        <div className="whitespace-nowrap text-[12.5px] font-semibold text-emerald-900/70">
+        <div className="t-small whitespace-nowrap font-semibold text-emerald-900/70">
           {when.primary}
         </div>
-        <div className="text-[11px] font-medium text-emerald-900/40">
+        <div className="t-caption text-emerald-900/40">
           {when.year}
         </div>
       </td>
       <td className="overflow-hidden px-4 py-3 align-middle">
-        <div className="truncate text-[12.5px] text-emerald-900/70">
+        <div className="t-small truncate text-emerald-900/70">
           {r.location_name || "—"}
         </div>
       </td>
       <td className="px-4 py-3 align-middle">
         <span
-          className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold ${STATUS_PILL_CLS[pill.tone]}`}
+          className={`t-caption inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 font-bold ${STATUS_PILL_CLS[pill.tone]}`}
         >
           <span className={`h-1.5 w-1.5 rounded-full ${STATUS_DOT_CLS[pill.tone]}`} />
           {pill.label}
@@ -977,7 +977,7 @@ function DesktopRow({
         <GeoChip row={r} />
       </td>
       <td className="px-4 py-3 align-middle">
-        <span className="inline-block whitespace-nowrap rounded-full bg-emerald-900/[0.06] px-2.5 py-1 text-[11.5px] font-semibold text-emerald-900/65">
+        <span className="t-caption inline-block whitespace-nowrap rounded-full bg-emerald-900/[0.06] px-2.5 py-1 font-semibold text-emerald-900/65">
           {sourceLabel(r.source_platform)}
         </span>
       </td>
@@ -986,7 +986,7 @@ function DesktopRow({
       </td>
       <td className="px-4 py-3 text-right align-middle">
         <span
-          className={`text-[12.5px] font-bold ${
+          className={`t-small font-bold ${
             r.entry_fee == null ? "text-amber-700/60" : "text-emerald-950"
           }`}
         >
@@ -1001,7 +1001,7 @@ function DesktopRow({
                 type="button"
                 onClick={approve.run}
                 disabled={pending}
-                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-[11.5px] font-bold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+                className="rounded-lg bg-emerald-600 px-3 py-1.5 t-caption font-bold text-white transition hover:bg-emerald-700 disabled:opacity-60"
               >
                 {approve.pending ? "…" : "Approve"}
               </button>
@@ -1009,7 +1009,7 @@ function DesktopRow({
                 href={`/tournaments/${r.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-lg border border-emerald-900/10 bg-white px-3 py-1.5 text-[11.5px] font-bold text-emerald-900/70 transition hover:border-emerald-900/25"
+                className="rounded-lg border border-emerald-900/10 bg-white px-3 py-1.5 t-caption font-bold text-emerald-900/70 transition hover:border-emerald-900/25"
               >
                 Edit →
               </a>
@@ -1018,7 +1018,7 @@ function DesktopRow({
                 onClick={reject.run}
                 disabled={pending}
                 title="Reject"
-                className="rounded-lg border border-emerald-900/10 bg-white px-2.5 py-1.5 text-[11.5px] font-bold text-red-600 transition hover:border-red-200 disabled:opacity-60"
+                className="rounded-lg border border-emerald-900/10 bg-white px-2.5 py-1.5 t-caption font-bold text-red-600 transition hover:border-red-200 disabled:opacity-60"
               >
                 {reject.pending ? "…" : "✕"}
               </button>
@@ -1029,7 +1029,7 @@ function DesktopRow({
                 type="button"
                 onClick={archive.run}
                 disabled={pending}
-                className="rounded-lg border border-emerald-900/10 bg-white px-3 py-1.5 text-[11.5px] font-bold text-emerald-900/70 transition hover:border-emerald-900/25 disabled:opacity-60"
+                className="rounded-lg border border-emerald-900/10 bg-white px-3 py-1.5 t-caption font-bold text-emerald-900/70 transition hover:border-emerald-900/25 disabled:opacity-60"
               >
                 {archive.pending ? "…" : "Archive"}
               </button>
@@ -1048,7 +1048,7 @@ function DesktopRow({
               href={`/tournaments/${r.id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-emerald-900/10 bg-white px-3 py-1.5 text-[11.5px] font-bold text-emerald-900/70 transition hover:border-emerald-900/25"
+              className="rounded-lg border border-emerald-900/10 bg-white px-3 py-1.5 t-caption font-bold text-emerald-900/70 transition hover:border-emerald-900/25"
             >
               {r.noGeo || r.missing.length > 0 ? "Edit →" : "Open ↗"}
             </a>
@@ -1093,18 +1093,18 @@ function MobileCard({
             href={`/tournaments/${r.id}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="block truncate text-[16px] font-bold leading-snug text-emerald-950"
+            className="t-h3 block truncate leading-snug text-emerald-950"
           >
             {r.name}
           </a>
           {r.isDuplicate && (
-            <span className="mt-1 inline-flex text-[13px] font-semibold text-blue-600">
+            <span className="t-small mt-1 inline-flex font-semibold text-blue-600">
               flagged duplicate
             </span>
           )}
         </div>
         <span
-          className={`inline-flex flex-none items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[13px] font-bold ${STATUS_PILL_CLS[pill.tone]}`}
+          className={`inline-flex flex-none items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 t-small font-bold ${STATUS_PILL_CLS[pill.tone]}`}
         >
           <span className={`h-1.5 w-1.5 rounded-full ${STATUS_DOT_CLS[pill.tone]}`} />
           {pill.label}
@@ -1112,7 +1112,7 @@ function MobileCard({
       </div>
 
       {/* meta line */}
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-medium text-emerald-900/55">
+      <div className="t-small flex flex-wrap items-center gap-x-2 gap-y-1 text-emerald-900/55">
         <span>
           {when.primary === "—" ? (
             <span className="text-emerald-900/45">no date</span>
@@ -1126,7 +1126,7 @@ function MobileCard({
         <span className="text-emerald-900/25">·</span>
         <span>{r.location_name || "no venue"}</span>
         <span className="text-emerald-900/25">·</span>
-        <span className="rounded-full border border-emerald-900/10 bg-emerald-900/[0.04] px-2.5 py-0.5 text-[13px] font-semibold text-emerald-900/65">
+        <span className="t-small rounded-full border border-emerald-900/10 bg-emerald-900/[0.04] px-2.5 py-0.5 font-semibold text-emerald-900/65">
           {sourceLabel(r.source_platform)}
         </span>
         {r.entry_fee != null && (
@@ -1156,7 +1156,7 @@ function MobileCard({
       {/* flags */}
       <div className="flex flex-wrap items-center gap-2">
         <span
-          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[13px] font-bold ${
+          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 t-small font-bold ${
             r.hasCoords
               ? "bg-emerald-50 text-emerald-700"
               : "bg-red-50 text-red-700"
@@ -1170,7 +1170,7 @@ function MobileCard({
         {r.missing.map((m) => (
           <span
             key={m}
-            className={`inline-flex items-center rounded-full px-2.5 py-1 text-[13px] font-bold ${
+            className={`inline-flex items-center rounded-full px-2.5 py-1 t-small font-bold ${
               m === "No date"
                 ? "bg-red-50 text-red-700"
                 : "bg-amber-50 text-amber-700"
@@ -1180,12 +1180,12 @@ function MobileCard({
           </span>
         ))}
         {r.isDuplicate && (
-          <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 text-[13px] font-bold text-amber-700">
+          <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 t-small font-bold text-amber-700">
             Dupe?
           </span>
         )}
         {r.stale && (
-          <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 text-[13px] font-bold text-amber-700">
+          <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 t-small font-bold text-amber-700">
             Past end date
           </span>
         )}
@@ -1199,7 +1199,7 @@ function MobileCard({
               type="button"
               onClick={approve.run}
               disabled={pending}
-              className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-emerald-600 text-[15px] font-bold text-white shadow-sm transition active:brightness-95 disabled:opacity-60"
+              className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-emerald-600 t-body font-bold text-white shadow-sm transition active:brightness-95 disabled:opacity-60"
             >
               {approve.pending ? "Approving…" : "Approve"}
             </button>
@@ -1207,7 +1207,7 @@ function MobileCard({
               href={`/tournaments/${r.id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-11 flex-1 items-center justify-center rounded-full border border-emerald-900/15 bg-white text-[15px] font-bold text-emerald-900"
+              className="inline-flex h-11 flex-1 items-center justify-center rounded-full border border-emerald-900/15 bg-white t-body font-bold text-emerald-900"
             >
               Edit →
             </a>
@@ -1216,7 +1216,7 @@ function MobileCard({
               onClick={reject.run}
               disabled={pending}
               aria-label="Reject"
-              className="inline-flex h-11 w-[52px] flex-none items-center justify-center rounded-full border border-emerald-900/15 bg-white text-[15px] font-bold text-red-700 disabled:opacity-60"
+              className="inline-flex h-11 w-[52px] flex-none items-center justify-center rounded-full border border-emerald-900/15 bg-white t-body font-bold text-red-700 disabled:opacity-60"
             >
               {reject.pending ? "…" : "✕"}
             </button>
@@ -1227,7 +1227,7 @@ function MobileCard({
               type="button"
               onClick={archive.run}
               disabled={pending}
-              className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-emerald-600 text-[15px] font-bold text-white shadow-sm transition active:brightness-95 disabled:opacity-60"
+              className="inline-flex h-11 flex-1 items-center justify-center rounded-full bg-emerald-600 t-body font-bold text-white shadow-sm transition active:brightness-95 disabled:opacity-60"
             >
               {archive.pending ? "Archiving…" : "Archive"}
             </button>
@@ -1235,7 +1235,7 @@ function MobileCard({
               href={`/tournaments/${r.id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-11 flex-1 items-center justify-center rounded-full border border-emerald-900/15 bg-white text-[15px] font-bold text-emerald-900"
+              className="inline-flex h-11 flex-1 items-center justify-center rounded-full border border-emerald-900/15 bg-white t-body font-bold text-emerald-900"
             >
               Open ↗
             </a>
@@ -1245,7 +1245,7 @@ function MobileCard({
             href={`/tournaments/${r.id}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-11 w-full items-center justify-center rounded-full border border-emerald-900/15 bg-white text-[15px] font-bold text-emerald-900"
+            className="inline-flex h-11 w-full items-center justify-center rounded-full border border-emerald-900/15 bg-white t-body font-bold text-emerald-900"
           >
             {r.noGeo || r.missing.length > 0 ? "Edit →" : "Open ↗"}
           </a>

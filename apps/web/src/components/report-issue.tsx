@@ -17,7 +17,7 @@ export function ReportIssue({
 
   if (state === "success") {
     return (
-      <p className="text-base font-semibold text-emerald-700">
+      <p className="t-body font-semibold text-emerald-700">
         Thanks — we got it. We&apos;ll take a look.
       </p>
     );
@@ -25,7 +25,7 @@ export function ReportIssue({
 
   if (state === "idle") {
     return (
-      <p className="text-base font-semibold text-gray-700">
+      <p className="t-body font-semibold text-gray-700">
         Something missing or incorrect?{" "}
         <button
           type="button"
@@ -54,7 +54,7 @@ export function ReportIssue({
 
   return (
     <form action={handleSubmit} className="mx-auto max-w-md text-left">
-      <label htmlFor="report-message" className="block text-sm font-semibold text-gray-700">
+      <label htmlFor="report-message" className="block t-body font-semibold text-gray-700">
         What&apos;s wrong with <span className="text-gray-900">{tournamentName}</span>?
       </label>
       <textarea
@@ -73,20 +73,20 @@ export function ReportIssue({
         className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200"
       />
       {state === "error" && (
-        <p className="mt-2 text-sm font-medium text-red-600">{errorMsg}</p>
+        <p className="mt-2 t-body text-red-600">{errorMsg}</p>
       )}
       <div className="mt-3 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <button
           type="button"
           onClick={() => setState("idle")}
-          className="w-full rounded-lg px-4 py-2.5 text-sm font-semibold text-gray-600 hover:text-gray-900 sm:w-auto"
+          className="w-full rounded-lg px-4 py-2.5 t-body font-semibold text-gray-600 hover:text-gray-900 sm:w-auto"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={state === "submitting"}
-          className="w-full min-h-[44px] rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50 sm:w-auto"
+          className="w-full min-h-[44px] rounded-lg bg-emerald-700 px-4 py-2.5 t-body font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50 sm:w-auto"
         >
           {state === "submitting" ? "Sending…" : "Send report"}
         </button>

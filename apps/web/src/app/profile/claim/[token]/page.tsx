@@ -88,13 +88,13 @@ export default async function ClaimPage({ params }: PageProps) {
             <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-700 text-white animate-pop">
               <span className="text-3xl">✓</span>
             </div>
-            <h1 className="mt-6 text-3xl font-extrabold text-gray-900 animate-fade-up">You&apos;re linked.</h1>
-            <p className="mt-2 text-base text-gray-500 animate-fade-up stagger-1">
+            <h1 className="mt-6 t-h1 text-gray-900 animate-fade-up">You&apos;re linked.</h1>
+            <p className="mt-2 t-body text-gray-500 animate-fade-up stagger-1">
               {result.playerName ? `Welcome, ${result.playerName}.` : "Profile claimed."} You&apos;ll start getting personalized alerts for tournaments that match you.
             </p>
             <Link
               href={`/${city.slug}`}
-              className="mt-8 inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-emerald-800 hover:-translate-y-0.5 animate-fade-up stagger-2"
+              className="mt-8 inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-6 py-3 t-body font-bold text-white shadow-sm transition-all hover:bg-emerald-800 hover:-translate-y-0.5 animate-fade-up stagger-2"
             >
               Browse tournaments →
             </Link>
@@ -102,39 +102,39 @@ export default async function ClaimPage({ params }: PageProps) {
         )}
         {result.status === "already_confirmed" && (
           <>
-            <h1 className="text-2xl font-extrabold text-gray-900">Already confirmed.</h1>
-            <p className="mt-2 text-sm text-gray-500">This link was already used.</p>
-            <Link href={`/${city.slug}`} className="mt-6 inline-block text-sm font-bold text-emerald-700 hover:underline">
+            <h1 className="t-h1 text-gray-900">Already confirmed.</h1>
+            <p className="mt-2 t-body text-gray-500">This link was already used.</p>
+            <Link href={`/${city.slug}`} className="mt-6 inline-block t-body font-bold text-emerald-700 hover:underline">
               Back to tournaments →
             </Link>
           </>
         )}
         {result.status === "expired" && (
           <>
-            <h1 className="text-2xl font-extrabold text-gray-900">Link expired.</h1>
-            <p className="mt-2 text-sm text-gray-500">
+            <h1 className="t-h1 text-gray-900">Link expired.</h1>
+            <p className="mt-2 t-body text-gray-500">
               That link is older than 7 days. Start a new claim.
             </p>
-            <Link href="/profile/find" className="mt-6 inline-block text-sm font-bold text-emerald-700 hover:underline">
+            <Link href="/profile/find" className="mt-6 inline-block t-body font-bold text-emerald-700 hover:underline">
               Start over →
             </Link>
           </>
         )}
         {result.status === "not_found" && (
           <>
-            <h1 className="text-2xl font-extrabold text-gray-900">Link not found.</h1>
-            <p className="mt-2 text-sm text-gray-500">
+            <h1 className="t-h1 text-gray-900">Link not found.</h1>
+            <p className="mt-2 t-body text-gray-500">
               The link may have been mistyped or removed.
             </p>
-            <Link href="/profile/find" className="mt-6 inline-block text-sm font-bold text-emerald-700 hover:underline">
+            <Link href="/profile/find" className="mt-6 inline-block t-body font-bold text-emerald-700 hover:underline">
               Start over →
             </Link>
           </>
         )}
         {result.status === "error" && (
           <>
-            <h1 className="text-2xl font-extrabold text-gray-900">Something went wrong.</h1>
-            <p className="mt-2 text-sm text-gray-500">Try again, or email us if it keeps happening.</p>
+            <h1 className="t-h1 text-gray-900">Something went wrong.</h1>
+            <p className="mt-2 t-body text-gray-500">Try again, or email us if it keeps happening.</p>
           </>
         )}
       </main>

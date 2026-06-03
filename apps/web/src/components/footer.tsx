@@ -9,10 +9,10 @@ export function Footer({ citySlug }: { citySlug?: string }) {
         <div className="grid gap-6 sm:gap-10 sm:grid-cols-2">
           {/* Brand */}
           <div>
-            <p className="text-lg font-extrabold tracking-tight text-gray-900">
+            <p className="t-h2 text-gray-900">
               PickleRadar
             </p>
-            <p className="mt-2 text-sm leading-relaxed text-gray-500">
+            <p className="mt-2 t-body text-gray-500">
               Tournament intel for competitive pickleball players.
               Real ratings. Sandbagger detection. Know what
               you&apos;re walking into before you register.
@@ -21,10 +21,10 @@ export function Footer({ citySlug }: { citySlug?: string }) {
 
           {/* Links */}
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
+            <p className="t-label text-gray-400">
               Navigate
             </p>
-            <div className="mt-3 flex flex-col gap-2 text-sm">
+            <div className="mt-3 flex flex-col gap-2 t-body">
               <Link href={browseHref} className="text-gray-600 hover:text-emerald-700">
                 Browse tournaments
               </Link>
@@ -47,7 +47,7 @@ export function Footer({ citySlug }: { citySlug?: string }) {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-10 flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 pt-6 text-xs text-gray-400">
+        <div className="mt-10 flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 pt-6 t-caption text-gray-400">
           <p>&copy; {new Date().getFullYear()} PickleRadar</p>
           <p>
             Made in Houston with real player data

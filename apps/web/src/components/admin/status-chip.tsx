@@ -19,7 +19,7 @@ export function StatusChip({
   const tokens = ADMIN_STATUS[status];
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.05em] ${tokens.bg} ${tokens.border} ${tokens.text}`}
+      className={`t-label inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 ${tokens.bg} ${tokens.border} ${tokens.text}`}
     >
       <span
         aria-hidden="true"

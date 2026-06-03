@@ -82,7 +82,7 @@ export function AgeBadge({
   return (
     <span
       title={new Date(at).toLocaleString()}
-      className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-[0.04em] ${tokens.bg} ${tokens.text} ${className}`}
+      className={`t-label inline-flex items-center rounded-md px-2 py-0.5 ${tokens.bg} ${tokens.text} ${className}`}
     >
       {prefix ? `${prefix} ` : ""}
       {text}

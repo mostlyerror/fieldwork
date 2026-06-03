@@ -89,12 +89,12 @@ export default async function VenuePage({ params }: PageProps) {
         <BackLink
           fallbackHref={`/${citySlug}`}
           fallbackLabel={`Back to ${city.name}`}
-          className="mb-8 inline-flex items-center text-sm text-gray-400 hover:text-emerald-700"
+          className="mb-8 inline-flex items-center t-body text-gray-400 hover:text-emerald-700"
         />
         <header className="mb-6">
-          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">{venue.name}</h1>
+          <h1 className="t-h1 text-gray-900">{venue.name}</h1>
           {venue.formatted_address && <p className="mt-1 text-gray-500">{venue.formatted_address}</p>}
-          <p className="mt-2 text-sm text-gray-600">{cadence}</p>
+          <p className="mt-2 t-body text-gray-600">{cadence}</p>
         </header>
 
         {venue.latitude != null && venue.longitude != null && (
@@ -105,7 +105,7 @@ export default async function VenuePage({ params }: PageProps) {
 
         {upcoming.length > 0 && (
           <section className="mb-10">
-            <h2 className="mb-4 text-lg font-bold text-gray-800">Upcoming at {venue.name}</h2>
+            <h2 className="mb-4 t-h2 font-bold text-gray-800">Upcoming at {venue.name}</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {upcoming.map((t) => <TournamentCard key={t.id} tournament={t} citySlug={citySlug} />)}
             </div>
@@ -114,7 +114,7 @@ export default async function VenuePage({ params }: PageProps) {
 
         {past.length > 0 && (
           <section>
-            <h2 className="mb-4 text-lg font-bold text-gray-800">Past Tournaments</h2>
+            <h2 className="mb-4 t-h2 font-bold text-gray-800">Past Tournaments</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {past.map((t) => <TournamentCard key={t.id} tournament={t} citySlug={citySlug} />)}
             </div>

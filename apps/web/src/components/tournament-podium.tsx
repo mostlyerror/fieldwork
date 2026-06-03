@@ -22,7 +22,7 @@ export function TournamentPodium({ events }: { events: TournamentEvent[] }) {
 
           return (
             <div key={event.id} className="px-4 sm:px-5 py-4">
-              <h4 className="text-sm font-bold text-gray-900 mb-3">{event.name}</h4>
+              <h4 className="t-body font-bold text-gray-900 mb-3">{event.name}</h4>
               <div className="flex flex-col gap-2">
                 {medalists.map((p) => {
                   const names = [p.player_name, p.partner_name].filter(Boolean).join(" & ");
@@ -30,12 +30,12 @@ export function TournamentPodium({ events }: { events: TournamentEvent[] }) {
                     <div key={p.id} className="flex items-center gap-3">
                       <span className="text-lg">{MEDAL[p.placement!]}</span>
                       <div className="flex-1 min-w-0">
-                        <span className="text-sm font-semibold text-gray-800">{names}</span>
+                        <span className="t-body font-semibold text-gray-800">{names}</span>
                       </div>
                       {p.player_id && (
                         <Link
                           href={`/results/${event.id}/${p.player_id}`}
-                          className="shrink-0 text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline"
+                          className="shrink-0 t-caption font-bold text-emerald-700 hover:text-emerald-800 hover:underline"
                         >
                           Share →
                         </Link>

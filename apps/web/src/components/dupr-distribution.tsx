@@ -69,8 +69,8 @@ export function DuprDistribution({ event }: { event: TournamentEvent }) {
   return (
     <div className="my-4 max-w-full rounded-xl bg-gray-50/80 p-4">
       <div className="mb-2 flex items-center justify-between">
-        <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Rating spread</p>
-        <span className="text-xs text-gray-400">{histo.total} rated</span>
+        <p className="t-caption font-bold uppercase tracking-wide text-gray-500">Rating spread</p>
+        <span className="t-caption text-gray-400">{histo.total} rated</span>
       </div>
 
       <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto block h-auto w-full" style={{ maxWidth: 420 }} role="img" aria-label={hasWindow ? `Rating distribution: ${intel.inRange} in the window, ${intel.below} below the floor, ${intel.above} above the cap.` : `Rating distribution of ${histo.total} players. Open bracket with no rating limits.`}>
@@ -132,26 +132,26 @@ export function DuprDistribution({ event }: { event: TournamentEvent }) {
 
       {/* merged zone legend: color + count + label (only when a window exists) */}
       {hasWindow ? (
-        <div className="mt-4 flex flex-wrap items-baseline gap-x-5 gap-y-2 text-[13px] font-semibold text-gray-600">
+        <div className="mt-4 flex flex-wrap items-baseline gap-x-5 gap-y-2 t-small font-semibold text-gray-600">
           <span className="inline-flex items-baseline gap-1.5">
             <span className="h-2.5 w-2.5 translate-y-0.5 rounded-[3px]" style={{ background: ZONE_FILL.in }} />
-            <b className="text-[17px] font-extrabold tracking-tight text-emerald-700">{intel.inRange}</b> in window
+            <b className="t-h3 font-extrabold tracking-tight text-emerald-700">{intel.inRange}</b> in window
           </span>
           {intel.below > 0 && (
             <span className="inline-flex items-baseline gap-1.5">
               <span className="h-2.5 w-2.5 translate-y-0.5 rounded-[3px]" style={{ background: ZONE_FILL.below }} />
-              <b className="text-[17px] font-extrabold tracking-tight text-gray-500">{intel.below}</b> below floor
+              <b className="t-h3 font-extrabold tracking-tight text-gray-500">{intel.below}</b> below floor
             </span>
           )}
           {intel.above > 0 && (
             <span className="inline-flex items-baseline gap-1.5">
               <span className="h-2.5 w-2.5 translate-y-0.5 rounded-[3px]" style={{ background: ZONE_FILL.above }} />
-              <b className="text-[17px] font-extrabold tracking-tight text-red-600">{intel.above}</b> over cap
+              <b className="t-h3 font-extrabold tracking-tight text-red-600">{intel.above}</b> over cap
             </span>
           )}
         </div>
       ) : (
-        <p className="mt-4 text-[13px] font-medium text-gray-400">
+        <p className="mt-4 t-small text-gray-400">
           Open bracket — no rating limits, so ratings aren&apos;t scored against a floor or cap.
         </p>
       )}

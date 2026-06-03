@@ -29,10 +29,10 @@ export function RecommendedTournaments({
   return (
     <section className="mb-8">
       <div className="mb-4 flex items-center gap-2">
-        <h2 className="text-lg font-bold text-gray-800">
+        <h2 className="t-h2 font-bold text-gray-800">
           Tournaments For You
         </h2>
-        <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-600">
+        <span className="rounded-full bg-green-50 px-2 py-0.5 t-caption font-semibold text-green-600">
           Personalized
         </span>
       </div>
@@ -45,7 +45,7 @@ export function RecommendedTournaments({
             className="group block rounded-2xl bg-white p-4 shadow-sm ring-1 ring-green-100 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:ring-green-300"
           >
             <div className="mb-2 flex items-center justify-between">
-              <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
+              <span className="rounded-full bg-amber-50 px-2.5 py-0.5 t-caption font-semibold text-amber-700">
                 {formatDateRange(tournament.date_start, tournament.date_end)}
               </span>
               <FieldStrengthBadge
@@ -58,14 +58,14 @@ export function RecommendedTournaments({
               {tournament.name}
             </h3>
 
-            <p className="mb-2 flex items-center gap-1.5 text-sm text-gray-500">
+            <p className="mb-2 flex items-center gap-1.5 t-body text-gray-500">
               <span>{"\u{1F4CD}"}</span> {tournament.location_name}
             </p>
 
-            <p className="text-xs font-medium text-green-600">{reason}</p>
+            <p className="t-caption text-green-600">{reason}</p>
 
             {tournament.entry_fee != null && (
-              <p className="mt-1 text-sm font-bold text-green-600">
+              <p className="mt-1 t-body font-bold text-green-600">
                 {formatCurrency(tournament.entry_fee)}
               </p>
             )}

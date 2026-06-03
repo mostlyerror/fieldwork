@@ -105,7 +105,7 @@ function GameScores({ match }: { match: Match }) {
   if (games.length === 0) return null;
 
   return (
-    <div className="flex gap-1.5 text-xs text-gray-500 font-mono">
+    <div className="flex gap-1.5 t-caption text-gray-500 font-mono">
       {games.map((g, i) => (
         <span key={i} className="whitespace-nowrap">
           {g.t1}-{g.t2}
@@ -144,21 +144,21 @@ export default async function PlayerPage({ params }: PageProps) {
         <BackButton
           fallbackHref={`/${city.slug}`}
           label="Back"
-          className="mb-6 inline-flex min-h-[44px] items-center py-2 text-sm text-gray-400 hover:text-emerald-700"
+          className="mb-6 inline-flex min-h-[44px] items-center py-2 t-body text-gray-400 hover:text-emerald-700"
         />
 
         {/* Player header card */}
         <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h1 className="text-2xl font-extrabold text-gray-900">
+              <h1 className="t-h1 text-gray-900">
                 {player.name}
               </h1>
               {player.location && (
-                <p className="mt-1 text-sm text-gray-500">{player.location}</p>
+                <p className="mt-1 t-body text-gray-500">{player.location}</p>
               )}
               {player.dupr_last_checked && (
-                <p className="mt-1 text-[11px] text-gray-400">
+                <p className="mt-1 t-caption text-gray-400">
                   Updated{" "}
                   {new Date(player.dupr_last_checked).toLocaleDateString("en-US", {
                     month: "short",
@@ -171,41 +171,41 @@ export default async function PlayerPage({ params }: PageProps) {
 
             <div className="flex shrink-0 flex-row items-stretch gap-4 sm:items-start">
               <div className="text-right">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                <p className="t-label text-gray-400">
                   Doubles
                 </p>
                 {player.dupr_doubles != null ? (
                   <>
-                    <p className="text-2xl sm:text-3xl font-extrabold text-emerald-600 leading-none mt-0.5">
+                    <p className="t-h1 text-emerald-600 leading-none mt-0.5">
                       {player.dupr_doubles.toFixed(2)}
                     </p>
                     {player.dupr_verified && (
-                      <span className="mt-1.5 inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-600">
+                      <span className="mt-1.5 inline-block rounded-full bg-emerald-50 px-2 py-0.5 t-label text-emerald-600">
                         Verified
                       </span>
                     )}
                   </>
                 ) : (
-                  <p className="text-2xl font-extrabold text-gray-200 leading-none mt-0.5">--</p>
+                  <p className="t-h1 text-gray-200 leading-none mt-0.5">--</p>
                 )}
               </div>
               <div className="text-right border-l border-gray-100 pl-4">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                <p className="t-label text-gray-400">
                   Singles
                 </p>
                 {player.dupr_singles != null ? (
                   <>
-                    <p className="text-2xl sm:text-3xl font-extrabold text-emerald-600 leading-none mt-0.5">
+                    <p className="t-h1 text-emerald-600 leading-none mt-0.5">
                       {player.dupr_singles.toFixed(2)}
                     </p>
                     {player.dupr_verified && (
-                      <span className="mt-1.5 inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-600">
+                      <span className="mt-1.5 inline-block rounded-full bg-emerald-50 px-2 py-0.5 t-label text-emerald-600">
                         Verified
                       </span>
                     )}
                   </>
                 ) : (
-                  <p className="text-2xl font-extrabold text-gray-200 leading-none mt-0.5">--</p>
+                  <p className="t-h1 text-gray-200 leading-none mt-0.5">--</p>
                 )}
               </div>
             </div>
@@ -218,13 +218,13 @@ export default async function PlayerPage({ params }: PageProps) {
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {/* Overall */}
               <div className="rounded-xl bg-white p-3 sm:p-4 shadow-sm ring-1 ring-gray-100">
-                <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                <p className="t-label text-gray-400">
                   Overall
                 </p>
-                <p className="mt-1 text-xl font-extrabold text-gray-900">
+                <p className="mt-1 t-h2 text-gray-900">
                   {totalWins}W–{totalLosses}L
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="t-caption text-gray-500">
                   {winRate(totalWins, totalLosses)} win rate
                 </p>
               </div>
@@ -235,13 +235,13 @@ export default async function PlayerPage({ params }: PageProps) {
                   key={r.format}
                   className="rounded-xl bg-white p-3 sm:p-4 shadow-sm ring-1 ring-gray-100"
                 >
-                  <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                  <p className="t-label text-gray-400">
                     {r.format}
                   </p>
-                  <p className="mt-1 text-xl font-extrabold text-gray-900">
+                  <p className="mt-1 t-h2 text-gray-900">
                     {r.wins}W–{r.losses}L
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="t-caption text-gray-500">
                     {winRate(r.wins, r.losses)} win rate
                   </p>
                 </div>
@@ -261,28 +261,28 @@ export default async function PlayerPage({ params }: PageProps) {
                   className="flex items-center gap-3 px-4 py-3"
                 >
                   {/* Avatar */}
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-[11px] font-bold text-emerald-700">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-50 t-caption font-bold text-emerald-700">
                     {initials(p.name)}
                   </div>
                   <div className="min-w-0 flex-1">
                     {p.playerId ? (
                       <Link
                         href={`/players/${p.playerId}`}
-                        className="block truncate font-semibold text-gray-900 hover:text-emerald-700 text-sm"
+                        className="block truncate t-body font-semibold text-gray-900 hover:text-emerald-700"
                       >
                         {p.name}
                       </Link>
                     ) : (
-                      <span className="block truncate font-semibold text-gray-900 text-sm">
+                      <span className="block truncate t-body font-semibold text-gray-900">
                         {p.name}
                       </span>
                     )}
-                    <p className="text-xs text-gray-400">
+                    <p className="t-caption text-gray-400">
                       {p.matchCount} match{p.matchCount !== 1 ? "es" : ""}
                     </p>
                   </div>
                   <div className="shrink-0 text-right">
-                    <span className="text-xs font-medium text-gray-600">
+                    <span className="t-caption text-gray-600">
                       {p.wins}W–{p.losses}L
                     </span>
                   </div>
@@ -307,7 +307,7 @@ export default async function PlayerPage({ params }: PageProps) {
                   <div key={match.id} className="flex items-start gap-3 px-4 py-3">
                     {/* W/L badge */}
                     <div
-                      className={`mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[11px] font-bold ${
+                      className={`mt-0.5 shrink-0 rounded px-1.5 py-0.5 t-caption font-bold ${
                         won
                           ? "bg-gray-100 text-gray-700"
                           : "bg-gray-50 text-gray-400"
@@ -320,20 +320,20 @@ export default async function PlayerPage({ params }: PageProps) {
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-400">
+                          <span className="t-caption text-gray-400">
                             {formatDate(match.event_date)}
                           </span>
-                          <span className="text-[10px] font-medium uppercase tracking-wide text-gray-400 bg-gray-50 rounded px-1.5 py-0.5">
+                          <span className="t-label font-medium text-gray-400 bg-gray-50 rounded px-1.5 py-0.5">
                             {match.event_format}
                           </span>
                         </div>
                         {match.league && (
-                          <span className="text-xs text-gray-400 truncate">
+                          <span className="t-caption text-gray-400 truncate">
                             {match.league}
                           </span>
                         )}
                       </div>
-                      <div className="mt-0.5 flex flex-col gap-0.5 text-sm text-gray-700 sm:flex-row sm:flex-wrap sm:gap-x-3 sm:gap-y-0.5">
+                      <div className="mt-0.5 flex flex-col gap-0.5 t-body text-gray-700 sm:flex-row sm:flex-wrap sm:gap-x-3 sm:gap-y-0.5">
                         {partner && (
                           <p className="truncate">
                             <span className="text-gray-400">w/ </span>
@@ -382,15 +382,15 @@ export default async function PlayerPage({ params }: PageProps) {
                   className="flex items-start justify-between gap-4 px-4 py-3 transition hover:bg-gray-50"
                 >
                   <div className="min-w-0">
-                    <p className="font-semibold text-gray-900 text-sm truncate">
+                    <p className="t-body font-semibold text-gray-900 truncate">
                       {t.tournamentName}
                     </p>
-                    <p className="text-xs text-gray-500 truncate">{t.eventName}</p>
+                    <p className="t-caption text-gray-500 truncate">{t.eventName}</p>
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className="text-xs text-gray-400">{formatDate(t.dateStart)}</p>
+                    <p className="t-caption text-gray-400">{formatDate(t.dateStart)}</p>
                     {t.listedDupr != null && (
-                      <p className="text-xs font-medium text-emerald-600 mt-0.5">
+                      <p className="t-caption text-emerald-600 mt-0.5">
                         Listed {t.listedDupr.toFixed(2)}
                       </p>
                     )}

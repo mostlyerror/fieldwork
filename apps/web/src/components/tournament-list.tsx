@@ -28,7 +28,7 @@ function SectionLabel({
 }) {
   return (
     <div className="flex items-baseline gap-3 mt-2 mb-3">
-      <h2 className="text-xs font-bold uppercase tracking-widest text-gray-500">
+      <h2 className="t-label text-gray-500">
         <span className="relative inline-block">
           <span>{children}</span>
           <span
@@ -38,7 +38,7 @@ function SectionLabel({
           />
         </span>
       </h2>
-      <span className="text-xs text-gray-300">{count}</span>
+      <span className="t-caption text-gray-300">{count}</span>
       <div className="flex-1 border-t border-gray-200" />
     </div>
   );
@@ -51,13 +51,13 @@ export function TournamentList({ tournaments, citySlug }: { tournaments: Tournam
         <div className="inline-block animate-paddle">
           <span className="block text-5xl" aria-hidden="true">{"\u{1F3D3}"}</span>
         </div>
-        <p className="mt-4 text-lg font-bold text-gray-400">
+        <p className="mt-4 t-h2 font-bold text-gray-400">
           Nothing matching — yet.
         </p>
-        <p className="mt-1 text-sm text-gray-400">
+        <p className="mt-1 t-body text-gray-400">
           Try clearing filters, or check back tomorrow.
         </p>
-        <p className="mt-6 text-sm text-gray-500">
+        <p className="mt-6 t-body text-gray-500">
           Know one we&apos;re missing?{" "}
           <Link
             href="/submit"

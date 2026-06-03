@@ -192,12 +192,12 @@ export function ShareButtons({
           aria-label="Share this tournament"
           className="absolute right-0 top-full mt-2 z-50 w-[calc(100vw-2rem)] max-w-80 sm:w-80 rounded-xl border border-gray-200 bg-white shadow-lg p-4"
         >
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+          <p className="mb-2 t-label font-semibold text-gray-400">
             Share this tournament
           </p>
 
           {hasRichData && (
-            <pre className="mb-3 whitespace-pre-wrap rounded-lg bg-gray-50 p-3 text-sm font-mono text-gray-700 leading-relaxed">
+            <pre className="mb-3 whitespace-pre-wrap rounded-lg bg-gray-50 p-3 t-body font-mono text-gray-700">
               {previewText}
             </pre>
           )}
@@ -206,7 +206,7 @@ export function ShareButtons({
             {hasRichData && (
               <button
                 onClick={copyText}
-                className="flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800"
+                className="flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 t-body font-semibold text-white transition hover:bg-emerald-800"
               >
                 {copiedText ? (
                   <>
@@ -229,7 +229,7 @@ export function ShareButtons({
             <div className="flex gap-2">
               <button
                 onClick={copyLink}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-200"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 t-body font-semibold text-gray-700 transition hover:bg-gray-200"
               >
                 {copiedLink ? (
                   <>
@@ -251,7 +251,7 @@ export function ShareButtons({
               {typeof navigator !== "undefined" && "share" in navigator && (
                 <button
                   onClick={nativeShare}
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-200"
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 t-body font-semibold text-gray-700 transition hover:bg-gray-200"
                 >
                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />

@@ -46,7 +46,7 @@ export function RunNowButton({
     onSuccess: () => router.refresh(),
   });
 
-  const pad = size === "sm" ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm";
+  const pad = size === "sm" ? "px-3 py-1.5 t-caption" : "px-4 py-2 t-body";
 
   return (
     <button

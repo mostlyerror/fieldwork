@@ -181,7 +181,7 @@ export default async function AudiencePage() {
       <div className="overflow-hidden rounded-2xl border border-emerald-900/10 bg-white shadow-sm lg:grid lg:grid-cols-[minmax(260px,1.1fr)_minmax(380px,2fr)_minmax(300px,1.1fr)]">
         {/* hero number */}
         <div className="border-b border-emerald-900/[0.07] p-6 lg:border-b-0 lg:border-r">
-          <div className="text-[11px] font-extrabold uppercase tracking-[0.07em] text-emerald-900/40">
+          <div className="t-label font-extrabold text-emerald-900/40">
             Active subscribers
           </div>
           <div className="mt-1 flex items-end gap-3">
@@ -189,12 +189,12 @@ export default async function AudiencePage() {
               {active.toLocaleString()}
             </div>
             {newWk > 0 && (
-              <span className="mb-1.5 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-extrabold text-emerald-700">
+              <span className="mb-1.5 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 t-caption font-extrabold text-emerald-700">
                 ▲ +{newWk} this wk · +{growthPct.toFixed(1)}%
               </span>
             )}
           </div>
-          <p className="mt-3 text-xs font-semibold text-emerald-900/40">
+          <p className="mt-3 t-caption font-semibold text-emerald-900/40">
             {total.toLocaleString()} total on the email list ·{" "}
             {unsubscribed.toLocaleString()} unsubscribed all-time
           </p>
@@ -202,7 +202,7 @@ export default async function AudiencePage() {
 
         {/* growth sparkline */}
         <div className="border-b border-emerald-900/[0.07] p-6 lg:border-b-0 lg:border-r">
-          <div className="mb-2 flex justify-between text-[11px] font-semibold text-emerald-900/40">
+          <div className="mb-2 flex justify-between t-caption font-semibold text-emerald-900/40">
             <span>Weekly net adds</span>
             <span>last 12 weeks</span>
           </div>
@@ -234,7 +234,7 @@ export default async function AudiencePage() {
 
         {/* this week vs last week tiles */}
         <div className="p-6">
-          <div className="mb-2 flex justify-between text-[11px] font-semibold text-emerald-900/40">
+          <div className="mb-2 flex justify-between t-caption font-semibold text-emerald-900/40">
             <span>Growth</span>
             <span>vs last week</span>
           </div>
@@ -286,14 +286,14 @@ function StatTile({
   }
   return (
     <div className="rounded-xl border border-emerald-900/10 p-3.5">
-      <div className="text-[10.5px] font-bold uppercase tracking-[0.05em] text-emerald-900/40">
+      <div className="t-label text-emerald-900/40">
         {label}
       </div>
       <div className="mt-1 flex items-baseline gap-1.5">
-        <span className="text-2xl font-extrabold tracking-tight text-emerald-950">
+        <span className="t-h1 text-emerald-950">
           {value}
         </span>
-        <span className={`text-[11px] font-extrabold ${tone}`}>
+        <span className={`t-caption font-extrabold ${tone}`}>
           {delta !== undefined && delta !== 0
             ? `${arrow} ${delta > 0 ? "+" : ""}${delta}`
             : delta === undefined

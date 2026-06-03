@@ -22,7 +22,7 @@ export function SignupForm({ redirect }: { redirect?: string }) {
       {redirect && <input type="hidden" name="redirect" value={redirect} />}
 
       {error && (
-        <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+        <div className="rounded-lg bg-red-50 p-3 t-body text-red-600">
           {error}
         </div>
       )}
@@ -30,7 +30,7 @@ export function SignupForm({ redirect }: { redirect?: string }) {
       <div>
         <label
           htmlFor="name"
-          className="mb-1 block text-sm font-medium text-gray-700"
+          className="mb-1 block t-body text-gray-700"
         >
           Name
         </label>
@@ -46,7 +46,7 @@ export function SignupForm({ redirect }: { redirect?: string }) {
       <div>
         <label
           htmlFor="email"
-          className="mb-1 block text-sm font-medium text-gray-700"
+          className="mb-1 block t-body text-gray-700"
         >
           Email
         </label>
@@ -62,7 +62,7 @@ export function SignupForm({ redirect }: { redirect?: string }) {
       <div>
         <label
           htmlFor="password"
-          className="mb-1 block text-sm font-medium text-gray-700"
+          className="mb-1 block t-body text-gray-700"
         >
           Password
         </label>
@@ -79,7 +79,7 @@ export function SignupForm({ redirect }: { redirect?: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
+        className="w-full rounded-xl bg-green-600 px-4 py-2.5 t-body font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
       >
         {pending ? "Creating account..." : "Create account"}
       </button>

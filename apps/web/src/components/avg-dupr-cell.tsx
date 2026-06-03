@@ -30,11 +30,11 @@ export function AvgDuprCell({ pair, size = "sm" }: { pair: AvgDuprPair; size?: "
       <span className="text-gray-400 line-through">{listed!.toFixed(2)}</span>
       <span className="font-bold text-emerald-600">{live!.toFixed(2)}</span>
       {delta > 0 ? (
-        <span className="rounded bg-red-50 px-1 py-0.5 text-[10px] font-bold text-red-500">
+        <span className="rounded bg-red-50 px-1 py-0.5 t-caption font-bold text-red-500">
           +{delta.toFixed(2)}
         </span>
       ) : (
-        <span className="rounded bg-blue-50 px-1 py-0.5 text-[10px] font-bold text-blue-500">
+        <span className="rounded bg-blue-50 px-1 py-0.5 t-caption font-bold text-blue-500">
           {delta.toFixed(2)}
         </span>
       )}

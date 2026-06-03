@@ -14,7 +14,7 @@ export function AuthNav({ user }: { user: User | null }) {
     return (
       <Link
         href="/login"
-        className="whitespace-nowrap text-sm font-semibold text-emerald-700 hover:text-emerald-800 transition-colors"
+        className="whitespace-nowrap t-body font-semibold text-emerald-700 hover:text-emerald-800 transition-colors"
       >
         Sign in
       </Link>
@@ -35,7 +35,7 @@ export function AuthNav({ user }: { user: User | null }) {
     <div className="relative">
       <button
         onClick={() => setMenuOpen(!menuOpen)}
-        className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
+        className="t-body text-gray-500 hover:text-gray-900 transition-colors"
       >
         {displayName ?? initial}
       </button>
@@ -47,19 +47,19 @@ export function AuthNav({ user }: { user: User | null }) {
             onClick={() => setMenuOpen(false)}
           />
           <div className="absolute right-0 z-50 mt-2 w-48 rounded-none border border-[#1a1a1a] bg-[#FFFDF7] py-2 shadow-md">
-            <p className="border-b border-gray-200 px-4 pb-2 text-xs text-gray-400 truncate">
+            <p className="border-b border-gray-200 px-4 pb-2 t-caption text-gray-400 truncate">
               {user.email}
             </p>
             <Link
               href="/profile"
               onClick={() => setMenuOpen(false)}
-              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              className="block px-4 py-2 t-body text-gray-700 hover:bg-gray-50"
             >
               Profile
             </Link>
             <button
               onClick={handleLogout}
-              className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+              className="block w-full px-4 py-2 text-left t-body text-gray-700 hover:bg-gray-50"
             >
               Log out
             </button>

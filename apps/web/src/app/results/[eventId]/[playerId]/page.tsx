@@ -62,19 +62,19 @@ export default async function ResultPage({ params }: PageProps) {
       <main className="mx-auto max-w-lg px-3 sm:px-5 py-8">
         <Link
           href={`/${city.slug}`}
-          className="mb-6 inline-flex items-center text-sm text-gray-400 hover:text-emerald-700"
+          className="mb-6 inline-flex items-center t-body text-gray-400 hover:text-emerald-700"
         >
           &larr; Back
         </Link>
 
         <div className="text-center mb-8">
           <div className="text-5xl mb-2">{MEDAL[data.placement]}</div>
-          <h1 className="text-2xl font-extrabold text-gray-900">{names}</h1>
-          <p className="text-lg font-bold text-emerald-700 mt-1">
+          <h1 className="t-h1 text-gray-900">{names}</h1>
+          <p className="t-h2 font-bold text-emerald-700 mt-1">
             {ORDINAL[data.placement]}
           </p>
-          <p className="text-sm text-gray-500 mt-2">{data.eventName}</p>
-          <p className="text-sm text-gray-400">
+          <p className="t-body text-gray-500 mt-2">{data.eventName}</p>
+          <p className="t-body text-gray-400">
             {data.tournamentName} &middot; {data.tournamentDate}
           </p>
         </div>

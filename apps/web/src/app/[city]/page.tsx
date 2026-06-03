@@ -134,29 +134,29 @@ export default async function CityPage({ params }: PageProps) {
         seoContent={
           <section className="border-t-2 border-gray-900">
             <div className="mx-auto max-w-6xl px-3 sm:px-5 py-16">
-              <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">
+              <h2 className="t-h1 text-gray-900">
                 Why {city.name} Players Use PickleRadar
               </h2>
 
               {/* Feature cards */}
               <div className="mt-8 grid gap-6 sm:grid-cols-3">
                 <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-6">
-                  <h3 className="text-base sm:text-lg font-extrabold text-gray-900">Every Tournament</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-gray-500">
+                  <h3 className="t-h2 text-gray-900">Every Tournament</h3>
+                  <p className="mt-2 t-body text-gray-500">
                     We aggregate from PBBrackets, Pickleball Den, and community submissions.
                     {upcomingCount > 0 ? ` ${upcomingCount} upcoming across ${venueCount} venues.` : ""}
                   </p>
                 </div>
                 <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-6">
-                  <h3 className="text-base sm:text-lg font-extrabold text-gray-900">Real Rating Intel</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-gray-500">
+                  <h3 className="t-h2 text-gray-900">Real Rating Intel</h3>
+                  <p className="mt-2 t-body text-gray-500">
                     Verified ratings, not the ones players list at signup. See who&apos;s really in
                     each bracket before you register. Sandbagger alerts included.
                   </p>
                 </div>
                 <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-6">
-                  <h3 className="text-base sm:text-lg font-extrabold text-gray-900">Never Miss a Match</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-gray-500">
+                  <h3 className="t-h2 text-gray-900">Never Miss a Match</h3>
+                  <p className="mt-2 t-body text-gray-500">
                     Filter by skill level, view on a map, or subscribe to our weekly email digest
                     every Monday. New tournaments added daily.
                   </p>
@@ -166,13 +166,13 @@ export default async function CityPage({ params }: PageProps) {
               {/* Tournament list */}
               {upcomingCount > 0 && (
                 <div className="mt-12">
-                  <h3 className="text-lg font-extrabold text-gray-900">Upcoming in {city.name}</h3>
+                  <h3 className="t-h2 text-gray-900">Upcoming in {city.name}</h3>
                   <div className="mt-4 grid gap-x-8 gap-y-2 sm:grid-cols-2">
                     {tournaments.slice(0, 8).map((t) => (
                       <a
                         key={t.id}
                         href={`/${city.slug}/tournaments/${t.id}`}
-                        className="-mx-2 flex items-baseline justify-between gap-2 rounded border-b border-gray-100 px-2 py-2 text-sm hover:bg-gray-50"
+                        className="-mx-2 flex items-baseline justify-between gap-2 rounded border-b border-gray-100 px-2 py-2 t-body hover:bg-gray-50"
                       >
                         <span className="font-semibold text-emerald-800">{t.name}</span>
                         <span className="shrink-0 text-gray-400">

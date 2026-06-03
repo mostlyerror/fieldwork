@@ -106,10 +106,10 @@ export function ReviewQueue({ items }: { items: PendingTournament[] }) {
   if (visible.length === 0) {
     return (
       <div className="rounded-2xl border border-emerald-900/10 bg-white p-10 text-center">
-        <div className="text-[15px] font-extrabold tracking-tight text-emerald-950">
+        <div className="t-body font-extrabold tracking-tight text-emerald-950">
           Queue clear
         </div>
-        <p className="mt-1 text-[13px] text-emerald-900/50">
+        <p className="t-small mt-1 text-emerald-900/50">
           Every submission has been triaged. Catalog is up to date.
         </p>
       </div>
@@ -122,10 +122,10 @@ export function ReviewQueue({ items }: { items: PendingTournament[] }) {
     <>
       <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between lg:mb-3.5">
         <div>
-          <h2 className="text-[19px] font-extrabold tracking-tight text-emerald-950 lg:text-[20px]">
+          <h2 className="t-h2 text-emerald-950">
             Pending review
           </h2>
-          <p className="mt-0.5 text-[12.5px] text-emerald-900/45">
+          <p className="t-small mt-0.5 text-emerald-900/45">
             {visible.length} submission{visible.length === 1 ? "" : "s"} · sorted
             by urgency
             {cleanCount > 0 && ` · ${cleanCount} clean & ready`}
@@ -136,25 +136,25 @@ export function ReviewQueue({ items }: { items: PendingTournament[] }) {
       {/* ── Desktop column headers (table-like wide rows). Venue + Source
             fold away between lg and xl so the row never overflows. ── */}
       <div className="mb-1.5 hidden items-center gap-3 px-5 lg:flex 2xl:gap-4">
-        <span className="min-w-0 flex-1 text-[10px] font-extrabold uppercase tracking-[0.07em] text-emerald-900/35">
+        <span className="min-w-0 flex-1 t-label font-extrabold text-emerald-900/35">
           Tournament
         </span>
-        <span className="w-[120px] flex-none text-[10px] font-extrabold uppercase tracking-[0.07em] text-emerald-900/35 2xl:w-[140px]">
+        <span className="w-[120px] flex-none t-label font-extrabold text-emerald-900/35 2xl:w-[140px]">
           When
         </span>
-        <span className="hidden w-[200px] flex-none text-[10px] font-extrabold uppercase tracking-[0.07em] text-emerald-900/35 2xl:block">
+        <span className="hidden w-[200px] flex-none t-label font-extrabold text-emerald-900/35 2xl:block">
           Venue
         </span>
-        <span className="hidden w-[140px] flex-none text-[10px] font-extrabold uppercase tracking-[0.07em] text-emerald-900/35 2xl:block">
+        <span className="hidden w-[140px] flex-none t-label font-extrabold text-emerald-900/35 2xl:block">
           Source
         </span>
-        <span className="w-[120px] flex-none text-[10px] font-extrabold uppercase tracking-[0.07em] text-emerald-900/35 2xl:w-[130px]">
+        <span className="w-[120px] flex-none t-label font-extrabold text-emerald-900/35 2xl:w-[130px]">
           Geocode
         </span>
-        <span className="w-[96px] flex-none text-[10px] font-extrabold uppercase tracking-[0.07em] text-emerald-900/35 2xl:w-[110px]">
+        <span className="w-[96px] flex-none t-label font-extrabold text-emerald-900/35 2xl:w-[110px]">
           Waiting
         </span>
-        <span className="w-[200px] flex-none text-right text-[10px] font-extrabold uppercase tracking-[0.07em] text-emerald-900/35 2xl:w-[210px]">
+        <span className="w-[200px] flex-none text-right t-label font-extrabold text-emerald-900/35 2xl:w-[210px]">
           Actions
         </span>
       </div>
@@ -228,7 +228,7 @@ function QueueRow({
       type="button"
       onClick={approve.run}
       disabled={approve.pending || reject.pending}
-      className="inline-flex items-center justify-center gap-1.5 rounded-full bg-emerald-600 px-5 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+      className="t-body inline-flex items-center justify-center gap-1.5 rounded-full bg-emerald-600 px-5 py-2 font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
     >
       {approve.pending ? "Approving…" : "Approve"}
     </button>
@@ -236,7 +236,7 @@ function QueueRow({
     <button
       type="button"
       onClick={onToggle}
-      className="inline-flex items-center justify-center gap-1.5 rounded-full border border-emerald-900/15 bg-white px-4 py-2 text-sm font-bold text-emerald-900 transition hover:border-emerald-900/30"
+      className="t-body inline-flex items-center justify-center gap-1.5 rounded-full border border-emerald-900/15 bg-white px-4 py-2 font-bold text-emerald-900 transition hover:border-emerald-900/30"
     >
       {open ? "Collapse ▴" : "Review & edit ▾"}
     </button>
@@ -247,7 +247,7 @@ function QueueRow({
       type="button"
       onClick={reject.run}
       disabled={approve.pending || reject.pending}
-      className="rounded-full px-2.5 py-2 text-[12px] font-bold text-emerald-900/35 transition hover:text-red-600 disabled:opacity-50"
+      className="t-caption rounded-full px-2.5 py-2 font-bold text-emerald-900/35 transition hover:text-red-600 disabled:opacity-50"
     >
       {reject.pending ? "…" : "Reject"}
     </button>
@@ -280,7 +280,7 @@ function QueueRow({
           />
           <div className="min-w-0 flex-1 p-4">
             <div className="flex items-start justify-between gap-2.5">
-              <div className="min-w-0 text-[16px] font-bold leading-tight tracking-tight text-emerald-950">
+              <div className="t-h3 min-w-0 leading-tight tracking-tight text-emerald-950">
                 {t.name || (
                   <span className="italic text-emerald-900/40">Untitled</span>
                 )}
@@ -294,7 +294,7 @@ function QueueRow({
               />
             </div>
 
-            <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[12.5px]">
+            <div className="t-small mt-2.5 flex flex-wrap items-center gap-2">
               <span
                 className={`font-bold ${dateSoon ? "text-red-600" : "text-emerald-900/70"}`}
               >
@@ -306,12 +306,12 @@ function QueueRow({
                 </span>
               )}
               {sourceName && (
-                <span className="rounded-full border border-emerald-900/10 bg-emerald-900/[0.04] px-2.5 py-1 text-[11px] font-bold text-emerald-900/60">
+                <span className="t-caption rounded-full border border-emerald-900/10 bg-emerald-900/[0.04] px-2.5 py-1 font-bold text-emerald-900/60">
                   {sourceName}
                 </span>
               )}
               <span
-                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                className={`t-caption inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-bold ${
                   hasCoords
                     ? "bg-emerald-50 text-emerald-700"
                     : "bg-amber-50 text-amber-700"
@@ -335,7 +335,7 @@ function QueueRow({
                   type="button"
                   onClick={approve.run}
                   disabled={approve.pending || reject.pending}
-                  className="flex h-11 flex-1 items-center justify-center rounded-full bg-emerald-600 text-[15px] font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="t-body flex h-11 flex-1 items-center justify-center rounded-full bg-emerald-600 font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {approve.pending ? "Approving…" : "Approve"}
                 </button>
@@ -343,7 +343,7 @@ function QueueRow({
                 <button
                   type="button"
                   onClick={onToggle}
-                  className="flex h-11 flex-1 items-center justify-center rounded-full border border-emerald-900/15 bg-white text-[15px] font-bold text-emerald-900 transition active:opacity-70"
+                  className="t-body flex h-11 flex-1 items-center justify-center rounded-full border border-emerald-900/15 bg-white font-bold text-emerald-900 transition active:opacity-70"
                 >
                   {open ? "Collapse ▴" : "Review & edit ▾"}
                 </button>
@@ -352,7 +352,7 @@ function QueueRow({
                 type="button"
                 onClick={reject.run}
                 disabled={approve.pending || reject.pending}
-                className="flex h-11 flex-none items-center justify-center rounded-full border border-emerald-900/15 bg-white px-5 text-[15px] font-bold text-emerald-900/55 transition hover:text-red-600 disabled:opacity-50"
+                className="t-body flex h-11 flex-none items-center justify-center rounded-full border border-emerald-900/15 bg-white px-5 font-bold text-emerald-900/55 transition hover:text-red-600 disabled:opacity-50"
               >
                 {reject.pending ? "…" : "Reject"}
               </button>
@@ -369,35 +369,35 @@ function QueueRow({
             className={`w-[5px] flex-none ${STRIPE[stripe]}`}
           />
           <div className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3.5 2xl:gap-4">
-            <div className="min-w-0 flex-1 truncate text-[15px] font-bold tracking-tight text-emerald-950">
+            <div className="t-body min-w-0 flex-1 truncate font-bold tracking-tight text-emerald-950">
               {t.name || (
                 <span className="italic text-emerald-900/40">Untitled</span>
               )}
             </div>
-            <div className="w-[120px] flex-none text-[12px] 2xl:w-[140px]">
+            <div className="t-caption w-[120px] flex-none 2xl:w-[140px]">
               <span
                 className={`font-bold ${dateSoon ? "text-red-600" : "text-emerald-900/65"}`}
               >
                 {formatStart(t.date_start)}
               </span>
             </div>
-            <div className="hidden w-[200px] flex-none truncate text-[12px] font-medium text-emerald-900/65 2xl:block">
+            <div className="t-caption hidden w-[200px] flex-none truncate text-emerald-900/65 2xl:block">
               {t.location_name || (
                 <span className="text-emerald-900/30">—</span>
               )}
             </div>
             <div className="hidden w-[140px] flex-none 2xl:block">
               {sourceName ? (
-                <span className="rounded-full border border-emerald-900/10 bg-emerald-900/[0.04] px-2 py-0.5 text-[10.5px] font-bold text-emerald-900/60">
+                <span className="t-caption rounded-full border border-emerald-900/10 bg-emerald-900/[0.04] px-2 py-0.5 font-bold text-emerald-900/60">
                   {sourceName}
                 </span>
               ) : (
-                <span className="text-[12px] text-emerald-900/30">—</span>
+                <span className="t-caption text-emerald-900/30">—</span>
               )}
             </div>
             <div className="w-[120px] flex-none 2xl:w-[130px]">
               <span
-                className={`inline-flex items-center gap-1.5 text-[12px] font-semibold ${
+                className={`t-caption inline-flex items-center gap-1.5 font-semibold ${
                   hasCoords ? "text-emerald-900/55" : "text-amber-600"
                 }`}
               >
@@ -493,12 +493,12 @@ function EditForm({
   const inputCls =
     "w-full rounded-lg border border-emerald-900/15 bg-white px-3 py-2 text-[13px] text-emerald-950 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100";
   const labelCls =
-    "mb-1 block text-[10px] font-extrabold uppercase tracking-[0.07em] text-emerald-900/40";
+    "t-label mb-1 block font-extrabold text-emerald-900/40";
 
   return (
     <div className="mt-3 border-t border-dashed border-emerald-900/15 pt-4 lg:mt-0 lg:bg-amber-50/30 lg:px-[22px] lg:pb-5 lg:pt-[18px]">
       {fixNotes.length > 0 && (
-        <div className="mb-3.5 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-[12px] font-semibold text-amber-700 lg:border-0 lg:bg-transparent lg:p-0">
+        <div className="t-caption mb-3.5 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 font-semibold text-amber-700 lg:border-0 lg:bg-transparent lg:p-0">
           <span aria-hidden="true">⚠</span>
           Needs a fix before approve: {fixNotes.join(" · ")}
         </div>
@@ -586,7 +586,7 @@ function EditForm({
                 key={level}
                 type="button"
                 onClick={() => toggleLevel(level)}
-                className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition ${
+                className={`t-caption rounded-full px-2.5 py-1 font-semibold transition ${
                   on
                     ? "bg-emerald-600 text-white"
                     : "border border-emerald-900/10 bg-emerald-900/[0.04] text-emerald-900/55 hover:bg-emerald-900/[0.08]"
@@ -614,7 +614,7 @@ function EditForm({
           href={t.source_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-2.5 block truncate text-[12px] font-semibold text-emerald-700 underline decoration-emerald-200 underline-offset-2 hover:text-emerald-800"
+          className="t-caption mt-2.5 block truncate font-semibold text-emerald-700 underline decoration-emerald-200 underline-offset-2 hover:text-emerald-800"
         >
           Source: {t.source_url}
         </a>
@@ -625,7 +625,7 @@ function EditForm({
           type="button"
           onClick={onCancel}
           disabled={save.pending}
-          className="flex h-11 flex-none items-center justify-center rounded-full border border-emerald-900/15 bg-white px-5 text-[14px] font-bold text-emerald-900/55 transition hover:text-emerald-900/80 disabled:opacity-50 lg:h-auto lg:border-0 lg:px-3 lg:py-2 lg:text-[12px] lg:text-emerald-900/40 lg:hover:text-emerald-900/70"
+          className="t-body flex h-11 flex-none items-center justify-center rounded-full border border-emerald-900/15 bg-white px-5 font-bold text-emerald-900/55 transition hover:text-emerald-900/80 disabled:opacity-50 lg:h-auto lg:border-0 lg:px-3 lg:py-2 lg:text-[12px] lg:text-emerald-900/40 lg:hover:text-emerald-900/70"
         >
           Cancel
         </button>
@@ -633,7 +633,7 @@ function EditForm({
           type="button"
           onClick={save.run}
           disabled={save.pending}
-          className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full bg-emerald-600 text-[15px] font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 lg:h-auto lg:flex-none lg:px-5 lg:py-2 lg:text-sm"
+          className="t-body flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full bg-emerald-600 font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 lg:h-auto lg:flex-none lg:px-5 lg:py-2 lg:text-sm"
         >
           {save.pending ? "Saving…" : "Save & approve"}
         </button>

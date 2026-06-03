@@ -83,7 +83,7 @@ export function ResultCardPicker({
             key={s.id}
             type="button"
             onClick={() => setSelected(s.id)}
-            className={`flex-1 rounded-lg border-2 px-4 py-3 text-sm font-bold transition ${
+            className={`flex-1 rounded-lg border-2 px-4 py-3 t-body font-bold transition ${
               selected === s.id
                 ? "border-emerald-700 bg-emerald-50 text-emerald-900"
                 : "border-gray-200 text-gray-500 hover:border-gray-300"
@@ -108,14 +108,14 @@ export function ResultCardPicker({
         <button
           type="button"
           onClick={handleDownload}
-          className="flex-1 rounded-xl bg-emerald-700 px-6 py-4 text-lg font-bold text-white transition hover:bg-emerald-800"
+          className="flex-1 rounded-xl bg-emerald-700 px-6 py-4 t-h2 font-bold text-white transition hover:bg-emerald-800"
         >
           Download Image
         </button>
         <button
           type="button"
           onClick={handleShare}
-          className="flex-1 rounded-xl border-2 border-emerald-700 px-6 py-4 text-lg font-bold text-emerald-700 transition hover:bg-emerald-50"
+          className="flex-1 rounded-xl border-2 border-emerald-700 px-6 py-4 t-h2 font-bold text-emerald-700 transition hover:bg-emerald-50"
         >
           {copied ? "Link Copied!" : "Share"}
         </button>

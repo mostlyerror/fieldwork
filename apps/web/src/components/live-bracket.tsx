@@ -61,16 +61,16 @@ function PoolTable({ label, matches }: { label: string; matches: TournamentMatch
   return (
     <div className="overflow-hidden rounded-lg border border-gray-200">
       <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-3 py-1.5">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+        <span className="t-label tracking-widest text-gray-400">
           {label}
         </span>
         {allDone && (
-          <span className="text-[10px] font-medium uppercase text-gray-400">Complete</span>
+          <span className="t-label font-medium text-gray-400">Complete</span>
         )}
       </div>
-      <table className="w-full text-sm">
+      <table className="w-full t-body">
         <thead>
-          <tr className="border-b border-gray-100 text-left text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+          <tr className="border-b border-gray-100 text-left t-label font-semibold tracking-wider text-gray-400">
             <th className="px-3 py-1 w-5 hidden sm:table-cell">#</th>
             <th className="px-3 py-1">Team</th>
             <th className="px-3 py-1 text-center">W-L</th>
@@ -80,17 +80,17 @@ function PoolTable({ label, matches }: { label: string; matches: TournamentMatch
         <tbody className="divide-y divide-gray-50">
           {standings.map((team, i) => (
             <tr key={team.name} className={i === 0 ? "bg-emerald-50/50" : ""}>
-              <td className="px-3 py-1.5 text-xs font-bold text-gray-400 hidden sm:table-cell">{i + 1}</td>
+              <td className="px-3 py-1.5 t-caption font-bold text-gray-400 hidden sm:table-cell">{i + 1}</td>
               <td className="px-3 py-1.5">
-                <span className="font-medium text-gray-800 text-sm">{team.name}</span>
+                <span className="t-body text-gray-800">{team.name}</span>
                 {team.rating != null && (
-                  <span className="ml-1.5 text-xs text-gray-400">{team.rating.toFixed(2)}</span>
+                  <span className="ml-1.5 t-caption text-gray-400">{team.rating.toFixed(2)}</span>
                 )}
               </td>
-              <td className="px-3 py-1.5 text-center font-bold text-gray-700 text-sm">
+              <td className="px-3 py-1.5 text-center t-body font-bold text-gray-700">
                 {team.wins}-{team.losses}
               </td>
-              <td className="px-3 py-1.5 text-right text-xs hidden sm:table-cell">
+              <td className="px-3 py-1.5 text-right t-caption hidden sm:table-cell">
                 <span className={team.pointsFor - team.pointsAgainst >= 0 ? "text-emerald-600" : "text-red-500"}>
                   {team.pointsFor - team.pointsAgainst >= 0 ? "+" : ""}{team.pointsFor - team.pointsAgainst}
                 </span>
@@ -124,17 +124,17 @@ function BracketMatch({ match }: { match: TournamentMatch }) {
     return (
       <div className={`flex items-center gap-2 px-3 py-1.5 ${isWinner ? "bg-emerald-50" : ""}`}>
         {seed != null && (
-          <span className="w-4 shrink-0 text-[10px] font-bold text-gray-300">{seed}</span>
+          <span className="w-4 shrink-0 t-caption font-bold text-gray-300">{seed}</span>
         )}
-        <span className={`flex-1 truncate text-sm ${isWinner ? "font-bold text-gray-900" : "text-gray-600"}`}>
+        <span className={`flex-1 truncate t-body ${isWinner ? "font-bold text-gray-900" : "text-gray-600"}`}>
           {names || "TBD"}
         </span>
         {prob != null && !isCompleted && (
-          <span className={`shrink-0 text-[10px] font-semibold ${prob >= 0.5 ? "text-emerald-600" : "text-gray-400"}`}>
+          <span className={`shrink-0 t-caption font-semibold ${prob >= 0.5 ? "text-emerald-600" : "text-gray-400"}`}>
             {formatProbability(prob)}
           </span>
         )}
-        <span className="shrink-0 w-14 text-right text-xs font-mono text-gray-500">
+        <span className="shrink-0 w-14 text-right t-caption font-mono text-gray-500">
           {formatScores(scores) || ""}
         </span>
       </div>
@@ -150,13 +150,13 @@ function BracketMatch({ match }: { match: TournamentMatch }) {
       <div className="rounded-lg border border-dashed border-gray-200 overflow-hidden">
         <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50">
           {match.team1_seed != null && (
-            <span className="w-4 shrink-0 text-[10px] font-bold text-gray-300">{match.team1_seed}</span>
+            <span className="w-4 shrink-0 t-caption font-bold text-gray-300">{match.team1_seed}</span>
           )}
-          <span className="flex-1 truncate text-sm font-bold text-gray-900">{t1Names}</span>
+          <span className="flex-1 truncate t-body font-bold text-gray-900">{t1Names}</span>
         </div>
         <div className="border-t border-dashed border-gray-200" />
         <div className="px-3 py-1.5">
-          <span className="text-sm italic text-gray-400">BYE</span>
+          <span className="t-body italic text-gray-400">BYE</span>
         </div>
       </div>
     );
@@ -256,7 +256,7 @@ function EventBracketView({ matches }: { matches: TournamentMatch[] }) {
     <div className="space-y-5 p-4 bg-white">
       {pools.size > 0 && (
         <div>
-          <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-400">
+          <h4 className="mb-2 t-caption font-bold uppercase tracking-widest text-gray-400">
             Pools
           </h4>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -269,7 +269,7 @@ function EventBracketView({ matches }: { matches: TournamentMatch[] }) {
 
       {bracketRounds.size > 0 && (
         <div>
-          <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-400">
+          <h4 className="mb-2 t-caption font-bold uppercase tracking-widest text-gray-400">
             Medal Round
           </h4>
           {/* Mobile: stacked rounds. Desktop (sm+): horizontal columns, left-to-right */}
@@ -277,7 +277,7 @@ function EventBracketView({ matches }: { matches: TournamentMatch[] }) {
             <div className="flex flex-col gap-4 sm:flex-row sm:gap-3 sm:min-w-max">
               {Array.from(bracketRounds.entries()).map(([label, roundMatches]) => (
                 <div key={label} className="flex flex-col sm:w-64 sm:shrink-0">
-                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400 text-center">
+                  <p className="mb-1.5 t-label font-semibold tracking-wide text-gray-400 text-center">
                     {label}
                   </p>
                   <div className="flex flex-1 flex-col justify-around gap-2">
@@ -294,7 +294,7 @@ function EventBracketView({ matches }: { matches: TournamentMatch[] }) {
 
       {consolation.length > 0 && (
         <div>
-          <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-400">
+          <h4 className="mb-2 t-caption font-bold uppercase tracking-widest text-gray-400">
             Bronze Match
           </h4>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -365,7 +365,7 @@ export function LiveBracket({
                 key={key}
                 type="button"
                 onClick={() => setSelectedEvent(key)}
-                className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                className={`whitespace-nowrap rounded-full px-3 py-1.5 t-caption font-semibold transition ${
                   isSelected
                     ? "bg-emerald-700 text-white"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"

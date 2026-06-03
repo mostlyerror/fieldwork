@@ -44,7 +44,7 @@ export function FieldStrengthBadge({
   if (!level) return null;
 
   const config = BADGE_CONFIG[level];
-  const sizeClass = size === "sm" ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-1 text-xs";
+  const sizeClass = size === "sm" ? "px-2 py-0.5 t-caption" : "px-2.5 py-1 t-caption";
 
   return (
     <span

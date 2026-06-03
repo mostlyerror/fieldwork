@@ -161,11 +161,11 @@ export function VenueSearch({
     return (
       <div className="flex items-start gap-3 rounded-xl border border-green-200 bg-green-50/50 px-4 py-3">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-gray-800">
+          <p className="t-body text-gray-800">
             {selection.locationName}
           </p>
           {selection.locationName !== selection.locationAddress && (
-            <p className="mt-0.5 text-xs text-gray-500">
+            <p className="mt-0.5 t-caption text-gray-500">
               {selection.locationAddress}
             </p>
           )}
@@ -173,7 +173,7 @@ export function VenueSearch({
         <button
           type="button"
           onClick={handleClear}
-          className="shrink-0 text-xs font-medium text-green-700 hover:text-green-900"
+          className="shrink-0 t-caption text-green-700 hover:text-green-900"
         >
           Change
         </button>
@@ -189,7 +189,7 @@ export function VenueSearch({
     return (
       <div className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5">
         <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-200 border-t-green-600" />
-        <span className="text-sm text-gray-500">Loading venue details...</span>
+        <span className="t-body text-gray-500">Loading venue details...</span>
         <input type="hidden" name="locationName" value={query} />
         <input type="hidden" name="locationAddress" value="" />
         <input type="hidden" name="placeId" value="" />
@@ -219,9 +219,9 @@ export function VenueSearch({
                 onClick={() => handleSelect(s)}
                 className="w-full px-4 py-2.5 text-left hover:bg-green-50"
               >
-                <span className="block text-sm text-gray-800">{s.mainText}</span>
+                <span className="block t-body text-gray-800">{s.mainText}</span>
                 {s.secondaryText && (
-                  <span className="block text-xs text-gray-500">
+                  <span className="block t-caption text-gray-500">
                     {s.secondaryText}
                   </span>
                 )}

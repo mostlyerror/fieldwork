@@ -74,11 +74,11 @@ export function Homepage({
 
       {/* Page header */}
       <div className="mx-auto max-w-6xl px-3 sm:px-5 pt-8 pb-4">
-        <h1 className="relative inline-block text-3xl font-extrabold text-gray-900">
+        <h1 className="t-h1 relative inline-block text-gray-900">
           {city?.name ?? "Houston"} Tournaments
           <span className="absolute -bottom-1 left-0 right-0 h-[3px] bg-emerald-700 origin-left animate-underline" />
         </h1>
-        <p className="mt-2 text-base text-gray-500">
+        <p className="mt-2 t-body text-gray-500">
           {upcomingCount > 0 ? `${upcomingCount} upcoming` : "Upcoming tournaments"}
           {" · "}
           {duprCount} verified ratings
@@ -98,7 +98,7 @@ export function Homepage({
       </section>
 
       {/* Submit CTA — single line */}
-      <div className="mx-auto max-w-6xl px-3 sm:px-5 pb-10 text-sm text-gray-400">
+      <div className="mx-auto max-w-6xl px-3 sm:px-5 pb-10 t-body text-gray-400">
         Know about a tournament?{" "}
         <Link href="/submit" className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline">
           Submit it here →
@@ -110,7 +110,7 @@ export function Homepage({
       {/* Email subscribe — end-of-page CTA, just before the footer */}
       <section className="mx-auto max-w-6xl px-3 sm:px-5 pt-2 pb-14">
         <div className="flex flex-col gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 sm:flex-row sm:items-center sm:gap-4">
-          <div className="flex items-center gap-2 text-sm font-medium text-emerald-700">
+          <div className="flex items-center gap-2 t-body text-emerald-700">
             <span aria-hidden="true">📬</span>
             <span>Get weekly updates</span>
           </div>
@@ -121,7 +121,7 @@ export function Homepage({
                 <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-white animate-pop">
                   ✓
                 </span>
-                <span className="text-sm font-bold text-emerald-700 animate-fade-up">
+                <span className="t-body font-bold text-emerald-700 animate-fade-up">
                   Boom — you&apos;re in.
                 </span>
                 {/* Confetti */}
@@ -152,15 +152,15 @@ export function Homepage({
                   <button
                     type="submit"
                     disabled={emailState === "submitting"}
-                    className="w-full shrink-0 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50 sm:w-auto sm:py-1.5"
+                    className="w-full shrink-0 rounded-lg bg-emerald-600 px-4 py-2.5 t-body font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50 sm:w-auto sm:py-1.5"
                   >
                     {emailState === "submitting" ? "..." : "Subscribe"}
                   </button>
                   {emailState === "already_subscribed" && (
-                    <span className="w-full text-xs font-medium text-amber-600 sm:w-auto">Already subscribed!</span>
+                    <span className="w-full t-caption text-amber-600 sm:w-auto">Already subscribed!</span>
                   )}
                   {emailState === "error" && (
-                    <span className="w-full text-xs font-medium text-red-500 sm:w-auto">{errorMsg}</span>
+                    <span className="w-full t-caption text-red-500 sm:w-auto">{errorMsg}</span>
                   )}
                 </form>
               </>
@@ -168,7 +168,7 @@ export function Homepage({
           </div>
 
           {subscriberCount != null && subscriberCount > 10 && (
-            <p className="shrink-0 text-xs text-emerald-600/70 font-medium">
+            <p className="shrink-0 t-caption text-emerald-600/70">
               {subscriberCount}+ players subscribed
             </p>
           )}

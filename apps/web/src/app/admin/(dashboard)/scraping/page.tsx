@@ -187,7 +187,7 @@ export default async function ScrapingPage() {
               href="https://github.com/mostlyerror/pickleradar/actions/workflows/scrape.yml"
               target="_blank"
               rel="noreferrer"
-              className="hidden items-center gap-1.5 rounded-full border border-emerald-900/15 bg-white px-4 py-2 text-sm font-bold text-emerald-900 transition hover:border-emerald-900/30 sm:inline-flex"
+              className="hidden items-center gap-1.5 rounded-full border border-emerald-900/15 bg-white px-4 py-2 t-body font-bold text-emerald-900 transition hover:border-emerald-900/30 sm:inline-flex"
             >
               Workflow logs ↗
             </a>
@@ -265,10 +265,10 @@ export default async function ScrapingPage() {
             <div className={`text-[28px] font-extrabold leading-none tracking-tight lg:text-[25px] ${st.cls}`}>
               {st.value}
             </div>
-            <div className="text-[10.5px] font-bold uppercase tracking-[0.07em] text-emerald-900/50">
+            <div className="t-label text-emerald-900/50">
               {st.label}
             </div>
-            <div className="text-[12px] font-medium text-emerald-900/55">
+            <div className="t-caption text-emerald-900/55">
               {st.sub}
             </div>
           </div>
@@ -278,7 +278,7 @@ export default async function ScrapingPage() {
       {/* Source cards */}
       <SectionLabel>Sources</SectionLabel>
       {sources.length === 0 ? (
-        <div className="mb-8 rounded-2xl border border-emerald-900/10 bg-white p-8 text-center text-sm text-emerald-900/50">
+        <div className="mb-8 rounded-2xl border border-emerald-900/10 bg-white p-8 text-center t-body text-emerald-900/50">
           No scraper runs recorded yet. Trigger a run to populate this view.
         </div>
       ) : (
@@ -319,10 +319,10 @@ export default async function ScrapingPage() {
                 {/* Card head */}
                 <div className="mb-3.5 flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="truncate text-[16.5px] font-extrabold tracking-tight text-emerald-950">
+                    <div className="truncate t-h3 font-extrabold text-emerald-950">
                       {SOURCE_DISPLAY_NAMES[src.name] ?? src.name}
                     </div>
-                    <div className="mt-1 text-[11.5px] font-medium text-emerald-900/40">
+                    <div className="mt-1 t-caption text-emerald-900/40">
                       {src.windowCount} run{src.windowCount === 1 ? "" : "s"} in
                       window · {src.okCount}/{src.windowCount} ok
                     </div>
@@ -333,7 +333,7 @@ export default async function ScrapingPage() {
                 {/* Hero: last successful run */}
                 <div className="mb-3.5 flex items-end justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="text-[11px] font-bold uppercase tracking-[0.07em] text-emerald-900/45">
+                    <div className="t-label text-emerald-900/45">
                       Last successful run
                     </div>
                     <div
@@ -350,7 +350,7 @@ export default async function ScrapingPage() {
                         : "never"}
                     </div>
                     <div
-                      className={`mt-2 min-h-[2.5em] text-[12px] leading-tight ${isDown ? "text-red-700/80" : "text-emerald-900/55"}`}
+                      className={`mt-2 min-h-[2.5em] t-caption leading-tight ${isDown ? "text-red-700/80" : "text-emerald-900/55"}`}
                     >
                       Last run {timeAgo(src.lastRun.started_at)} ·{" "}
                       <span
@@ -399,7 +399,7 @@ export default async function ScrapingPage() {
                 {/* Latest error inline */}
                 {src.latestError && src.status !== "healthy" && (
                   <div className="mb-3.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3">
-                    <div className="mb-1.5 flex justify-between gap-2 text-[11px] font-bold text-red-700">
+                    <div className="mb-1.5 flex justify-between gap-2 t-caption font-bold text-red-700">
                       <span>ERROR · {timeAgo(src.latestError.started_at)}</span>
                       {src.consecutiveFails > 1 && (
                         <span className="flex-none">
@@ -407,7 +407,7 @@ export default async function ScrapingPage() {
                         </span>
                       )}
                     </div>
-                    <p className="break-words font-mono text-[12px] leading-snug text-red-800/90">
+                    <p className="break-words font-mono t-caption leading-snug text-red-800/90">
                       {src.latestError.error_message}
                     </p>
                   </div>
@@ -442,13 +442,13 @@ export default async function ScrapingPage() {
                       className={`flex-1 text-center ${i < arr.length - 1 ? "border-r border-emerald-900/10" : ""}`}
                     >
                       <div
-                        className={`text-[18px] font-extrabold tracking-tight ${
+                        className={`t-h2 font-extrabold ${
                           src.lastSuccess ? st.cls : "text-emerald-900/25"
                         }`}
                       >
                         {src.lastSuccess ? st.value : "—"}
                       </div>
-                      <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.05em] text-emerald-900/40">
+                      <div className="mt-0.5 t-label font-semibold text-emerald-900/40">
                         {st.label}
                       </div>
                     </div>
@@ -482,7 +482,7 @@ export default async function ScrapingPage() {
         Run history · last {allRuns.length}
       </SectionLabel>
       {allRuns.length === 0 ? (
-        <div className="rounded-2xl border border-emerald-900/10 bg-white p-8 text-center text-sm text-emerald-900/50">
+        <div className="rounded-2xl border border-emerald-900/10 bg-white p-8 text-center t-body text-emerald-900/50">
           No runs yet.
         </div>
       ) : (
@@ -503,12 +503,12 @@ export default async function ScrapingPage() {
                     className={`absolute inset-y-0 left-0 w-1 ${errored ? "bg-red-500" : "bg-emerald-200"}`}
                   />
                   <div className="mb-3 flex items-center justify-between gap-3">
-                    <span className="truncate text-[15px] font-bold text-emerald-950">
+                    <span className="truncate t-body font-bold text-emerald-950">
                       {run.source_platform}
                     </span>
                     <StatusPill status={run.status} />
                   </div>
-                  <div className="flex flex-wrap gap-x-3 gap-y-1.5 text-[12.5px] font-medium text-emerald-900/60">
+                  <div className="flex flex-wrap gap-x-3 gap-y-1.5 t-small text-emerald-900/60">
                     <span>{timeAgo(run.started_at)}</span>
                     <span>{duration(run.started_at, run.completed_at)}</span>
                     {errored ? (
@@ -543,7 +543,7 @@ export default async function ScrapingPage() {
                     )}
                   </div>
                   {errored && run.error_message && (
-                    <div className="mt-3 break-words rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 font-mono text-[12px] leading-snug text-red-800/90">
+                    <div className="mt-3 break-words rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 font-mono t-caption leading-snug text-red-800/90">
                       {run.error_message}
                     </div>
                   )}
@@ -555,17 +555,17 @@ export default async function ScrapingPage() {
           {/* Desktop: wide table */}
           <div className="hidden overflow-hidden rounded-2xl border border-emerald-900/10 bg-white shadow-sm lg:block">
             <div className="flex items-center justify-between border-b border-emerald-900/10 px-5 py-3.5">
-              <span className="text-[13px] font-bold text-emerald-950">
+              <span className="t-small font-bold text-emerald-950">
                 All runs
               </span>
-              <span className="text-xs font-medium text-emerald-900/40">
+              <span className="t-caption text-emerald-900/40">
                 {stats24h.failed} error{stats24h.failed === 1 ? "" : "s"} in last
                 24h
               </span>
             </div>
-            <table className="w-full text-left text-[13.5px]">
+            <table className="w-full text-left t-small">
               <thead>
-                <tr className="border-b border-emerald-900/10 text-[10.5px] font-bold uppercase tracking-[0.06em] text-emerald-900/40">
+                <tr className="border-b border-emerald-900/10 t-label text-emerald-900/40">
                   <th className="px-5 py-3">Source</th>
                   <th className="px-5 py-3">When</th>
                   <th className="px-5 py-3">Duration</th>
@@ -635,7 +635,7 @@ export default async function ScrapingPage() {
                       <tr key={`${run.id}-err`} className="bg-red-50/40">
                         <td
                           colSpan={8}
-                          className="px-5 pb-3 pt-0 font-mono text-[11.5px] leading-snug text-red-800/85"
+                          className="px-5 pb-3 pt-0 font-mono t-caption leading-snug text-red-800/85"
                         >
                           {run.error_message}
                         </td>
@@ -658,7 +658,7 @@ function StatusPill({ status }: { status: string }) {
   const success = status === "success";
   return (
     <span
-      className={`inline-block flex-none rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.04em] ${
+      className={`inline-block flex-none rounded-full px-2 py-0.5 t-label ${
         success
           ? "bg-emerald-50 text-emerald-700"
           : errored
@@ -680,12 +680,12 @@ function SectionLabel({
 }) {
   return (
     <div className="mb-3 flex items-center gap-2.5">
-      <h3 className="text-[12px] font-bold uppercase tracking-[0.09em] text-emerald-900/40">
+      <h3 className="t-label text-emerald-900/40">
         {children}
       </h3>
       <span className="h-px flex-1 bg-emerald-900/10" />
       {meta && (
-        <span className="flex-none text-[13px] font-semibold text-emerald-900/40">
+        <span className="flex-none t-small font-semibold text-emerald-900/40">
           {meta}
         </span>
       )}

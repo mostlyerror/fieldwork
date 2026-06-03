@@ -9,15 +9,15 @@ export default function Error({
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-green-50/50 via-white to-amber-50/30 px-3 sm:px-5">
       <span className="text-6xl">😵</span>
-      <h1 className="mt-4 text-2xl font-bold text-gray-700">
+      <h1 className="mt-4 t-h1 font-bold text-gray-700">
         Something went wrong
       </h1>
-      <p className="mt-2 text-sm text-gray-500">
+      <p className="mt-2 t-body text-gray-500">
         We hit an unexpected error loading this page.
       </p>
       <button
         onClick={reset}
-        className="mt-6 rounded-full bg-green-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-700 transition-colors"
+        className="mt-6 rounded-full bg-green-600 px-6 py-2.5 t-body font-semibold text-white shadow-sm hover:bg-green-700 transition-colors"
       >
         Try again
       </button>

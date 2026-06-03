@@ -168,7 +168,7 @@ export function FlyerImportForm() {
         title="Flyer Import"
         subtitle="Paste the post, drop the flyer, let Claude take a first pass — then verify against the source, confirm the venue, and ship a private draft to the organizer."
         action={
-          <div className="hidden items-center gap-2 rounded-full border border-emerald-900/10 bg-white px-3.5 py-2 text-xs font-semibold text-emerald-900/70 sm:flex">
+          <div className="hidden items-center gap-2 rounded-full border border-emerald-900/10 bg-white px-3.5 py-2 t-caption font-semibold text-emerald-900/70 sm:flex">
             <span className="h-[7px] w-[7px] rounded-full bg-emerald-600 shadow-[0_0_0_3px_#ecfdf3]" />
             Houston · only configured city
           </div>
@@ -180,7 +180,7 @@ export function FlyerImportForm() {
 
       {/* ── Top-level (non-duplicate) error ── */}
       {error && !createdId && !isDuplicate && (
-        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 t-body text-red-700">
           {error}
         </div>
       )}
@@ -212,7 +212,7 @@ export function FlyerImportForm() {
                     <button
                       type="button"
                       onClick={() => handleFile(null)}
-                      className="text-xs font-semibold text-emerald-700 hover:text-emerald-900"
+                      className="t-caption font-semibold text-emerald-700 hover:text-emerald-900"
                     >
                       Remove
                     </button>
@@ -265,13 +265,13 @@ export function FlyerImportForm() {
                   />
                 ) : (
                   <div className="grid aspect-[4/5] place-items-center rounded-xl border border-emerald-900/10 bg-emerald-950/95 text-center text-emerald-100">
-                    <div className="px-6 text-sm font-semibold text-emerald-200/80">
+                    <div className="px-6 t-body font-semibold text-emerald-200/80">
                       No flyer image uploaded — text-only extraction.
                     </div>
                   </div>
                 )}
                 <SrcLabel className="mt-4">Post text</SrcLabel>
-                <div className="max-h-64 overflow-auto whitespace-pre-wrap rounded-[10px] border border-emerald-900/[0.06] bg-[#FFFDF7] px-3 py-3 text-[12.5px] leading-relaxed text-emerald-900/70">
+                <div className="max-h-64 overflow-auto whitespace-pre-wrap rounded-[10px] border border-emerald-900/[0.06] bg-[#FFFDF7] px-3 py-3 t-small leading-relaxed text-emerald-900/70">
                   {text || "— no post text —"}
                 </div>
                 {sourceUrl && (
@@ -279,7 +279,7 @@ export function FlyerImportForm() {
                     href={sourceUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-3 flex items-center gap-1.5 break-all text-xs font-semibold text-emerald-700"
+                    className="mt-3 flex items-center gap-1.5 break-all t-caption font-semibold text-emerald-700"
                   >
                     🔗 {sourceUrl}
                   </a>
@@ -291,7 +291,7 @@ export function FlyerImportForm() {
           {/* ── CENTER: editable fields + save bar ── */}
           <div className="flex flex-col gap-[18px]">
             {isDuplicate && (
-              <div className="flex gap-2.5 rounded-xl border border-orange-200 bg-orange-50 px-3.5 py-3 text-[12.5px] leading-snug text-orange-900">
+              <div className="flex gap-2.5 rounded-xl border border-orange-200 bg-orange-50 px-3.5 py-3 t-small leading-snug text-orange-900">
                 <span className="text-[15px]">⚠️</span>
                 <div>
                   <b className="text-orange-700">Possible duplicate.</b> {error}
@@ -343,7 +343,7 @@ export function FlyerImportForm() {
                   </div>
 
                   {notes && (
-                    <div className="flex gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 text-[12.5px] leading-snug text-amber-900">
+                    <div className="flex gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 t-small leading-snug text-amber-900">
                       <span className="text-[15px]">📌</span>
                       <div>
                         <b className="text-amber-700">Claude flagged this.</b> {notes}
@@ -404,7 +404,7 @@ export function FlyerImportForm() {
             {createdId && (
               <Card>
                 <CardHead title="Saved draft" meta="private · DRAFT" />
-                <div className="flex flex-col gap-2.5 p-[18px] text-[13px]">
+                <div className="flex flex-col gap-2.5 p-[18px] t-small">
                   <SummaryRow label="Name" value={draft.name} />
                   <SummaryRow
                     label="Dates"
@@ -432,7 +432,7 @@ export function FlyerImportForm() {
             {/* ── Save bar (step 2 only) ── */}
             {!createdId && (
               <div className="lg:sticky lg:bottom-4 flex flex-col gap-3 rounded-2xl border border-emerald-900/10 bg-white/95 p-3.5 shadow-[0_6px_20px_rgba(20,40,30,.07)] backdrop-blur sm:flex-row sm:items-center">
-                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs font-semibold text-emerald-900/70">
+                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 t-caption font-semibold text-emerald-900/70">
                   <Readiness ok={hasName} label="Name" />
                   <span className="text-emerald-900/20">·</span>
                   <Readiness ok={hasDate} label="Date" />
@@ -468,7 +468,7 @@ export function FlyerImportForm() {
             {createdId ? (
               <>
                 {error && (
-                  <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 lg:mb-0">
+                  <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 t-body text-red-700 lg:mb-0">
                     {error}
                   </div>
                 )}
@@ -487,7 +487,7 @@ export function FlyerImportForm() {
                       />
                     </div>
                     {published ? (
-                      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+                      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 t-body font-semibold text-emerald-700">
                         ✓ Published — now live and listed on /{CITY_SLUG}.
                       </div>
                     ) : (
@@ -500,7 +500,7 @@ export function FlyerImportForm() {
                         🚀 Publish — make it live
                       </button>
                     )}
-                    <p className="-mt-1 text-center text-[11.5px] text-emerald-900/50">
+                    <p className="-mt-1 text-center t-caption text-emerald-900/50">
                       Flips status DRAFT → ACTIVE and lists it on /{CITY_SLUG}
                     </p>
                   </div>
@@ -511,7 +511,7 @@ export function FlyerImportForm() {
                   <div className="flex flex-col gap-3.5 p-[18px]">
                     <div>
                       <SrcLabel>Private link · share with organizer</SrcLabel>
-                      <div className="mt-2 flex items-center gap-2.5 break-all rounded-[10px] border border-dashed border-emerald-900/15 bg-[#FFFDF7] px-3 py-2.5 text-[12.5px] font-semibold text-emerald-700">
+                      <div className="mt-2 flex items-center gap-2.5 break-all rounded-[10px] border border-dashed border-emerald-900/15 bg-[#FFFDF7] px-3 py-2.5 t-small font-semibold text-emerald-700">
                         <a
                           href={privateLink}
                           target="_blank"
@@ -531,7 +531,7 @@ export function FlyerImportForm() {
                     </div>
                     <div>
                       <SrcLabel>Outreach template</SrcLabel>
-                      <div className="mt-2 whitespace-pre-wrap rounded-[10px] border border-emerald-900/[0.06] bg-[#FFFDF7] p-3 text-[12.5px] leading-relaxed text-emerald-900/70">
+                      <div className="mt-2 whitespace-pre-wrap rounded-[10px] border border-emerald-900/[0.06] bg-[#FFFDF7] p-3 t-small leading-relaxed text-emerald-900/70">
                         {outreach}
                       </div>
                       <button
@@ -548,7 +548,7 @@ export function FlyerImportForm() {
                 <button
                   type="button"
                   onClick={startOver}
-                  className="rounded-full border border-emerald-900/10 bg-white px-5 py-2 text-sm font-semibold text-emerald-900/70 hover:bg-emerald-50"
+                  className="rounded-full border border-emerald-900/10 bg-white px-5 py-2 t-body font-semibold text-emerald-900/70 hover:bg-emerald-50"
                 >
                   Import another flyer
                 </button>
@@ -569,7 +569,7 @@ export function FlyerImportForm() {
                         sub="optional"
                       />
                     </div>
-                    <p className="text-center text-[11.5px] text-emerald-900/50">
+                    <p className="text-center t-caption text-emerald-900/50">
                       Save the private draft to unlock publish &amp; outreach.
                     </p>
                   </div>
@@ -591,11 +591,11 @@ const textareaCls = inputCls + " leading-relaxed";
 const flagCls = "border-amber-300 bg-[#fffdf6]";
 
 const primaryBtnCls =
-  "inline-flex items-center justify-center gap-1.5 rounded-full bg-emerald-600 px-5 py-2.5 text-[13.5px] font-bold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-45";
+  "inline-flex items-center justify-center gap-1.5 rounded-full bg-emerald-600 px-5 py-2.5 t-small font-bold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-45";
 const amberBtnCls =
-  "inline-flex items-center justify-center rounded-full border-[1.5px] border-amber-300 bg-white px-5 py-2.5 text-[13.5px] font-bold text-amber-700 transition hover:bg-amber-50 disabled:opacity-45";
+  "inline-flex items-center justify-center rounded-full border-[1.5px] border-amber-300 bg-white px-5 py-2.5 t-small font-bold text-amber-700 transition hover:bg-amber-50 disabled:opacity-45";
 const copyBtnCls =
-  "shrink-0 rounded-full border border-emerald-900/10 bg-white px-3 py-1.5 text-[11.5px] font-bold text-emerald-900/70 hover:bg-emerald-50";
+  "shrink-0 rounded-full border border-emerald-900/10 bg-white px-3 py-1.5 t-caption font-bold text-emerald-900/70 hover:bg-emerald-50";
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
@@ -608,8 +608,8 @@ function Card({ children }: { children: React.ReactNode }) {
 function CardHead({ title, meta }: { title: string; meta?: string }) {
   return (
     <div className="flex items-center justify-between border-b border-emerald-900/[0.06] px-[18px] py-3.5">
-      <h2 className="text-[13.5px] font-extrabold tracking-tight">{title}</h2>
-      {meta && <span className="text-[11.5px] font-semibold text-emerald-900/50">{meta}</span>}
+      <h2 className="t-small font-extrabold tracking-tight">{title}</h2>
+      {meta && <span className="t-caption font-semibold text-emerald-900/50">{meta}</span>}
     </div>
   );
 }
@@ -624,7 +624,7 @@ function SrcLabel({
   return (
     <div
       className={
-        "text-[11px] font-bold uppercase tracking-wider text-emerald-900/50 " + className
+        "t-label text-emerald-900/50 " + className
       }
     >
       {children}
@@ -634,7 +634,7 @@ function SrcLabel({
 
 function SectLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mt-1 flex items-center gap-2.5 text-[11px] font-extrabold uppercase tracking-wider text-emerald-900/50">
+    <div className="mt-1 flex items-center gap-2.5 t-label font-extrabold text-emerald-900/50">
       <span className="whitespace-nowrap">{children}</span>
       <span className="h-px flex-1 bg-emerald-900/[0.06]" />
     </div>
@@ -654,7 +654,7 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="flex flex-wrap items-center gap-2 text-[11.5px] font-bold text-emerald-900/70">
+      <label className="flex flex-wrap items-center gap-2 t-caption font-bold text-emerald-900/70">
         {label}
         {required && <span className="font-extrabold text-red-600">*</span>}
         {chip && (
@@ -685,10 +685,10 @@ function Readiness({ ok, label }: { ok: boolean; label: string }) {
 
 function ChecklistRow({ ok, label, sub }: { ok: boolean; label: string; sub: string }) {
   return (
-    <div className="flex flex-wrap items-center gap-2.5 text-[12.5px] font-semibold">
+    <div className="flex flex-wrap items-center gap-2.5 t-small font-semibold">
       <span
         className={
-          "grid h-5 w-5 flex-none place-items-center rounded-full text-xs font-extrabold " +
+          "grid h-5 w-5 flex-none place-items-center rounded-full t-caption font-extrabold " +
           (ok
             ? "bg-emerald-600 text-white"
             : "border border-amber-200 bg-amber-50 text-amber-600")
@@ -727,7 +727,7 @@ function Stepper({ step }: { step: 1 | 2 | 3 }) {
           <div
             key={n}
             className={
-              "flex min-h-[44px] items-center gap-2 rounded-full px-3 text-[13px] font-bold lg:min-h-0 lg:px-[18px] lg:py-2 " +
+              "flex min-h-[44px] items-center gap-2 rounded-full px-3 t-small font-bold lg:min-h-0 lg:px-[18px] lg:py-2 " +
               (state === "active"
                 ? "border border-emerald-950 bg-emerald-950 text-white"
                 : state === "done"
@@ -737,7 +737,7 @@ function Stepper({ step }: { step: 1 | 2 | 3 }) {
           >
             <span
               className={
-                "grid h-[22px] w-[22px] place-items-center rounded-full text-[11.5px] lg:h-[21px] lg:w-[21px] " +
+                "grid h-[22px] w-[22px] place-items-center rounded-full t-caption lg:h-[21px] lg:w-[21px] " +
                 (state === "active"
                   ? "bg-white text-emerald-950"
                   : state === "done"

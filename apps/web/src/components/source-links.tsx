@@ -7,7 +7,7 @@ export function SourceLinks({ sources }: { sources: TournamentSource[] }) {
 
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-gray-700">Register</h3>
+      <h3 className="t-body font-semibold text-gray-700">Register</h3>
       <div className="flex flex-wrap gap-2">
         {withUrl.map((source) => (
           <a
@@ -15,7 +15,7 @@ export function SourceLinks({ sources }: { sources: TournamentSource[] }) {
             href={source.registration_url!}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-green-700"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-4 py-2 t-body text-white shadow-sm transition hover:bg-green-700"
           >
             Register on{" "}
             {SOURCE_DISPLAY_NAMES[source.source_platform] ??

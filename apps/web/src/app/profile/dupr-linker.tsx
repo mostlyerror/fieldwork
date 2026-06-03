@@ -61,18 +61,18 @@ export function DuprLinker() {
   return (
     <div className="space-y-4">
       {error && (
-        <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+        <div className="rounded-lg bg-red-50 p-3 t-body text-red-600">
           {error}
         </div>
       )}
 
       {status === "saved" && (
-        <div className="rounded-lg bg-green-50 p-3 text-sm text-green-700">
+        <div className="rounded-lg bg-green-50 p-3 t-body text-green-700">
           Rating linked successfully!
         </div>
       )}
 
-      <div className="flex gap-2 text-sm">
+      <div className="flex gap-2 t-body">
         <button
           type="button"
           onClick={() => setMode("search")}
@@ -112,7 +112,7 @@ export function DuprLinker() {
               type="button"
               onClick={handleSearch}
               disabled={searching || query.length < 2}
-              className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700 disabled:opacity-50"
+              className="rounded-lg bg-green-600 px-4 py-2 t-body text-white transition hover:bg-green-700 disabled:opacity-50"
             >
               {searching ? "..." : "Search"}
             </button>
@@ -120,7 +120,7 @@ export function DuprLinker() {
 
           {results.length > 0 && (
             <div className="mt-3 space-y-1">
-              <p className="text-xs text-gray-400">
+              <p className="t-caption text-gray-400">
                 Select your profile:
               </p>
               {results.map((player) => (
@@ -129,14 +129,14 @@ export function DuprLinker() {
                   type="button"
                   onClick={() => handleSelect(player)}
                   disabled={status === "saving"}
-                  className="flex w-full items-center justify-between rounded-lg border border-gray-100 px-3 py-2 text-left text-sm transition hover:bg-green-50 hover:ring-1 hover:ring-green-200 disabled:opacity-50"
+                  className="flex w-full items-center justify-between rounded-lg border border-gray-100 px-3 py-2 text-left t-body transition hover:bg-green-50 hover:ring-1 hover:ring-green-200 disabled:opacity-50"
                 >
                   <div>
                     <span className="font-medium text-gray-900">
                       {player.player_name}
                     </span>
                     {player.location && (
-                      <span className="ml-2 text-xs text-gray-400">
+                      <span className="ml-2 t-caption text-gray-400">
                         {player.location}
                       </span>
                     )}
@@ -150,7 +150,7 @@ export function DuprLinker() {
           )}
 
           {results.length === 0 && query.length >= 2 && !searching && (
-            <p className="mt-2 text-sm text-gray-400">
+            <p className="mt-2 t-body text-gray-400">
               No matches found. Try a different name or{" "}
               <button
                 type="button"
@@ -171,7 +171,7 @@ export function DuprLinker() {
             <div>
               <label
                 htmlFor="dupr_doubles"
-                className="mb-1 block text-sm font-medium text-gray-700"
+                className="mb-1 block t-body text-gray-700"
               >
                 Doubles Rating
               </label>
@@ -189,7 +189,7 @@ export function DuprLinker() {
             <div>
               <label
                 htmlFor="dupr_singles"
-                className="mb-1 block text-sm font-medium text-gray-700"
+                className="mb-1 block t-body text-gray-700"
               >
                 Singles Rating
               </label>
@@ -209,7 +209,7 @@ export function DuprLinker() {
           <button
             type="submit"
             disabled={status === "saving"}
-            className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
+            className="rounded-xl bg-green-600 px-4 py-2 t-body font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
           >
             {status === "saving" ? "Saving..." : "Save rating"}
           </button>

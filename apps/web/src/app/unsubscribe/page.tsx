@@ -57,11 +57,11 @@ function Message({ title, body }: { title: string; body: string }) {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-green-50/50 via-white to-amber-50/30 px-3 py-5 sm:p-5">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 sm:p-8 text-center shadow-sm ring-1 ring-gray-100">
         <span className="text-4xl">{"🏓"}</span>
-        <h1 className="mt-4 text-xl font-bold text-gray-800">{title}</h1>
-        <p className="mt-2 text-sm text-gray-500">{body}</p>
+        <h1 className="mt-4 t-h2 font-bold text-gray-800">{title}</h1>
+        <p className="mt-2 t-body text-gray-500">{body}</p>
         <Link
           href="/"
-          className="mt-6 inline-block rounded-xl bg-green-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700"
+          className="mt-6 inline-block rounded-xl bg-green-600 px-6 py-2.5 t-body font-semibold text-white transition-colors hover:bg-green-700"
         >
           Back to PickleRadar
         </Link>

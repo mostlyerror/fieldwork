@@ -60,11 +60,11 @@ export function AdminNav({
           <div className="flex items-center gap-2.5">
             <Link href="/" className="flex items-center gap-2">
               <span className="text-xl">{"\u{1F3D3}"}</span>
-              <span className="text-[17px] font-extrabold tracking-tight text-emerald-800">
+              <span className="t-h3 font-extrabold tracking-tight text-emerald-800">
                 PickleRadar
               </span>
             </Link>
-            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.09em] text-emerald-700">
+            <span className="t-label rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-emerald-700">
               Admin
             </span>
           </div>
@@ -79,7 +79,7 @@ export function AdminNav({
                   key={href}
                   href={href}
                   aria-current={isActive ? "page" : undefined}
-                  className={`relative rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${
+                  className={`t-body relative rounded-full px-3.5 py-1.5 font-semibold transition ${
                     isActive
                       ? "bg-emerald-600 text-white shadow-sm"
                       : "text-emerald-900/55 hover:text-emerald-900"
@@ -101,7 +101,7 @@ export function AdminNav({
               <form action={logoutAction}>
                 <button
                   type="submit"
-                  className="rounded-full px-3 py-1.5 text-sm font-semibold text-emerald-900/40 transition hover:text-emerald-900/70"
+                  className="t-body rounded-full px-3 py-1.5 font-semibold text-emerald-900/40 transition hover:text-emerald-900/70"
                 >
                   Log out
                 </button>
@@ -115,7 +115,7 @@ export function AdminNav({
       <header className="sticky top-0 z-30 flex h-[52px] items-center justify-between border-b border-emerald-900/10 bg-cream/90 px-4 backdrop-blur-md lg:hidden">
         <Link href="/" className="flex min-w-0 items-center gap-2">
           <span className="text-lg">{"\u{1F3D3}"}</span>
-          <span className="truncate text-[16px] font-extrabold tracking-tight text-emerald-800">
+          <span className="t-h3 truncate font-extrabold tracking-tight text-emerald-800">
             PickleRadar
           </span>
           <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-emerald-700">
@@ -125,7 +125,7 @@ export function AdminNav({
         <form action={logoutAction} className="flex-none">
           <button
             type="submit"
-            className="-mr-1 inline-flex min-h-[44px] items-center rounded-full px-3 text-sm font-semibold text-emerald-900/45 transition active:text-emerald-900/70"
+            className="t-body -mr-1 inline-flex min-h-[44px] items-center rounded-full px-3 font-semibold text-emerald-900/45 transition active:text-emerald-900/70"
           >
             Log out
           </button>
@@ -149,7 +149,7 @@ export function AdminNav({
               key={href}
               href={href}
               aria-current={isActive ? "page" : undefined}
-              className={`relative flex min-h-[56px] min-w-0 flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-bold leading-none transition active:opacity-60 ${
+              className={`t-caption relative flex min-h-[56px] min-w-0 flex-1 flex-col items-center justify-center gap-1 py-2 font-bold leading-none transition active:opacity-60 ${
                 isActive ? "text-emerald-700" : "text-emerald-900/45"
               }`}
             >

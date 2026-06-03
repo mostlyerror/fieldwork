@@ -71,11 +71,11 @@ export function AttentionBanner({
         />
         <div className="min-w-0 flex-1">
           <div
-            className={`text-[10px] font-extrabold uppercase tracking-[0.12em] ${tokens.text}`}
+            className={`t-label font-extrabold tracking-[0.12em] ${tokens.text}`}
           >
             {kicker}
           </div>
-          <h2 className="mt-0.5 text-lg font-extrabold tracking-tight text-emerald-950">
+          <h2 className="t-h2 mt-0.5 text-emerald-950">
             {title}
           </h2>
           {chips.length > 0 && (
@@ -95,7 +95,7 @@ export function AttentionBanner({
 function ProblemChipView({ chip }: { chip: ProblemChip }) {
   const level = chip.level ?? "attention";
   const tokens = ADMIN_STATUS[level];
-  const cls = `inline-flex items-center gap-1.5 rounded-full border bg-white px-2.5 py-1 text-xs font-semibold text-emerald-900 transition hover:border-emerald-900/20 ${tokens.border}`;
+  const cls = `t-caption inline-flex items-center gap-1.5 rounded-full border bg-white px-2.5 py-1 font-semibold text-emerald-900 transition hover:border-emerald-900/20 ${tokens.border}`;
   const inner = (
     <>
       <span

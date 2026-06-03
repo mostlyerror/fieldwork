@@ -267,7 +267,7 @@ export default async function AdminPage() {
       <div className="grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)] xl:items-start xl:gap-6">
         {/* ── Triage rail ── */}
         <aside className="flex flex-col gap-4 xl:sticky xl:top-[72px]">
-          <div className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-emerald-900/35 lg:-mb-1">
+          <div className="t-label font-extrabold tracking-[0.1em] text-emerald-900/35 lg:-mb-1">
             Needs you now
           </div>
           <div className="grid gap-4 lg:grid-cols-3 xl:grid-cols-1">
@@ -282,7 +282,7 @@ export default async function AdminPage() {
           >
             <BigNum value={tournaments.length} unit="waiting" />
             {oldestPending ? (
-              <p className="mt-2 text-[12.5px] leading-snug text-emerald-900/65">
+              <p className="t-small mt-2 leading-snug text-emerald-900/65">
                 Oldest sat{" "}
                 <span className="font-bold text-emerald-950">
                   {timeAgo(oldestPending.created_at)}
@@ -298,7 +298,7 @@ export default async function AdminPage() {
                 )}
               </p>
             ) : (
-              <p className="mt-2 text-[12.5px] text-emerald-900/55">
+              <p className="t-small mt-2 text-emerald-900/55">
                 Queue is clear — nothing waiting.
               </p>
             )}
@@ -332,7 +332,7 @@ export default async function AdminPage() {
                       lastRunOverall.status === "error" ? "Failed" : "Success"
                     }
                   />
-                  <span className="text-[12.5px] text-emerald-900/55">
+                  <span className="t-small text-emerald-900/55">
                     last run{" "}
                     <span className="font-bold text-emerald-950">
                       {timeAgo(lastRunOverall.started_at)}
@@ -358,7 +358,7 @@ export default async function AdminPage() {
                 />
               </>
             ) : (
-              <p className="mt-2 text-[12.5px] text-emerald-900/55">
+              <p className="t-small mt-2 text-emerald-900/55">
                 No runs recorded yet.
               </p>
             )}
@@ -374,7 +374,7 @@ export default async function AdminPage() {
           >
             <div className="flex items-center gap-3.5">
               <GeocodeRing pct={pendingGeocodedPct} status={geocodeStatus} />
-              <p className="min-w-0 text-[12.5px] leading-snug text-emerald-900/65">
+              <p className="t-small min-w-0 leading-snug text-emerald-900/65">
                 {totalGaps === 0 ? (
                   "Every tournament has coordinates — all mappable."
                 ) : (
@@ -418,10 +418,10 @@ export default async function AdminPage() {
               label="subscribers"
             />
             <div>
-              <div className="mb-2 text-[10px] font-extrabold uppercase tracking-[0.1em] text-emerald-900/35">
+              <div className="t-label mb-2 font-extrabold tracking-[0.1em] text-emerald-900/35">
                 Scraper · recent
               </div>
-              <div className="text-[12.5px] text-emerald-900/60">
+              <div className="t-small text-emerald-900/60">
                 {runs.length} run{runs.length === 1 ? "" : "s"} tracked ·{" "}
                 <span className="font-bold text-emerald-900/80">
                   {sourceStatuses.length}
@@ -433,7 +433,7 @@ export default async function AdminPage() {
               </div>
               <Link
                 href="/admin/scraping"
-                className="mt-1 inline-block text-[12px] font-bold text-emerald-700 hover:text-emerald-800"
+                className="t-caption mt-1 inline-block font-bold text-emerald-700 hover:text-emerald-800"
               >
                 Pipeline detail →
               </Link>
@@ -464,11 +464,11 @@ function TriageCard({
   return (
     <div className="relative overflow-hidden rounded-2xl border border-emerald-900/10 bg-white p-4 pb-11">
       <div className="mb-2.5 flex items-center justify-between">
-        <span className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-emerald-900/40">
+        <span className="t-label font-extrabold text-emerald-900/40">
           {label}
         </span>
         <span
-          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10.5px] font-bold ${tokens.bg} ${tokens.text}`}
+          className={`t-caption inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-bold ${tokens.bg} ${tokens.text}`}
         >
           <span
             aria-hidden="true"
@@ -480,7 +480,7 @@ function TriageCard({
       {children}
       <Link
         href={jumpHref}
-        className="absolute bottom-3.5 right-4 text-[11.5px] font-bold text-emerald-700 hover:text-emerald-800"
+        className="t-caption absolute bottom-3.5 right-4 font-bold text-emerald-700 hover:text-emerald-800"
       >
         {jumpLabel}
       </Link>
@@ -503,7 +503,7 @@ function GeocodeRing({ pct, status }: { pct: number; status: AdminStatus }) {
         background: `conic-gradient(${fill} ${pct}%, #eef1ec 0)`,
       }}
     >
-      <div className="grid h-[42px] w-[42px] place-items-center rounded-full bg-white text-[13px] font-extrabold text-emerald-950">
+      <div className="t-small grid h-[42px] w-[42px] place-items-center rounded-full bg-white font-extrabold text-emerald-950">
         {pct}%
       </div>
     </div>
@@ -513,10 +513,10 @@ function GeocodeRing({ pct, status }: { pct: number; status: AdminStatus }) {
 function BigNum({ value, unit }: { value: number; unit: string }) {
   return (
     <div className="flex items-baseline gap-1.5">
-      <span className="text-[38px] font-extrabold leading-none tracking-tight text-emerald-950">
+      <span className="t-display text-emerald-950">
         {value}
       </span>
-      <span className="text-[14px] font-semibold text-emerald-900/45">
+      <span className="t-body font-semibold text-emerald-900/45">
         {unit}
       </span>
     </div>
@@ -534,14 +534,14 @@ function ContextStat({
 }) {
   return (
     <div>
-      <div className="mb-2 text-[10px] font-extrabold uppercase tracking-[0.1em] text-emerald-900/35">
+      <div className="t-label mb-2 font-extrabold tracking-[0.1em] text-emerald-900/35">
         {title}
       </div>
       <div className="flex items-baseline gap-2">
-        <span className="text-[24px] font-extrabold tracking-tight text-emerald-900/75">
+        <span className="t-h1 text-emerald-900/75">
           {value.toLocaleString()}
         </span>
-        <span className="text-[12px] text-emerald-900/45">{label}</span>
+        <span className="t-caption text-emerald-900/45">{label}</span>
       </div>
     </div>
   );

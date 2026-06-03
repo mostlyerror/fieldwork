@@ -24,7 +24,7 @@ export function ProfileForm({ profile }: { profile: Profile | null }) {
       <div>
         <label
           htmlFor="name"
-          className="mb-1 block text-sm font-medium text-gray-700"
+          className="mb-1 block t-body text-gray-700"
         >
           Name
         </label>
@@ -40,7 +40,7 @@ export function ProfileForm({ profile }: { profile: Profile | null }) {
       <div>
         <label
           htmlFor="skill_level"
-          className="mb-1 block text-sm font-medium text-gray-700"
+          className="mb-1 block t-body text-gray-700"
         >
           Skill Level
         </label>
@@ -62,7 +62,7 @@ export function ProfileForm({ profile }: { profile: Profile | null }) {
       <button
         type="submit"
         disabled={status === "saving"}
-        className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
+        className="rounded-xl bg-green-600 px-4 py-2 t-body font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
       >
         {status === "saving"
           ? "Saving..."

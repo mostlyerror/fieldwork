@@ -58,10 +58,10 @@ export function SubscriberTable({
   return (
     <aside className="lg:sticky lg:top-[78px]">
       <div className="mb-3.5 flex items-baseline justify-between">
-        <h2 className="text-lg font-extrabold tracking-tight text-emerald-950">
+        <h2 className="t-h2 text-emerald-950">
           Subscribers
         </h2>
-        <span className="text-xs font-semibold text-emerald-900/40">
+        <span className="t-caption font-semibold text-emerald-900/40">
           {total} total · email list
         </span>
       </div>
@@ -73,7 +73,7 @@ export function SubscriberTable({
             key={f.key}
             type="button"
             onClick={() => setFilter(f.key)}
-            className={`rounded-full border px-4 py-2 text-xs font-bold transition lg:py-1.5 ${
+            className={`t-caption rounded-full border px-4 py-2 font-bold transition lg:py-1.5 ${
               filter === f.key
                 ? "border-emerald-950 bg-emerald-950 text-white"
                 : "border-emerald-900/15 bg-white text-emerald-900/70 hover:border-emerald-900/30"
@@ -96,9 +96,9 @@ export function SubscriberTable({
 
       {/* DESKTOP table */}
       <div className="hidden overflow-hidden rounded-2xl border border-emerald-900/10 bg-white lg:block">
-        <table className="w-full text-left text-[13px]">
+        <table className="t-small w-full text-left">
           <thead>
-            <tr className="border-b border-emerald-900/10 text-[10px] font-bold uppercase tracking-[0.05em] text-emerald-900/40">
+            <tr className="t-label border-b border-emerald-900/10 text-emerald-900/40">
               <th className="px-4 py-2.5">Email</th>
               <th className="px-4 py-2.5">Status</th>
               <th className="px-4 py-2.5">Joined</th>
@@ -116,7 +116,7 @@ export function SubscriberTable({
                 <td className="px-4 py-2.5">
                   <StatusPill status={s.status} />
                 </td>
-                <td className="px-4 py-2.5 text-[11px] font-semibold text-emerald-900/40">
+                <td className="t-caption px-4 py-2.5 font-semibold text-emerald-900/40">
                   {timeAgo(s.created_at)}
                 </td>
               </tr>
@@ -125,7 +125,7 @@ export function SubscriberTable({
               <tr>
                 <td
                   colSpan={3}
-                  className="px-4 py-12 text-center text-sm text-emerald-900/40"
+                  className="t-body px-4 py-12 text-center text-emerald-900/40"
                 >
                   No subscribers match.
                 </td>
@@ -133,7 +133,7 @@ export function SubscriberTable({
             )}
           </tbody>
         </table>
-        <div className="flex items-center justify-between bg-emerald-900/[0.03] px-4 py-2.5 text-[11px] font-semibold text-emerald-900/55">
+        <div className="t-caption flex items-center justify-between bg-emerald-900/[0.03] px-4 py-2.5 font-semibold text-emerald-900/55">
           <span>
             Showing {rows.length} of {total}
           </span>
@@ -148,10 +148,10 @@ export function SubscriberTable({
             className="flex items-center justify-between gap-3 rounded-2xl border border-emerald-900/10 bg-white p-4"
           >
             <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-semibold text-emerald-950">
+              <div className="t-body truncate font-semibold text-emerald-950">
                 {s.email}
               </div>
-              <div className="mt-1 text-xs font-semibold text-emerald-900/40">
+              <div className="t-caption mt-1 font-semibold text-emerald-900/40">
                 Joined {timeAgo(s.created_at)}
               </div>
             </div>
@@ -159,12 +159,12 @@ export function SubscriberTable({
           </div>
         ))}
         {rows.length === 0 && (
-          <div className="rounded-2xl border border-emerald-900/10 bg-white p-8 text-center text-sm text-emerald-900/40">
+          <div className="t-body rounded-2xl border border-emerald-900/10 bg-white p-8 text-center text-emerald-900/40">
             No subscribers match.
           </div>
         )}
         {rows.length > 0 && (
-          <p className="pt-1 text-center text-[11px] font-semibold text-emerald-900/40">
+          <p className="t-caption pt-1 text-center font-semibold text-emerald-900/40">
             Showing {rows.length} of {total}
           </p>
         )}
@@ -177,7 +177,7 @@ function StatusPill({ status }: { status: string }) {
   const active = status === "active";
   return (
     <span
-      className={`inline-flex flex-none items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+      className={`t-caption inline-flex flex-none items-center rounded-full px-2.5 py-0.5 font-bold ${
         active
           ? "bg-emerald-50 text-emerald-700"
           : "bg-emerald-900/[0.06] text-emerald-900/45"

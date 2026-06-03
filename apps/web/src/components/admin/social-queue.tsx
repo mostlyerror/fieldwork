@@ -56,10 +56,10 @@ export function SocialQueue({
   return (
     <section>
       <div className="mb-3.5 flex items-baseline justify-between">
-        <h2 className="text-lg font-extrabold tracking-tight text-emerald-950">
+        <h2 className="t-h2 text-emerald-950">
           Review Queue
         </h2>
-        <span className="text-xs font-semibold text-emerald-900/40">
+        <span className="t-caption font-semibold text-emerald-900/40">
           {actionable.length} post{actionable.length !== 1 && "s"} · Instagram
         </span>
       </div>
@@ -67,10 +67,10 @@ export function SocialQueue({
       {actionable.length === 0 ? (
         <div className="rounded-2xl border border-emerald-900/10 bg-white p-12 text-center shadow-sm">
           <p className="text-4xl">{"\u{1F4F1}"}</p>
-          <p className="mt-3 text-base font-bold text-emerald-900/40">
+          <p className="t-h3 mt-3 text-emerald-900/40">
             Queue empty
           </p>
-          <p className="mt-1 text-sm text-emerald-900/35">
+          <p className="t-body mt-1 text-emerald-900/35">
             Posts appear here after the Monday digest runs.
           </p>
         </div>
@@ -122,11 +122,11 @@ function BandLabel({
   return (
     <div className="mb-2.5 mt-5 flex items-center gap-2 first:mt-0">
       <span className={`h-2 w-2 rounded-full ${dot}`} aria-hidden="true" />
-      <h3 className={`text-xs font-extrabold uppercase tracking-[0.06em] ${text}`}>
+      <h3 className={`t-label font-extrabold ${text}`}>
         {label}
       </h3>
       <span
-        className={`rounded-full px-2 py-px text-[11px] font-bold text-white ${ct}`}
+        className={`t-caption rounded-full px-2 py-px font-bold text-white ${ct}`}
       >
         {count}
       </span>
@@ -200,7 +200,7 @@ function QueueCard({ post }: { post: SocialPost }) {
           <div className="min-w-0 flex-1">
             <div className="mb-1.5 flex flex-wrap items-center gap-2">
               <span
-                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold capitalize ${CHIP[post.status] ?? CHIP.queued}`}
+                className={`t-caption inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 font-bold capitalize ${CHIP[post.status] ?? CHIP.queued}`}
               >
                 <span
                   className={`h-1.5 w-1.5 rounded-full ${CHIP_DOT[post.status] ?? CHIP_DOT.queued}`}
@@ -208,12 +208,12 @@ function QueueCard({ post }: { post: SocialPost }) {
                 />
                 {post.status}
               </span>
-              <span className="rounded-full border border-emerald-900/10 bg-emerald-900/[0.04] px-2 py-0.5 text-[11px] font-semibold text-emerald-900/55">
+              <span className="t-caption rounded-full border border-emerald-900/10 bg-emerald-900/[0.04] px-2 py-0.5 font-semibold text-emerald-900/55">
                 {post.post_type}
               </span>
               <AgeBadge timestamp={post.created_at} prefix="waiting" />
             </div>
-            <p className="line-clamp-2 text-[13px] leading-relaxed text-emerald-900/70 lg:line-clamp-2">
+            <p className="t-small line-clamp-2 leading-relaxed text-emerald-900/70 lg:line-clamp-2">
               {post.caption}
             </p>
           </div>
@@ -221,7 +221,7 @@ function QueueCard({ post }: { post: SocialPost }) {
 
         {/* error message */}
         {post.error_message && (
-          <div className="mt-3 break-words rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium leading-snug text-red-700">
+          <div className="t-caption mt-3 break-words rounded-lg border border-red-200 bg-red-50 px-3 py-2 leading-snug text-red-700">
             {post.error_message}
           </div>
         )}
@@ -246,7 +246,7 @@ function QueueCard({ post }: { post: SocialPost }) {
                 />
                 <div className="mt-2 flex items-center justify-between gap-3">
                   <span
-                    className={`text-[11px] font-semibold ${caption.length > MAX_CAPTION_LENGTH ? "text-red-500" : "text-emerald-900/40"}`}
+                    className={`t-caption font-semibold ${caption.length > MAX_CAPTION_LENGTH ? "text-red-500" : "text-emerald-900/40"}`}
                   >
                     {caption.length} / {MAX_CAPTION_LENGTH}
                   </span>
@@ -255,7 +255,7 @@ function QueueCard({ post }: { post: SocialPost }) {
                       type="button"
                       onClick={save.run}
                       disabled={pending || caption === post.caption}
-                      className="rounded-full border border-emerald-900/15 bg-white px-4 py-2 text-xs font-bold text-emerald-900 transition hover:border-emerald-300 disabled:opacity-30"
+                      className="t-caption rounded-full border border-emerald-900/15 bg-white px-4 py-2 font-bold text-emerald-900 transition hover:border-emerald-300 disabled:opacity-30"
                     >
                       Save caption
                     </button>
@@ -263,7 +263,7 @@ function QueueCard({ post }: { post: SocialPost }) {
                       type="button"
                       onClick={publish.run}
                       disabled={pending}
-                      className="rounded-full bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
+                      className="t-caption rounded-full bg-emerald-600 px-4 py-2 font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
                     >
                       {publish.pending ? "Publishing…" : "Publish to Instagram"}
                     </button>
@@ -281,7 +281,7 @@ function QueueCard({ post }: { post: SocialPost }) {
               type="button"
               onClick={retry.run}
               disabled={pending}
-              className="flex-1 rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-bold text-amber-700 transition hover:bg-amber-100 disabled:opacity-50 lg:flex-none"
+              className="t-body flex-1 rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 font-bold text-amber-700 transition hover:bg-amber-100 disabled:opacity-50 lg:flex-none"
             >
               {retry.pending ? "Retrying…" : "Retry"}
             </button>
@@ -290,7 +290,7 @@ function QueueCard({ post }: { post: SocialPost }) {
               type="button"
               onClick={publish.run}
               disabled={pending}
-              className="flex-1 rounded-full bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50 lg:flex-none"
+              className="t-body flex-1 rounded-full bg-emerald-600 px-4 py-2.5 font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50 lg:flex-none"
             >
               {publish.pending ? "Publishing…" : "Publish"}
             </button>
@@ -299,20 +299,20 @@ function QueueCard({ post }: { post: SocialPost }) {
             type="button"
             onClick={reject.run}
             disabled={pending}
-            className="flex-1 rounded-full border border-emerald-900/15 bg-white px-4 py-2.5 text-sm font-bold text-emerald-900 transition hover:border-red-200 hover:text-red-600 disabled:opacity-50 lg:flex-none"
+            className="t-body flex-1 rounded-full border border-emerald-900/15 bg-white px-4 py-2.5 font-bold text-emerald-900 transition hover:border-red-200 hover:text-red-600 disabled:opacity-50 lg:flex-none"
           >
             Reject
           </button>
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="rounded-full px-3 py-2.5 text-xs font-semibold text-emerald-900/45 transition hover:text-emerald-900"
+            className="t-caption rounded-full px-3 py-2.5 font-semibold text-emerald-900/45 transition hover:text-emerald-900"
           >
             {open ? "Collapse" : "Edit"}
           </button>
         </div>
 
-        {error && <p className="mt-2 text-xs font-medium text-red-500">{error}</p>}
+        {error && <p className="t-caption mt-2 text-red-500">{error}</p>}
       </div>
     </div>
   );
@@ -332,7 +332,7 @@ const HCHIP_DOT: Record<string, string> = {
 function HistoryAccordion({ posts }: { posts: SocialPost[] }) {
   return (
     <details className="group mt-4 rounded-2xl border border-emerald-900/10 bg-white p-4">
-      <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-bold text-emerald-900/70 [&::-webkit-details-marker]:hidden">
+      <summary className="t-body flex cursor-pointer list-none items-center gap-2 font-bold text-emerald-900/70 [&::-webkit-details-marker]:hidden">
         <span className="text-emerald-900/40 transition group-open:rotate-90">
           {"▸"}
         </span>
@@ -351,7 +351,7 @@ function HistoryAccordion({ posts }: { posts: SocialPost[] }) {
               className="h-9 w-9 flex-none rounded-lg object-cover"
             />
             <span
-              className={`inline-flex flex-none items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold capitalize ${HCHIP[post.status] ?? HCHIP.rejected}`}
+              className={`t-caption inline-flex flex-none items-center gap-1.5 rounded-full px-2.5 py-0.5 font-bold capitalize ${HCHIP[post.status] ?? HCHIP.rejected}`}
             >
               <span
                 className={`h-1.5 w-1.5 rounded-full ${HCHIP_DOT[post.status] ?? HCHIP_DOT.rejected}`}
@@ -359,10 +359,10 @@ function HistoryAccordion({ posts }: { posts: SocialPost[] }) {
               />
               {post.status}
             </span>
-            <span className="min-w-0 flex-1 truncate text-[13px] text-emerald-900/70">
+            <span className="t-small min-w-0 flex-1 truncate text-emerald-900/70">
               {post.caption}
             </span>
-            <span className="flex-none text-[11px] font-semibold text-emerald-900/40">
+            <span className="t-caption flex-none font-semibold text-emerald-900/40">
               <AgeBadgePlain timestamp={post.published_at ?? post.created_at} />
             </span>
           </div>

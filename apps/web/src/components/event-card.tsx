@@ -12,15 +12,15 @@ function RateTransition({ listed, live }: { listed: number | null; live: number 
   if (live != null && listed != null && Math.abs(live - listed) > 0.05) {
     return (
       <div className="flex items-baseline gap-1.5">
-        <span className="text-[13px] font-medium tabular-nums text-gray-400 line-through">{listed.toFixed(2)}</span>
-        <span className="text-lg font-extrabold tabular-nums tracking-tight text-emerald-700">{live.toFixed(2)}</span>
+        <span className="t-small tabular-nums text-gray-400 line-through">{listed.toFixed(2)}</span>
+        <span className="t-h2 tabular-nums text-emerald-700">{live.toFixed(2)}</span>
       </div>
     );
   }
   const value = live ?? listed;
   if (value == null) return null;
   return (
-    <span className={`text-lg font-extrabold tabular-nums tracking-tight ${live != null ? "text-emerald-700" : "text-gray-900"}`}>
+    <span className={`t-h2 tabular-nums ${live != null ? "text-emerald-700" : "text-gray-900"}`}>
       {value.toFixed(2)}
     </span>
   );
@@ -55,9 +55,9 @@ export function EventCard({ event }: { event: TournamentEvent }) {
         )}
 
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[15px] font-bold tracking-tight text-gray-900">{event.name}</div>
+          <div className="truncate t-body font-bold tracking-tight text-gray-900">{event.name}</div>
           {event.registered_count > 0 && (
-            <div className="mt-0.5 text-xs font-medium text-gray-400">
+            <div className="mt-0.5 t-caption text-gray-400">
               {registrantLabel(event.registered_count, event.event_type)}
             </div>
           )}
@@ -74,13 +74,13 @@ export function EventCard({ event }: { event: TournamentEvent }) {
           className={`flex flex-wrap items-center gap-x-2 gap-y-1 px-4 pb-3 pl-11 sm:px-5 sm:pl-12 ${!expanded ? "cursor-pointer" : ""}`}
         >
           {intel.ratedLiveCount > 0 && (
-            <span className="flex items-center gap-1.5 text-[11.5px] font-semibold text-gray-600">
+            <span className="flex items-center gap-1.5 t-caption font-semibold text-gray-600">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               {intel.ratedLiveCount} of {event.registered_count > 0 && intel.unit === "players" ? event.registered_count : intel.totalPeople} rated live
             </span>
           )}
           {intel.differCount > 0 && (
-            <span className="text-[11.5px] font-medium text-gray-400">· {intel.differCount} differ from listed</span>
+            <span className="t-caption text-gray-400">· {intel.differCount} differ from listed</span>
           )}
         </div>
       )}

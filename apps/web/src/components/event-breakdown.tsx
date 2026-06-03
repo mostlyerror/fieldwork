@@ -75,7 +75,7 @@ export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
           {Array.from(grouped.entries()).map(([category, categoryEvents]) => (
             <div key={category}>
               <div className="sticky top-0 z-10 border-b border-gray-100 bg-gray-50 px-4 py-2">
-                <span className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                <span className="t-caption font-bold uppercase tracking-widest text-gray-400">
                   {category}
                 </span>
               </div>
@@ -97,13 +97,13 @@ export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
                     }`}
                   >
                     <span
-                      className={`text-sm font-bold leading-snug ${
+                      className={`t-body font-bold ${
                         isSelected ? "text-emerald-900" : "text-gray-900"
                       }`}
                     >
                       {event.name}
                     </span>
-                    <div className="mt-1 flex items-center gap-3 text-xs text-gray-400">
+                    <div className="mt-1 flex items-center gap-3 t-caption text-gray-400">
                       {event.registered_count > 0 && (
                         <span>{registrantLabel(event.registered_count, event.event_type)}</span>
                       )}
@@ -130,11 +130,11 @@ export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
 
         {/* Right panel: selected event details */}
         <div className="overflow-y-auto bg-white p-6">
-          <h3 className="text-xl font-extrabold tracking-tight text-gray-900">
+          <h3 className="t-h2 text-gray-900">
             {selectedEvent.name}
           </h3>
 
-          <div className="mt-2 flex flex-wrap gap-5 text-sm text-gray-500">
+          <div className="mt-2 flex flex-wrap gap-5 t-body text-gray-500">
             {selectedEvent.registered_count > 0 && (
               <span className="font-bold text-gray-900">
                 {registrantLabel(selectedEvent.registered_count, selectedEvent.event_type)}
@@ -168,7 +168,7 @@ export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
               <TeamLeaderboard event={selectedEvent} />
             </div>
           ) : (
-            <p className="mt-12 text-center text-sm text-gray-400">
+            <p className="mt-12 text-center t-body text-gray-400">
               No player data available for this event.
             </p>
           )}

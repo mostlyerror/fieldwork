@@ -40,7 +40,7 @@ export function RunStrip({
         ))}
       </div>
       {caption && (
-        <div className="mt-1.5 flex justify-between text-[10.5px] text-emerald-900/40">
+        <div className="t-caption mt-1.5 flex justify-between text-emerald-900/40">
           <span>{caption[0]}</span>
           <span>{caption[1]}</span>
         </div>

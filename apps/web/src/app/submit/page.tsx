@@ -132,7 +132,7 @@ export default function SubmitTournamentPage() {
       <div className="min-h-screen bg-background">
         <Header />
         <main className="mx-auto max-w-3xl px-3 sm:px-5 py-16 text-center">
-          <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 mb-2">
+          <h1 className="t-h1 text-gray-900 mb-2">
             Thanks for submitting!
           </h1>
           <p className="text-gray-500 mb-8">
@@ -141,13 +141,13 @@ export default function SubmitTournamentPage() {
           <div className="flex items-center justify-center gap-3">
             <button
               onClick={resetForm}
-              className="rounded-lg border border-gray-200 px-6 py-3 text-sm font-bold text-gray-700 transition hover:bg-gray-50"
+              className="rounded-lg border border-gray-200 px-6 py-3 t-body font-bold text-gray-700 transition hover:bg-gray-50"
             >
               Submit another
             </button>
             <Link
               href="/"
-              className="inline-block rounded-lg bg-emerald-700 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-800"
+              className="inline-block rounded-lg bg-emerald-700 px-6 py-3 t-body font-bold text-white transition hover:bg-emerald-800"
             >
               Back to tournaments
             </Link>
@@ -165,14 +165,14 @@ export default function SubmitTournamentPage() {
       <main className="mx-auto max-w-3xl px-3 sm:px-5 py-8">
         <Link
           href="/"
-          className="mb-6 inline-flex items-center text-sm text-gray-400 hover:text-emerald-700"
+          className="mb-6 inline-flex items-center t-body text-gray-400 hover:text-emerald-700"
         >
           &larr; Back to tournaments
         </Link>
 
         {step === 1 && (
           <div>
-            <h1 className="mb-2 text-2xl font-extrabold tracking-tight text-gray-900">
+            <h1 className="mb-2 t-h1 text-gray-900">
               Spotted a tournament?
             </h1>
             <p className="mb-8 text-gray-500">
@@ -183,7 +183,7 @@ export default function SubmitTournamentPage() {
               <div>
                 <label
                   htmlFor="sourceUrl"
-                  className="mb-1 block text-sm font-semibold text-gray-700"
+                  className="mb-1 block t-body font-semibold text-gray-700"
                 >
                   Source link
                 </label>
@@ -197,7 +197,7 @@ export default function SubmitTournamentPage() {
                   className="w-full rounded-lg border border-gray-200 px-4 py-3 text-base focus:border-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-700"
                   placeholder="Instagram post, registration page, Facebook event..."
                 />
-                <p className="mt-1.5 text-xs text-gray-400">
+                <p className="mt-1.5 t-caption text-gray-400">
                   Any link where you found the tournament — we&apos;ll figure
                   out the rest.
                 </p>
@@ -205,7 +205,7 @@ export default function SubmitTournamentPage() {
 
               <button
                 type="submit"
-                className="w-full rounded-lg bg-emerald-700 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-800"
+                className="w-full rounded-lg bg-emerald-700 px-6 py-3 t-body font-bold text-white transition hover:bg-emerald-800"
               >
                 Next
               </button>
@@ -216,10 +216,10 @@ export default function SubmitTournamentPage() {
         {step === "extracting" && (
           <div className="py-16 text-center">
             <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-emerald-700" />
-            <p className="text-sm font-medium text-gray-600">
+            <p className="t-body text-gray-600">
               Analyzing page...
             </p>
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1 t-caption text-gray-400">
               Extracting tournament details from the link
             </p>
           </div>
@@ -227,10 +227,10 @@ export default function SubmitTournamentPage() {
 
         {step === 2 && (
           <div>
-            <h1 className="mb-2 text-2xl font-extrabold tracking-tight text-gray-900">
+            <h1 className="mb-2 t-h1 text-gray-900">
               {extracted ? "Review what we found" : "Fill in what you know"}
             </h1>
-            <p className="mb-6 text-sm text-gray-500">
+            <p className="mb-6 t-body text-gray-500">
               {extracted
                 ? "We pre-filled what we could. Fix anything that looks off."
                 : "It’s okay if you don’t know everything — we’ll fill in the gaps."}
@@ -238,7 +238,7 @@ export default function SubmitTournamentPage() {
 
             {/* Source link chip */}
             <div className="mb-6 flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 t-body text-gray-600">
                 <svg
                   className="h-3.5 w-3.5 flex-shrink-0"
                   fill="none"
@@ -264,7 +264,7 @@ export default function SubmitTournamentPage() {
                   setLatitude(null);
                   setLongitude(null);
                 }}
-                className="px-2 py-1 text-sm text-gray-400 hover:text-emerald-700"
+                className="px-2 py-1 t-body text-gray-400 hover:text-emerald-700"
               >
                 Edit
               </button>
@@ -290,7 +290,7 @@ export default function SubmitTournamentPage() {
               <div>
                 <label
                   htmlFor="name"
-                  className="mb-1 block text-sm font-semibold text-gray-700"
+                  className="mb-1 block t-body font-semibold text-gray-700"
                 >
                   Tournament Name *
                 </label>
@@ -310,7 +310,7 @@ export default function SubmitTournamentPage() {
                 <div>
                   <label
                     htmlFor="dateStart"
-                    className="mb-2 block text-sm font-semibold text-gray-700"
+                    className="mb-2 block t-body font-semibold text-gray-700"
                   >
                     Start Date *
                   </label>
@@ -326,7 +326,7 @@ export default function SubmitTournamentPage() {
                 <div>
                   <label
                     htmlFor="dateEnd"
-                    className="mb-2 block text-sm font-semibold text-gray-700"
+                    className="mb-2 block t-body font-semibold text-gray-700"
                   >
                     End Date
                   </label>
@@ -342,7 +342,7 @@ export default function SubmitTournamentPage() {
 
               {/* Venue */}
               <div>
-                <label className="mb-1 block text-sm font-semibold text-gray-700">
+                <label className="mb-1 block t-body font-semibold text-gray-700">
                   Venue *
                 </label>
                 <VenueSearch
@@ -363,7 +363,7 @@ export default function SubmitTournamentPage() {
               <div>
                 <label
                   htmlFor="registrationUrl"
-                  className="mb-1 block text-sm font-semibold text-gray-700"
+                  className="mb-1 block t-body font-semibold text-gray-700"
                 >
                   Registration URL
                 </label>
@@ -375,7 +375,7 @@ export default function SubmitTournamentPage() {
                   className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-700"
                   placeholder="https://..."
                 />
-                <p className="mt-1 text-xs text-gray-400">
+                <p className="mt-1 t-caption text-gray-400">
                   If different from the source link above. Leave as-is if
                   that&apos;s the registration page.
                 </p>
@@ -385,7 +385,7 @@ export default function SubmitTournamentPage() {
               <div>
                 <label
                   htmlFor="entryFee"
-                  className="mb-1 block text-sm font-semibold text-gray-700"
+                  className="mb-1 block t-body font-semibold text-gray-700"
                 >
                   Entry Fee ($)
                 </label>
@@ -403,14 +403,14 @@ export default function SubmitTournamentPage() {
 
               {/* Skill Levels */}
               <div>
-                <p className="mb-2 text-sm font-semibold text-gray-700">
+                <p className="mb-2 t-body font-semibold text-gray-700">
                   Skill Levels
                 </p>
                 <div className="flex flex-wrap gap-2 sm:gap-2.5">
                   {SKILL_LEVELS.map((level) => (
                     <label
                       key={level}
-                      className="flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-full border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 transition has-[:checked]:border-emerald-700 has-[:checked]:bg-emerald-50 has-[:checked]:text-emerald-800 sm:min-h-[44px] sm:px-3.5 sm:py-2.5"
+                      className="flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-full border border-gray-200 px-3 py-2 t-caption text-gray-700 transition has-[:checked]:border-emerald-700 has-[:checked]:bg-emerald-50 has-[:checked]:text-emerald-800 sm:min-h-[44px] sm:px-3.5 sm:py-2.5"
                     >
                       <input
                         type="checkbox"
@@ -429,7 +429,7 @@ export default function SubmitTournamentPage() {
               <div>
                 <label
                   htmlFor="format"
-                  className="mb-1 block text-sm font-semibold text-gray-700"
+                  className="mb-1 block t-body font-semibold text-gray-700"
                 >
                   Format
                 </label>
@@ -451,7 +451,7 @@ export default function SubmitTournamentPage() {
               <div>
                 <label
                   htmlFor="description"
-                  className="mb-1 block text-sm font-semibold text-gray-700"
+                  className="mb-1 block t-body font-semibold text-gray-700"
                 >
                   Description
                 </label>
@@ -466,7 +466,7 @@ export default function SubmitTournamentPage() {
               </div>
 
               {state === "error" && (
-                <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+                <p className="rounded-lg bg-red-50 px-4 py-3 t-body text-red-700">
                   {errorMsg}
                 </p>
               )}
@@ -480,14 +480,14 @@ export default function SubmitTournamentPage() {
                     setLatitude(null);
                     setLongitude(null);
                   }}
-                  className="w-full min-h-[44px] rounded-lg border border-gray-200 px-6 py-3 text-sm font-bold text-gray-600 transition hover:bg-gray-50 sm:w-auto"
+                  className="w-full min-h-[44px] rounded-lg border border-gray-200 px-6 py-3 t-body font-bold text-gray-600 transition hover:bg-gray-50 sm:w-auto"
                 >
                   Back
                 </button>
                 <button
                   type="submit"
                   disabled={state === "submitting"}
-                  className="w-full min-h-[44px] flex-1 rounded-lg bg-emerald-700 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50 sm:w-auto"
+                  className="w-full min-h-[44px] flex-1 rounded-lg bg-emerald-700 px-6 py-3 t-body font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50 sm:w-auto"
                 >
                   {state === "submitting"
                     ? "Submitting..."

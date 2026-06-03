@@ -149,7 +149,7 @@ export default async function TournamentPage({ params }: PageProps) {
       <main className="mx-auto max-w-6xl px-3 sm:px-5 py-10">
         <Link
           href={`/${citySlug}`}
-          className="mb-8 inline-flex items-center text-sm text-gray-400 hover:text-emerald-700"
+          className="mb-8 inline-flex items-center t-body text-gray-400 hover:text-emerald-700"
         >
           &larr; Back to tournaments
         </Link>
@@ -185,13 +185,13 @@ export default async function TournamentPage({ params }: PageProps) {
             {venueMates.length > 0 && (
               <section>
                 <div className="mb-1 flex items-baseline justify-between gap-3">
-                  <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                  <h2 className="t-caption font-bold uppercase tracking-widest text-gray-400">
                     More at {tournament.venue_name || tournament.location_name}
                   </h2>
                   {tournament.venue_slug && (
                     <Link
                       href={`/${citySlug}/venues/${tournament.venue_slug}`}
-                      className="flex-shrink-0 text-xs font-medium text-emerald-700/80 hover:text-emerald-800"
+                      className="flex-shrink-0 t-caption text-emerald-700/80 hover:text-emerald-800"
                     >
                       View venue &rarr;
                     </Link>
@@ -207,7 +207,7 @@ export default async function TournamentPage({ params }: PageProps) {
 
             {related.length > 0 && (
               <section>
-                <h2 className="mb-1 text-xs font-bold uppercase tracking-widest text-gray-400">
+                <h2 className="mb-1 t-caption font-bold uppercase tracking-widest text-gray-400">
                   More upcoming tournaments
                 </h2>
                 <div>
@@ -225,7 +225,7 @@ export default async function TournamentPage({ params }: PageProps) {
       <div className="border-t border-gray-200 bg-gray-50">
         <div className="mx-auto max-w-6xl px-3 sm:px-5 py-10 text-center">
           <ReportIssue tournamentId={tournament.id} tournamentName={tournament.name} />
-          <p className="mt-4 text-sm text-gray-500">
+          <p className="mt-4 t-body text-gray-500">
             Know about another tournament?{" "}
             <Link href="/submit" className="text-emerald-700 hover:text-emerald-800 underline underline-offset-2">
               Submit it
@@ -254,14 +254,14 @@ function RelatedRow({
       className="group flex items-center justify-between gap-4 border-b border-gray-100 py-2.5 last:border-0"
     >
       <span className="min-w-0">
-        <span className="block truncate text-sm font-semibold text-gray-700 transition-colors group-hover:text-emerald-700">
+        <span className="block truncate t-body font-semibold text-gray-700 transition-colors group-hover:text-emerald-700">
           {t.name}
         </span>
-        <span className="block truncate text-xs text-gray-400">
+        <span className="block truncate t-caption text-gray-400">
           {t.location_name}
         </span>
       </span>
-      <span className="flex-shrink-0 text-xs font-medium text-gray-400">
+      <span className="flex-shrink-0 t-caption text-gray-400">
         {formatDateRange(t.date_start, t.date_end)}
       </span>
     </Link>

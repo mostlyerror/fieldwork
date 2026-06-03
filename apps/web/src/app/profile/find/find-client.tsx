@@ -55,11 +55,11 @@ export function FindClient({ initialEmail }: { initialEmail: string }) {
         <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-700 text-white animate-pop">
           <span className="text-2xl">✓</span>
         </div>
-        <h2 className="mt-4 text-xl font-extrabold text-gray-900">Check your inbox</h2>
-        <p className="mt-2 text-sm text-gray-500">
+        <h2 className="mt-4 t-h2 text-gray-900">Check your inbox</h2>
+        <p className="mt-2 t-body text-gray-500">
           We sent a confirmation link to <strong>{email}</strong>. Click it to finish claiming your profile.
         </p>
-        <p className="mt-4 text-xs text-gray-400">The link expires in 7 days.</p>
+        <p className="mt-4 t-caption text-gray-400">The link expires in 7 days.</p>
       </div>
     );
   }
@@ -68,7 +68,7 @@ export function FindClient({ initialEmail }: { initialEmail: string }) {
     <div className="space-y-6">
       {/* Email */}
       <div>
-        <label htmlFor="email" className="block text-xs font-bold uppercase tracking-widest text-gray-500">
+        <label htmlFor="email" className="block t-label tracking-widest text-gray-500">
           Subscriber email
         </label>
         <input
@@ -79,12 +79,12 @@ export function FindClient({ initialEmail }: { initialEmail: string }) {
           placeholder="you@email.com"
           className="mt-2 w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-base focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
         />
-        <p className="mt-1 text-xs text-gray-400">Must match the email you subscribed with.</p>
+        <p className="mt-1 t-caption text-gray-400">Must match the email you subscribed with.</p>
       </div>
 
       {/* Search */}
       <div>
-        <label htmlFor="q" className="block text-xs font-bold uppercase tracking-widest text-gray-500">
+        <label htmlFor="q" className="block t-label tracking-widest text-gray-500">
           Your name
         </label>
         <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:gap-2">
@@ -101,7 +101,7 @@ export function FindClient({ initialEmail }: { initialEmail: string }) {
             type="button"
             onClick={handleSearch}
             disabled={searching || !query.trim()}
-            className="w-full min-h-[44px] rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50 sm:w-auto sm:shrink-0"
+            className="w-full min-h-[44px] rounded-lg bg-emerald-700 px-5 py-2.5 t-body font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50 sm:w-auto sm:shrink-0"
           >
             {searching ? "Searching..." : "Search"}
           </button>
@@ -111,11 +111,11 @@ export function FindClient({ initialEmail }: { initialEmail: string }) {
       {/* Candidates */}
       {candidates !== null && (
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-gray-500">
+          <p className="t-label tracking-widest text-gray-500">
             {candidates.length === 0 ? "No matches" : `${candidates.length} match${candidates.length === 1 ? "" : "es"}`}
           </p>
           {candidates.length === 0 ? (
-            <p className="mt-3 text-sm text-gray-500">
+            <p className="mt-3 t-body text-gray-500">
               Try a different spelling, or add a last name / last initial.
             </p>
           ) : (
@@ -132,14 +132,14 @@ export function FindClient({ initialEmail }: { initialEmail: string }) {
                       }`}
                     >
                       <div>
-                        <p className="font-semibold text-gray-900">{c.name}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="t-body font-semibold text-gray-900">{c.name}</p>
+                        <p className="t-caption text-gray-500">
                           {c.location ?? "Location unknown"}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
                         {c.dupr_doubles != null && (
-                          <span className="text-sm font-bold text-emerald-700">
+                          <span className="t-body font-bold text-emerald-700">
                             {c.dupr_doubles.toFixed(2)}
                           </span>
                         )}
@@ -163,29 +163,29 @@ export function FindClient({ initialEmail }: { initialEmail: string }) {
       {/* Confirm */}
       {pickedId && (
         <div className="rounded-xl border-2 border-gray-200 bg-white p-4">
-          <p className="text-sm text-gray-700">
+          <p className="t-body text-gray-700">
             We&apos;ll email a confirmation link to <strong>{email || "your email"}</strong>. Click it to finish.
           </p>
           <button
             type="button"
             onClick={handleConfirm}
             disabled={!email || send.status === "sending"}
-            className="mt-3 w-full rounded-lg bg-emerald-700 px-5 py-3 text-base font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50"
+            className="mt-3 w-full rounded-lg bg-emerald-700 px-5 py-3 t-body font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50"
           >
             {send.status === "sending" ? "Sending..." : "Send confirmation email"}
           </button>
           {send.status === "no_subscriber" && (
-            <p className="mt-2 text-xs text-red-600">
+            <p className="mt-2 t-caption text-red-600">
               We don&apos;t have an active subscription for that email. Subscribe first, then come back.
             </p>
           )}
           {send.status === "already_claimed_by_another" && (
-            <p className="mt-2 text-xs text-red-600">
+            <p className="mt-2 t-caption text-red-600">
               That player is already claimed by someone else. If that&apos;s wrong, email us.
             </p>
           )}
           {send.status === "error" && (
-            <p className="mt-2 text-xs text-red-600">{send.message}</p>
+            <p className="mt-2 t-caption text-red-600">{send.message}</p>
           )}
         </div>
       )}
