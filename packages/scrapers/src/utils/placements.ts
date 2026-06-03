@@ -1,3 +1,5 @@
+import { sendResultDrops, type ResultDrop } from "./result-drops.js";
+
 const PBB_API = "https://pickleballtournaments.com/tournaments/api";
 
 export function parseMedalNames(html: string): string[] {
@@ -25,13 +27,14 @@ export async function writePlacements(): Promise<number> {
 
   const { data: tournaments } = await supabase
     .from("tournaments")
-    .select("id, source_url")
+    .select("id, name, source_url")
     .eq("status", "active")
     .lte("date_end", today);
 
   if (!tournaments || tournaments.length === 0) return 0;
 
   let totalWritten = 0;
+  const drops: ResultDrop[] = [];
 
   for (const tournament of tournaments) {
     const slug = (tournament.source_url as string)
@@ -84,7 +87,7 @@ export async function writePlacements(): Promise<number> {
 
       const { data: players } = await supabase
         .from("event_players")
-        .select("id, player_name, partner_name")
+        .select("id, player_id, player_name, partner_name")
         .eq("event_id", eventId);
 
       if (!players) continue;
@@ -123,6 +126,18 @@ export async function writePlacements(): Promise<number> {
             console.log(
               `[placements] ${medal.names.join(" / ")} → ${medal.placement === 1 ? "🥇" : medal.placement === 2 ? "🥈" : "🥉"} in ${pbbEvent.title}`,
             );
+            // Collect for Result Drops (needs a global player_id for the share link).
+            if (matched.player_id) {
+              drops.push({
+                tournamentName: (tournament.name as string) ?? "Tournament",
+                eventName: pbbEvent.title,
+                eventId,
+                playerId: matched.player_id as string,
+                playerName: matched.player_name as string,
+                partnerName: (matched.partner_name as string | null) ?? null,
+                placement: medal.placement,
+              });
+            }
           }
         } else {
           console.log(
@@ -134,5 +149,7 @@ export async function writePlacements(): Promise<number> {
   }
 
   console.log(`[placements] Wrote ${totalWritten} placements`);
+  // Push ready-to-post social prompts for the new gold medalists (the loop).
+  await sendResultDrops(drops);
   return totalWritten;
 }
