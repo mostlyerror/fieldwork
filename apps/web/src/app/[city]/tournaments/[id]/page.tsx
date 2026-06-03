@@ -4,7 +4,6 @@ import type { Metadata } from "next";
 import { getTournament, getTournamentSources, getTournamentsByCity, getTournamentEvents, getTournamentMatches, getVenueTournaments } from "@/lib/queries";
 import { getCityBySlug, getDefaultCity } from "@/lib/cities";
 import { TournamentDetail } from "@/components/tournament-detail";
-import { TournamentCard } from "@/components/tournament-card";
 import { EventBreakdown } from "@/components/event-breakdown";
 import { LiveBracket } from "@/components/live-bracket";
 import { TournamentPodium } from "@/components/tournament-podium";
@@ -178,40 +177,47 @@ export default async function TournamentPage({ params }: PageProps) {
           </section>
         )}
 
-        {venueMates.length > 0 && (
-          <section className="mt-12">
-            <div className="mb-4 flex items-baseline justify-between gap-3">
-              <h2 className="text-lg font-bold text-gray-800">
-                More at {tournament.venue_name || tournament.location_name}
-              </h2>
-              {tournament.venue_slug && (
-                <Link
-                  href={`/${citySlug}/venues/${tournament.venue_slug}`}
-                  className="flex-shrink-0 text-sm font-medium text-emerald-700 hover:text-emerald-800"
-                >
-                  View venue &rarr;
-                </Link>
-              )}
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {venueMates.map((t) => (
-                <TournamentCard key={t.id} tournament={t} citySlug={citySlug} />
-              ))}
-            </div>
-          </section>
-        )}
+        {/* Secondary "keep exploring" zone — deliberately quiet so it never
+            competes with this tournament's field intelligence (the main event).
+            Compact text links, not full cards. */}
+        {(venueMates.length > 0 || related.length > 0) && (
+          <div className="mt-14 space-y-8 border-t border-gray-200 pt-8">
+            {venueMates.length > 0 && (
+              <section>
+                <div className="mb-1 flex items-baseline justify-between gap-3">
+                  <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                    More at {tournament.venue_name || tournament.location_name}
+                  </h2>
+                  {tournament.venue_slug && (
+                    <Link
+                      href={`/${citySlug}/venues/${tournament.venue_slug}`}
+                      className="flex-shrink-0 text-xs font-medium text-emerald-700/80 hover:text-emerald-800"
+                    >
+                      View venue &rarr;
+                    </Link>
+                  )}
+                </div>
+                <div>
+                  {venueMates.map((t) => (
+                    <RelatedRow key={t.id} tournament={t} citySlug={citySlug} />
+                  ))}
+                </div>
+              </section>
+            )}
 
-        {related.length > 0 && (
-          <section className="mt-12">
-            <h2 className="mb-4 text-lg font-bold text-gray-800">
-              More Upcoming Tournaments
-            </h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {related.map((t) => (
-                <TournamentCard key={t.id} tournament={t} citySlug={citySlug} />
-              ))}
-            </div>
-          </section>
+            {related.length > 0 && (
+              <section>
+                <h2 className="mb-1 text-xs font-bold uppercase tracking-widest text-gray-400">
+                  More upcoming tournaments
+                </h2>
+                <div>
+                  {related.map((t) => (
+                    <RelatedRow key={t.id} tournament={t} citySlug={citySlug} />
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
         )}
       </main>
 
@@ -230,5 +236,34 @@ export default async function TournamentPage({ params }: PageProps) {
 
       <Footer citySlug={citySlug} />
     </div>
+  );
+}
+
+/** Quiet related-tournament link row — a deliberate downgrade from the full
+ *  TournamentCard so the secondary zone never competes with this page's intel. */
+function RelatedRow({
+  tournament: t,
+  citySlug,
+}: {
+  tournament: Tournament;
+  citySlug: string;
+}) {
+  return (
+    <Link
+      href={`/${citySlug}/tournaments/${t.id}`}
+      className="group flex items-center justify-between gap-4 border-b border-gray-100 py-2.5 last:border-0"
+    >
+      <span className="min-w-0">
+        <span className="block truncate text-sm font-semibold text-gray-700 transition-colors group-hover:text-emerald-700">
+          {t.name}
+        </span>
+        <span className="block truncate text-xs text-gray-400">
+          {t.location_name}
+        </span>
+      </span>
+      <span className="flex-shrink-0 text-xs font-medium text-gray-400">
+        {formatDateRange(t.date_start, t.date_end)}
+      </span>
+    </Link>
   );
 }
