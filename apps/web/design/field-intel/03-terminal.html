@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PickleRadar · Field Terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #FBF7ED;
+    --surface: #FFFFFF;
+    --surface-2: #FFFDF8;
+    --ink: #16201B;
+    --muted: #6B7670;
+    --faint: #9AA59E;
+    --accent: #065F46;
+    --accent-bright: #047857;
+    --accent-deep: #053E2E;
+    --tint: #ECFDF3;
+    --hair: #E8E3D5;
+    --hair-cool: #EAEDE9;
+    --in: #1F9D57;
+    --below: #AEB6BC;
+    --ringer: #E0483B;
+    --provisional: #D08700;
+    --self: #8A938D;
+    --radius: 16px;
+    --shadow: 0 18px 40px -24px rgba(6,40,30,0.28), 0 2px 8px -6px rgba(6,40,30,0.10);
+    --mono: "Plus Jakarta Sans", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .num { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+
+  .shell {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 14px 12px 64px;
+  }
+
+  /* ---------- Header ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand .mark {
+    width: 26px; height: 26px;
+    flex: 0 0 26px;
+    color: var(--accent);
+  }
+  .brand .wm {
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: -0.02em;
+  }
+  .brand .wm span { color: var(--accent-bright); }
+  .live-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--tint);
+    border: 1px solid #C9EFD8;
+    border-radius: 999px;
+    padding: 5px 10px 5px 8px;
+  }
+  .live-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--in);
+    box-shadow: 0 0 0 0 rgba(31,157,87,0.6);
+    animation: pulse 2.2s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(31,157,87,0.5); }
+    70% { box-shadow: 0 0 0 6px rgba(31,157,87,0); }
+    100% { box-shadow: 0 0 0 0 rgba(31,157,87,0); }
+  }
+
+  .tourney {
+    background: var(--surface);
+    border: 1px solid var(--hair);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 14px 14px 12px;
+    margin-bottom: 12px;
+  }
+  .tourney .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-bright);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 7px;
+  }
+  .tourney h1 {
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.18;
+    margin-bottom: 12px;
+  }
+  /* roll-up tape */
+  .rollup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 7px;
+    border-top: 1px solid var(--hair);
+    padding-top: 11px;
+  }
+  .stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .stat b {
+    font-weight: 800;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .stat.sep::before {
+    content: "";
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--hair);
+    align-self: center;
+    margin-right: 2px;
+  }
+  .stat.alarm b { color: var(--ringer); }
+  .stat.stacked b { color: var(--accent-deep); }
+
+  /* ---------- Sort controls ---------- */
+  .controls {
+    margin-bottom: 12px;
+  }
+  .controls .lbl {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: 7px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .chips {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: 0 0 auto;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--hair);
+    border-radius: 999px;
+    padding: 8px 13px;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background .14s ease, color .14s ease, border-color .14s ease, transform .08s ease;
+  }
+  .chip svg { width: 13px; height: 13px; opacity: .7; }
+  .chip:active { transform: scale(0.96); }
+  .chip[aria-pressed="true"] {
+    color: #fff;
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .chip[aria-pressed="true"] svg { opacity: 1; }
+  .chip .dir {
+    font-size: 10px;
+    opacity: .85;
+  }
+
+  /* ---------- Table head (desktop) ---------- */
+  .thead {
+    display: none;
+  }
+
+  /* ---------- Rows list ---------- */
+  .rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .row {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--hair);
+    border-radius: 14px;
+    box-shadow: 0 1px 2px -1px rgba(6,40,30,0.10);
+    overflow: hidden;
+    transition: box-shadow .16s ease, border-color .16s ease, transform .08s ease;
+  }
+  .row.ringer::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--ringer);
+  }
+  .row:hover { box-shadow: var(--shadow); border-color: #DCD6C5; }
+  .row.open { box-shadow: var(--shadow); border-color: #C9EFD8; }
+
+  .row-head {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4px 10px;
+    align-items: center;
+    padding: 11px 12px 11px 13px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .row.ringer .row-head { padding-left: 15px; }
+  .row-head:active { background: var(--surface-2); }
+
+  /* line 1: name + tag + meter/badge */
+  .r-l1 {
+    grid-column: 1 / 2;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+  }
+  .r-name {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: -0.015em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tag {
+    flex: 0 0 auto;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--bg);
+    border: 1px solid var(--hair);
+    border-radius: 5px;
+    padding: 2px 5px;
+  }
+  .tag.mixed { color: #7A5BB0; border-color: #E3D6F2; background: #F7F2FD; }
+  .tag.mens { color: #2A6FB0; border-color: #D2E4F4; background: #F1F7FC; }
+  .tag.womens { color: #B0497A; border-color: #F4D6E5; background: #FCF1F7; }
+  .tag.open { color: var(--accent); border-color: #C9EFD8; background: var(--tint); }
+
+  /* right cluster on line 1: ringer badge + chevron */
+  .r-r1 {
+    grid-column: 2 / 3;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ringer-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #fff;
+    background: var(--ringer);
+    border-radius: 6px;
+    padding: 3px 7px 3px 5px;
+    box-shadow: 0 1px 3px -1px rgba(224,72,59,0.5);
+  }
+  .ringer-badge svg { width: 12px; height: 12px; }
+  .chev {
+    width: 18px; height: 18px;
+    color: var(--faint);
+    transition: transform .22s cubic-bezier(.4,0,.2,1), color .16s ease;
+    flex: 0 0 auto;
+  }
+  .row.open .chev { transform: rotate(180deg); color: var(--accent); }
+
+  /* line 2: window + registered + live avg + delta + dist + meter */
+  .r-l2 {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 2px;
+    flex-wrap: wrap;
+  }
+  .metric {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 3px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .metric .k {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+  .metric .v { font-weight: 800; color: var(--ink); font-size: 12.5px; }
+  .metric .v.win { color: var(--accent-deep); }
+  .delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+    font-size: 10.5px;
+    font-weight: 800;
+  }
+  .delta svg { width: 9px; height: 9px; }
+  .delta.up { color: var(--ringer); }
+  .delta.down { color: var(--accent-bright); }
+  .delta.flat { color: var(--faint); }
+
+  /* micro distribution */
+  .dist {
+    display: flex;
+    align-items: flex-end;
+    gap: 1.5px;
+    height: 24px;
+    margin-left: auto;
+    padding-left: 4px;
+  }
+  .dist .bar {
+    width: 4px;
+    min-height: 2px;
+    border-radius: 1.5px;
+    background: var(--below);
+    transition: opacity .14s ease;
+  }
+  .dist .bar.in { background: var(--in); }
+  .dist .bar.below { background: var(--below); }
+  .dist .bar.above { background: var(--ringer); }
+
+  /* field-strength meter (segmented) */
+  .meter {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+  }
+  .meter .seg {
+    width: 9px; height: 5px;
+    border-radius: 2px;
+    background: var(--hair);
+  }
+  .meter.friendly .seg.on { background: var(--in); }
+  .meter.competitive .seg.on { background: var(--accent-bright); }
+  .meter.stacked .seg.on { background: var(--accent-deep); }
+  .meter.sandbagger .seg.on { background: var(--ringer); }
+
+  /* coverage mini */
+  .cov {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .cov .cov-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--in); }
+
+  /* ---------- Accordion body ---------- */
+  .row-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows .26s cubic-bezier(.4,0,.2,1), opacity .2s ease;
+  }
+  .row.open .row-body { grid-template-rows: 1fr; opacity: 1; }
+  .row-body > .inner {
+    overflow: hidden;
+    min-height: 0;
+  }
+  .body-pad {
+    border-top: 1px solid var(--hair);
+    padding: 12px 13px 14px;
+    background: var(--surface-2);
+  }
+
+  /* zone counts strip */
+  .zones {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+    margin-bottom: 13px;
+  }
+  .zone {
+    border: 1px solid var(--hair);
+    border-radius: 10px;
+    padding: 8px 9px;
+    background: var(--surface);
+  }
+  .zone .zn {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--faint);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 3px;
+  }
+  .zone .zdot { width: 7px; height: 7px; border-radius: 2px; }
+  .zone .zdot.in { background: var(--in); }
+  .zone .zdot.below { background: var(--below); }
+  .zone .zdot.above { background: var(--ringer); }
+  .zone .zv { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; }
+  .zone.alarm .zv { color: var(--ringer); }
+
+  .lead-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .lead-title .right {
+    font-weight: 700;
+    color: var(--faint);
+    letter-spacing: 0.04em;
+  }
+
+  .lead {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .lead-row {
+    display: grid;
+    grid-template-columns: 18px 1fr auto;
+    gap: 9px;
+    align-items: center;
+    padding: 7px 8px;
+    border-radius: 9px;
+    background: var(--surface);
+    border: 1px solid var(--hair);
+  }
+  .lead-row.has-ringer { border-color: #F3CDC8; background: #FFF7F6; }
+  .lrank {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--faint);
+    text-align: center;
+  }
+  .lead-row.top .lrank { color: var(--accent); }
+  .lmembers {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .member {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+  }
+  .member .mn {
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .member .mr {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--muted);
+    flex: 0 0 auto;
+  }
+  .member.ringer-m .mr { color: var(--ringer); }
+  .member.ringer-m .mn { color: var(--ringer); }
+  .tick {
+    width: 13px; height: 13px;
+    flex: 0 0 auto;
+  }
+  .tick.verified { color: var(--in); }
+  .tick.provisional { color: var(--provisional); }
+  .tick.self { color: var(--self); }
+  .ringer-flag {
+    font-size: 8.5px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #fff;
+    background: var(--ringer);
+    border-radius: 4px;
+    padding: 1px 4px;
+    flex: 0 0 auto;
+  }
+  .lteam {
+    text-align: right;
+    flex: 0 0 auto;
+  }
+  .lteam .lt-v {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .lteam .lt-k {
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .await {
+    margin-top: 11px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 11px;
+    border: 1px dashed var(--hair);
+    border-radius: 10px;
+    background: var(--bg);
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .await svg { width: 16px; height: 16px; color: var(--provisional); flex: 0 0 auto; }
+  .await b { color: var(--ink); font-weight: 800; }
+
+  .empty-lead {
+    text-align: center;
+    padding: 18px 12px;
+    color: var(--muted);
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+
+  .footer {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--faint);
+    letter-spacing: 0.02em;
+  }
+  .footer .legend {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px 12px;
+    margin-bottom: 8px;
+  }
+  .footer .lg {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .footer .lg i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+
+  /* ---------- Desktop enhancement ---------- */
+  @media (min-width: 768px) {
+    .shell { padding: 24px 20px 80px; }
+    .tourney h1 { font-size: 26px; }
+
+    .thead {
+      display: grid;
+      grid-template-columns: 30px minmax(160px, 1.4fr) 76px 66px 78px 96px 70px 64px 22px;
+      gap: 10px;
+      align-items: center;
+      padding: 0 14px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+    .thead .ar { text-align: right; }
+    .thead .ac { text-align: center; }
+
+    .row-head {
+      grid-template-columns: 30px minmax(160px, 1.4fr) 76px 66px 78px 96px 70px 64px 22px;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 14px;
+    }
+    .row.ringer .row-head { padding-left: 14px; }
+
+    /* desktop reflow: each datum its own column */
+    .r-l1 { grid-column: 2 / 3; }
+    .r-r1 { display: none; }
+
+    .desk-flag {
+      grid-column: 1 / 2;
+      display: flex;
+      justify-content: center;
+    }
+    .desk-flag .fl {
+      width: 18px; height: 18px;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--faint);
+    }
+    .desk-flag svg { width: 14px; height: 14px; }
+
+    .r-l2 {
+      display: contents;
+    }
+    .r-l2 .metric.win { grid-column: 3 / 4; justify-content: flex-end; }
+    .r-l2 .metric.reg { grid-column: 4 / 5; justify-content: flex-end; }
+    .r-l2 .liveblock { grid-column: 5 / 6; }
+    .r-l2 .dist { grid-column: 6 / 7; margin-left: 0; padding-left: 0; }
+    .r-l2 .meterblock { grid-column: 7 / 8; }
+    .r-l2 .covblock { grid-column: 8 / 9; justify-content: flex-end; }
+    .r-l2 .ringerblock { grid-column: 9 / 10; }
+
+    .liveblock {
+      display: flex;
+      align-items: baseline;
+      justify-content: flex-end;
+      gap: 4px;
+    }
+    .meterblock { display: flex; justify-content: center; }
+    .covblock { display: flex; justify-content: flex-end; }
+    .ringerblock { display: flex; justify-content: center; }
+    .desk-chev { grid-column: 9 / 10; display: flex; justify-content: center; }
+
+    .metric .k { display: none; }
+    .metric.win .v::before { content: ""; }
+
+    .zones { grid-template-columns: repeat(3, 1fr); max-width: 420px; }
+    .lead-row { grid-template-columns: 22px 1fr auto; }
+    .member .mn { font-size: 13px; }
+  }
+
+  /* hide the desktop-only cells on mobile */
+  .desk-flag, .desk-chev { display: none; }
+  @media (min-width: 768px) {
+    .desk-flag { display: flex; }
+    .desk-chev { display: flex; }
+    .r-l1 .chev-inline { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Header -->
+  <div class="topbar">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="2.4" fill="currentColor"/>
+        <circle cx="12" cy="12" r="6" stroke="currentColor" stroke-width="1.6" opacity="0.55"/>
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.4" opacity="0.28"/>
+        <path d="M12 12 L20 5" stroke="#047857" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <span class="wm">Pickle<span>Radar</span></span>
+    </div>
+    <span class="live-pill"><span class="live-dot"></span>Live Field</span>
+  </div>
+
+  <!-- Tournament card -->
+  <div class="tourney">
+    <div class="eyebrow">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 4-5"/></svg>
+      Field Intelligence Terminal
+    </div>
+    <h1 id="t-name">The Village Mini Tournament</h1>
+    <div class="rollup" id="rollup"></div>
+  </div>
+
+  <!-- Sort controls -->
+  <div class="controls">
+    <div class="lbl">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M6 12h12M10 18h4"/></svg>
+      Sort the field
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <!-- Desktop table head -->
+  <div class="thead" aria-hidden="true">
+    <div class="ac">!</div>
+    <div>Bracket</div>
+    <div class="ar">Window</div>
+    <div class="ar">Reg</div>
+    <div class="ar">Live Avg</div>
+    <div class="ac">Distribution</div>
+    <div class="ac">Field</div>
+    <div class="ar">Live</div>
+    <div></div>
+  </div>
+
+  <!-- Rows -->
+  <div class="rows" id="rows"></div>
+
+  <div class="footer">
+    <div class="legend">
+      <span class="lg"><i style="background:#1F9D57"></i>In-window</span>
+      <span class="lg"><i style="background:#AEB6BC"></i>Below floor</span>
+      <span class="lg"><i style="background:#E0483B"></i>Ringer / over cap</span>
+    </div>
+    Tap any row to expand the ranked field. Numbers from verified live DUPR.
+  </div>
+</div>
+
+<script>
+const DATA = {"tournament":"The Village Mini Tournament (DUPR 3.499 and Under)","brackets":[{"id":"19f9b07c","name":"Mens Doubles","cat":"Men's","skillMin":null,"skillMax":3.5,"registered":30,"liveAvg":2.93,"listedAvg":2.78,"total":60,"liveCount":28,"inRange":59,"below":0,"ringers":1,"ratingMin":2,"ratingMax":3.65,"tone":"sandbagger","bins":[{"r":2,"c":2,"z":"in"},{"r":2.5,"c":10,"z":"in"},{"r":2.7,"c":2,"z":"in"},{"r":2.8,"c":2,"z":"in"},{"r":2.9,"c":7,"z":"in"},{"r":3,"c":23,"z":"in"},{"r":3.1,"c":3,"z":"in"},{"r":3.2,"c":2,"z":"in"},{"r":3.3,"c":3,"z":"in"},{"r":3.4,"c":3,"z":"in"},{"r":3.5,"c":2,"z":"in"},{"r":3.7,"c":1,"z":"above"}],"ranked":[{"rank":1,"teamRating":3.4,"members":[{"name":"Mateus Brisot Silva","rating":3.37,"status":"verified"},{"name":"Raul Gonzalo","rating":3.43,"status":"verified"}]},{"rank":2,"teamRating":3.27,"members":[{"name":"Richard Turner","rating":3.27,"status":"verified"},{"name":"Brandon Christa","rating":3.27,"status":"verified"}]},{"rank":3,"teamRating":3.25,"members":[{"name":"Sagar Singh","rating":3.33,"status":"verified"},{"name":"Nikhil Kotian","rating":3.16,"status":"verified"}]},{"rank":4,"teamRating":3.07,"members":[{"name":"Edmond Lam","rating":3.39,"status":"verified"},{"name":"Fazz Zainuddin","rating":2.74,"status":"verified"}]},{"rank":5,"teamRating":3.07,"members":[{"name":"Shawn Xu","rating":3.21,"status":"verified"},{"name":"Ryan Ritchey","rating":2.93,"status":"verified"}]},{"rank":6,"teamRating":2.88,"members":[{"name":"Joshua Canada","rating":3,"status":"verified"},{"name":"Tyler Francis","rating":2.76,"status":"verified"}]},{"rank":7,"teamRating":2.61,"members":[{"name":"Jeffrey Toys","rating":2.53,"status":"verified"},{"name":"Kevin Vineyard","rating":2.68,"status":"verified"}]}],"awaitingCount":30},{"id":"aec82c75","name":"Mixed Doubles","cat":"Mixed","skillMin":null,"skillMax":3.5,"registered":29,"liveAvg":2.98,"listedAvg":2.7,"total":56,"liveCount":25,"inRange":55,"below":0,"ringers":1,"ratingMin":2.26,"ratingMax":4.16,"tone":"sandbagger","bins":[{"r":2.3,"c":1,"z":"in"},{"r":2.5,"c":8,"z":"in"},{"r":2.7,"c":1,"z":"in"},{"r":2.8,"c":3,"z":"in"},{"r":2.9,"c":4,"z":"in"},{"r":3,"c":26,"z":"in"},{"r":3.1,"c":2,"z":"in"},{"r":3.2,"c":4,"z":"in"},{"r":3.3,"c":1,"z":"in"},{"r":3.4,"c":2,"z":"in"},{"r":3.5,"c":3,"z":"in"},{"r":4.2,"c":1,"z":"above"}],"ranked":[{"rank":1,"teamRating":3.48,"members":[{"name":"Tricia Schulze","rating":2.8,"status":"verified"},{"name":"Raj Nair","rating":4.16,"status":"verified"}]},{"rank":2,"teamRating":3.29,"members":[{"name":"Angela Pho","rating":3.12,"status":"verified"},{"name":"Chacha Horombe","rating":3.46,"status":"verified"}]},{"rank":3,"teamRating":3.14,"members":[{"name":"Victoria Tran","rating":3.3,"status":"verified"},{"name":"LeMichael Nguyen","rating":2.98,"status":"verified"}]},{"rank":4,"teamRating":2.99,"members":[{"name":"Ruby Pulgar","rating":2.55,"status":"verified"},{"name":"Raul Gonzalo","rating":3.43,"status":"verified"}]},{"rank":5,"teamRating":2.96,"members":[{"name":"Maria Dimacali","rating":2.79,"status":"verified"},{"name":"Aldwin Dimacali","rating":3.13,"status":"verified"}]},{"rank":6,"teamRating":2.8,"members":[{"name":"Kimberly Hall","rating":2.86,"status":"verified"},{"name":"Fazz Zainuddin","rating":2.74,"status":"verified"}]},{"rank":7,"teamRating":2.74,"members":[{"name":"Sally Spieldenner","rating":2.26,"status":"verified"},{"name":"Shawn Xu","rating":3.21,"status":"verified"}]}],"awaitingCount":28},{"id":"ca5a11a7","name":"Men's Doubles (3.0)","cat":"Men's","skillMin":3,"skillMax":3.5,"registered":24,"liveAvg":3.06,"listedAvg":2.96,"total":48,"liveCount":24,"inRange":41,"below":7,"ringers":0,"ratingMin":2.5,"ratingMax":3.5,"tone":"friendly","bins":[{"r":2.5,"c":4,"z":"below"},{"r":2.7,"c":2,"z":"below"},{"r":2.9,"c":1,"z":"below"},{"r":3,"c":23,"z":"in"},{"r":3.1,"c":3,"z":"in"},{"r":3.2,"c":3,"z":"in"},{"r":3.3,"c":6,"z":"in"},{"r":3.4,"c":3,"z":"in"},{"r":3.5,"c":3,"z":"in"}],"ranked":[{"rank":1,"teamRating":3.28,"members":[{"name":"Morgan Dees","rating":3.27,"status":"verified"},{"name":"Brian Bay","rating":3.28,"status":"verified"}]},{"rank":2,"teamRating":3.28,"members":[{"name":"Ramon Lebron","rating":3.42,"status":"verified"},{"name":"Ramon Lebron-velilla","rating":3.13,"status":"verified"}]},{"rank":3,"teamRating":3.23,"members":[{"name":"Leonidas Otalora","rating":3.19,"status":"verified"},{"name":"Alex Caridad","rating":3.27,"status":"verified"}]},{"rank":4,"teamRating":3.23,"members":[{"name":"Franklin Tu","rating":3.02,"status":"verified"},{"name":"Zach Godlewski","rating":3.44,"status":"verified"}]},{"rank":5,"teamRating":3.21,"members":[{"name":"Bao Duong","rating":3.16,"status":"verified"},{"name":"Dinh Long Tran","rating":3.25,"status":"verified"}]},{"rank":6,"teamRating":3.14,"members":[{"name":"Jack Lafferty","rating":3.35,"status":"verified"},{"name":"Noah Lafferty","rating":2.93,"status":"verified"}]},{"rank":7,"teamRating":2.95,"members":[{"name":"Raiyan Khan","rating":3.15,"status":"verified"},{"name":"Roy Garza-Rodriguez","rating":2.74,"status":"verified"}]},{"rank":8,"teamRating":2.88,"members":[{"name":"Jasper Bernardo","rating":2.7,"status":"verified"},{"name":"Quang D Nguyen","rating":3.05,"status":"verified"}]}],"awaitingCount":24},{"id":"e714e937","name":"Women's Doubles (3.5)","cat":"Women's","skillMin":3.5,"skillMax":4,"registered":11,"liveAvg":3.48,"listedAvg":3.23,"total":22,"liveCount":18,"inRange":14,"below":8,"ringers":0,"ratingMin":2.63,"ratingMax":4,"tone":"friendly","bins":[{"r":2.6,"c":1,"z":"below"},{"r":3,"c":2,"z":"below"},{"r":3.1,"c":1,"z":"below"},{"r":3.4,"c":4,"z":"below"},{"r":3.5,"c":6,"z":"in"},{"r":3.6,"c":2,"z":"in"},{"r":3.7,"c":3,"z":"in"},{"r":3.8,"c":1,"z":"in"},{"r":3.9,"c":1,"z":"in"},{"r":4,"c":1,"z":"in"}],"ranked":[{"rank":1,"teamRating":3.7,"members":[{"name":"Janet Kwon","rating":3.61,"status":"verified"},{"name":"PhiYen Norris","rating":3.78,"status":"verified"}]},{"rank":2,"teamRating":3.64,"members":[{"name":"Darleen Castillo","rating":3.38,"status":"verified"},{"name":"Anna Roehm","rating":3.9,"status":"verified"}]},{"rank":3,"teamRating":3.63,"members":[{"name":"Tatiana Marroquin","rating":3.73,"status":"verified"},{"name":"Diane Shao","rating":3.53,"status":"verified"}]},{"rank":4,"teamRating":3.54,"members":[{"name":"Kiely Whitham","rating":3.63,"status":"verified"},{"name":"Ambra Gordner","rating":3.44,"status":"verified"}]},{"rank":5,"teamRating":3.53,"members":[{"name":"Abbie Palmieri","rating":3.53,"status":"verified"},{"name":"Amy Palmieri","rating":3.53,"status":"verified"}]},{"rank":6,"teamRating":3.4,"members":[{"name":"Vy Do","rating":3.38,"status":"verified"},{"name":"Yuki Kaneda","rating":3.42,"status":"verified"}]},{"rank":7,"teamRating":3.33,"members":[{"name":"Stephanie Babin","rating":3.14,"status":"verified"},{"name":"Colleen Stockert","rating":3.52,"status":"verified"}]}],"awaitingCount":11},{"id":"06a3595d","name":"Men's Doubles (3.5)","cat":"Men's","skillMin":3.5,"skillMax":4,"registered":18,"liveAvg":3.4,"listedAvg":3.33,"total":36,"liveCount":16,"inRange":26,"below":10,"ringers":0,"ratingMin":2.5,"ratingMax":3.86,"tone":"friendly","bins":[{"r":2.5,"c":2,"z":"below"},{"r":3,"c":5,"z":"below"},{"r":3.1,"c":1,"z":"below"},{"r":3.2,"c":1,"z":"below"},{"r":3.3,"c":1,"z":"below"},{"r":3.5,"c":17,"z":"in"},{"r":3.6,"c":4,"z":"in"},{"r":3.7,"c":2,"z":"in"},{"r":3.8,"c":2,"z":"in"},{"r":3.9,"c":1,"z":"in"}],"ranked":[{"rank":1,"teamRating":3.71,"members":[{"name":"Sam Wu","rating":3.79,"status":"verified"},{"name":"kanishk chatterjee","rating":3.62,"status":"verified"}]},{"rank":2,"teamRating":3.6,"members":[{"name":"Ellis Detoro","rating":3.64,"status":"verified"},{"name":"Lung Lui","rating":3.56,"status":"verified"}]},{"rank":3,"teamRating":3.57,"members":[{"name":"Hatim Chafi","rating":3.29,"status":"verified"},{"name":"Justin Ojemi","rating":3.84,"status":"verified"}]}],"awaitingCount":18},{"id":"7f83e3ae","name":"Mixed Doubles (3.5)","cat":"Mixed","skillMin":3.5,"skillMax":4,"registered":16,"liveAvg":3.45,"listedAvg":3.19,"total":32,"liveCount":14,"inRange":22,"below":10,"ringers":0,"ratingMin":2.5,"ratingMax":3.97,"tone":"friendly","bins":[{"r":2.5,"c":1,"z":"below"},{"r":2.8,"c":1,"z":"below"},{"r":3,"c":5,"z":"below"},{"r":3.2,"c":1,"z":"below"},{"r":3.4,"c":2,"z":"below"},{"r":3.5,"c":13,"z":"in"},{"r":3.7,"c":1,"z":"in"},{"r":3.8,"c":4,"z":"in"},{"r":3.9,"c":2,"z":"in"},{"r":4,"c":2,"z":"in"}],"ranked":[{"rank":1,"teamRating":3.79,"members":[{"name":"Tatiana Marroquin","rating":3.73,"status":"verified"},{"name":"Justin Ojemi","rating":3.84,"status":"verified"}]},{"rank":2,"teamRating":3.62,"members":[{"name":"Vy Do","rating":3.38,"status":"verified"},{"name":"Kenry Le","rating":3.85,"status":"verified"}]},{"rank":3,"teamRating":3.57,"members":[{"name":"Leida Vazquez","rating":3.35,"status":"verified"},{"name":"Jimmy Leatherwood","rating":3.79,"status":"verified"}]},{"rank":4,"teamRating":3.49,"members":[{"name":"Camry Houston","rating":3.16,"status":"verified"},{"name":"Adan Diaz","rating":3.82,"status":"verified"}]},{"rank":5,"teamRating":3.36,"members":[{"name":"Raquetta Portalatin","rating":3.96,"status":"verified"},{"name":"Todd Lovejoy","rating":2.76,"status":"verified"}]}],"awaitingCount":16},{"id":"5a2183a7","name":"Mixed Doubles (3.0)","cat":"Mixed","skillMin":3,"skillMax":3.5,"registered":20,"liveAvg":2.95,"listedAvg":2.75,"total":40,"liveCount":11,"inRange":33,"below":7,"ringers":0,"ratingMin":2,"ratingMax":3.42,"tone":"friendly","bins":[{"r":2,"c":2,"z":"below"},{"r":2.2,"c":1,"z":"below"},{"r":2.5,"c":3,"z":"below"},{"r":2.9,"c":1,"z":"below"},{"r":3,"c":26,"z":"in"},{"r":3.2,"c":1,"z":"in"},{"r":3.3,"c":3,"z":"in"},{"r":3.4,"c":3,"z":"in"}],"ranked":[{"rank":1,"teamRating":3.33,"members":[{"name":"Tara Coates","rating":3.24,"status":"verified"},{"name":"Edward Muniz","rating":3.42,"status":"verified"}]},{"rank":2,"teamRating":2.99,"members":[{"name":"Safieh Hill","rating":2.92,"status":"verified"},{"name":"Carlo Badiola","rating":3.05,"status":"verified"}]}],"awaitingCount":20},{"id":"0fe75bee","name":"Men's Ladder Round Robin 3.5+ ONLY","cat":"Men's","skillMin":3.5,"skillMax":null,"registered":19,"liveAvg":3.77,"listedAvg":3.21,"total":19,"liveCount":11,"inRange":13,"below":6,"ringers":0,"ratingMin":2,"ratingMax":5.32,"tone":"competitive","bins":[{"r":2,"c":2,"z":"below"},{"r":3,"c":4,"z":"below"},{"r":3.5,"c":1,"z":"in"},{"r":3.9,"c":3,"z":"in"},{"r":4,"c":2,"z":"in"},{"r":4.2,"c":1,"z":"in"},{"r":4.3,"c":1,"z":"in"},{"r":4.4,"c":1,"z":"in"},{"r":4.5,"c":1,"z":"in"},{"r":4.8,"c":1,"z":"in"},{"r":5,"c":1,"z":"in"},{"r":5.3,"c":1,"z":"in"}],"ranked":[{"rank":1,"teamRating":5.32,"members":[{"name":"Austin Mireles","rating":5.32,"status":"verified"}]},{"rank":2,"teamRating":5.02,"members":[{"name":"Steve Parshin","rating":5.02,"status":"verified"}]},{"rank":3,"teamRating":4.75,"members":[{"name":"Jeffrey Raley","rating":4.75,"status":"verified"}]},{"rank":4,"teamRating":4.48,"members":[{"name":"Asad Hassan","rating":4.48,"status":"verified"}]},{"rank":5,"teamRating":4.4,"members":[{"name":"Arnaud Cocquerel","rating":4.4,"status":"verified"}]},{"rank":6,"teamRating":4.27,"members":[{"name":"Brandon Cheng","rating":4.27,"status":"verified"}]},{"rank":7,"teamRating":4.16,"members":[{"name":"Scott Morrow","rating":4.16,"status":"verified"}]},{"rank":8,"teamRating":3.92,"members":[{"name":"Phi Tieu","rating":3.92,"status":"verified"}]},{"rank":9,"teamRating":3.91,"members":[{"name":"Hridesh Maggo","rating":3.91,"status":"verified"}]},{"rank":10,"teamRating":3.89,"members":[{"name":"Jaideep Singh","rating":3.89,"status":"verified"}]},{"rank":11,"teamRating":3.05,"members":[{"name":"Maurice Bell","rating":3.05,"status":"verified"}]}],"awaitingCount":19}]};
+
+// ---------- Helpers ----------
+const TONE_LEVEL = { friendly: 1, competitive: 2, stacked: 3, sandbagger: 4 };
+const TONE_FILL  = { friendly: 2, competitive: 3, stacked: 4, sandbagger: 4 };
+const TONE_LABEL = { friendly: "Friendly", competitive: "Competitive", stacked: "Stacked", sandbagger: "Sandbagger" };
+const fmt = (n) => (n == null ? "—" : n.toFixed(2));
+
+function windowLabel(b){
+  const lo = b.skillMin == null ? "" : b.skillMin.toFixed(1);
+  const hi = b.skillMax == null ? "" : b.skillMax.toFixed(1);
+  if (b.skillMin == null && b.skillMax != null) return "≤ " + hi;
+  if (b.skillMin != null && b.skillMax == null) return hi === "" ? (lo + "+") : (lo + "+");
+  if (b.skillMin != null && b.skillMax != null) return lo + "–" + hi;
+  return "Open";
+}
+
+function catClass(c){
+  if (c === "Mixed") return "mixed";
+  if (c === "Men's") return "mens";
+  if (c === "Women's") return "womens";
+  return "open";
+}
+
+function tickSvg(status){
+  if (status === "verified") return `<svg class="tick verified" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>`;
+  if (status === "provisional") return `<svg class="tick provisional" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2 2"/></svg>`;
+  if (status === "self") return `<svg class="tick self" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>`;
+  return `<svg class="tick self" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9" stroke-dasharray="2 3"/></svg>`;
+}
+
+const ALARM = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9L2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>`;
+const FLAME = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3 4 4.5 4 8a4 4 0 0 1-8 0c0-1 .3-1.7.5-2.2C7 8.5 8 6 12 2z"/><path d="M9 14a3 3 0 0 0 6 0"/></svg>`;
+const CHEV = `<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>`;
+
+// micro distribution
+function distHtml(bins){
+  const max = Math.max(...bins.map(b=>b.c));
+  return `<div class="dist" aria-hidden="true">` + bins.map(b=>{
+    const h = Math.max(2, Math.round((b.c/max)*24));
+    return `<span class="bar ${b.z}" style="height:${h}px" title="${b.r}: ${b.c}"></span>`;
+  }).join("") + `</div>`;
+}
+
+// field-strength meter (4 segments)
+function meterHtml(tone){
+  const fill = TONE_FILL[tone] || 1;
+  let segs = "";
+  for (let i=1;i<=4;i++){ segs += `<span class="seg ${i<=fill?'on':''}"></span>`; }
+  return `<div class="meterblock"><span class="meter ${tone}" title="${TONE_LABEL[tone]}">${segs}</span></div>`;
+}
+
+// ---------- Render rollup ----------
+function renderRollup(){
+  const bs = DATA.brackets;
+  const totalEntrants = bs.reduce((s,b)=>s+b.registered,0);
+  const ringerBrackets = bs.filter(b=>b.ringers>0).length;
+  const stackedish = bs.filter(b=>TONE_LEVEL[b.tone]>=2).length;
+  const el = document.getElementById("rollup");
+  el.innerHTML = `
+    <span class="stat"><b class="num">${bs.length}</b> brackets</span>
+    <span class="stat sep"><b class="num">${totalEntrants}</b> teams</span>
+    <span class="stat sep stacked"><b class="num">${stackedish}</b> competitive+</span>
+    <span class="stat sep alarm"><b class="num">${ringerBrackets}</b> with ringers</span>
+  `;
+}
+
+// ---------- Sort ----------
+const SORTS = [
+  { key:"field",   label:"Field strength", icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/></svg>`, get:b=>TONE_LEVEL[b.tone]*100 + b.liveAvg },
+  { key:"ringers", label:"Ringers",        icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9L2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>`, get:b=>b.ringers*100 + b.ratingMax },
+  { key:"size",    label:"Size",           icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21V9M15 21V3M3 21V13M21 21V7"/></svg>`, get:b=>b.registered },
+  { key:"avg",     label:"Avg rating",     icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/></svg>`, get:b=>b.liveAvg },
+];
+let currentSort = "field";
+
+function sortedBrackets(){
+  const s = SORTS.find(x=>x.key===currentSort);
+  return [...DATA.brackets].sort((a,b)=> s.get(b) - s.get(a));
+}
+
+function renderChips(){
+  const el = document.getElementById("chips");
+  el.innerHTML = SORTS.map(s=>`
+    <button class="chip" data-sort="${s.key}" aria-pressed="${s.key===currentSort}">
+      ${s.icon}<span>${s.label}</span>${s.key===currentSort?'<span class="dir">▾</span>':''}
+    </button>`).join("");
+  el.querySelectorAll(".chip").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      currentSort = btn.dataset.sort;
+      renderChips();
+      renderRows(true);
+    });
+  });
+}
+
+// ---------- Render a single row ----------
+function rowHtml(b){
+  const delta = b.liveAvg - b.listedAvg;
+  const dAbs = Math.abs(delta).toFixed(2);
+  let dCls = "flat", dArrow = "—";
+  if (delta > 0.005){ dCls="up";   dArrow=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M7 14l5-5 5 5"/></svg>`; }
+  else if (delta < -0.005){ dCls="down"; dArrow=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10l5 5 5-5"/></svg>`; }
+
+  const ringerBadge = b.ringers>0
+    ? `<span class="ringer-badge num" title="${b.ringers} ringer over the ${b.skillMax} cap">${ALARM}${b.ringers}</span>`
+    : "";
+  const ringerBadgeBlock = b.ringers>0
+    ? `<div class="ringerblock"><span class="ringer-badge num">${ALARM}${b.ringers}</span></div>`
+    : `<div class="ringerblock"></div>`;
+
+  const deskFlag = `<div class="desk-flag"><span class="fl" style="${b.ringers>0?'color:#E0483B':''}">${b.ringers>0?ALARM:FLAME}</span></div>`;
+
+  return `
+  <article class="row ${b.ringers>0?'ringer':''}" data-id="${b.id}">
+    <div class="row-head" role="button" tabindex="0" aria-expanded="false">
+      ${deskFlag}
+      <div class="r-l1">
+        <span class="r-name">${b.name}</span>
+        <span class="tag ${catClass(b.cat)}">${b.cat}</span>
+        <span class="chev-inline"></span>
+      </div>
+      <div class="r-r1">
+        ${ringerBadge}
+        ${CHEV}
+      </div>
+
+      <div class="r-l2">
+        <span class="metric win"><span class="k">Win</span><span class="v win num">${windowLabel(b)}</span></span>
+        <span class="metric reg"><span class="k">Reg</span><span class="v num">${b.registered}</span></span>
+        <span class="metric liveblock"><span class="k">Live</span><span class="v num">${fmt(b.liveAvg)}</span><span class="delta ${dCls} num">${dArrow}${dAbs}</span></span>
+        ${distHtml(b.bins)}
+        ${meterHtml(b.tone)}
+        <span class="cov covblock"><span class="cov-dot"></span><span class="num">${b.liveCount}/${b.total}</span></span>
+        ${ringerBadgeBlock}
+      </div>
+
+      <div class="desk-chev">${CHEV}</div>
+    </div>
+    <div class="row-body"><div class="inner">${bodyHtml(b)}</div></div>
+  </article>`;
+}
+
+function bodyHtml(b){
+  const zones = `
+    <div class="zones">
+      <div class="zone"><div class="zn"><span class="zdot in"></span>In window</div><div class="zv num">${b.inRange}</div></div>
+      <div class="zone"><div class="zn"><span class="zdot below"></span>Below floor</div><div class="zv num">${b.below}</div></div>
+      <div class="zone ${b.ringers>0?'alarm':''}"><div class="zn"><span class="zdot above"></span>Over cap</div><div class="zv num">${b.ringers}</div></div>
+    </div>`;
+
+  let lead;
+  if (!b.ranked || b.ranked.length === 0){
+    lead = `<div class="empty-lead">No verified teams ranked yet — the field is still warming up.</div>`;
+  } else {
+    const top = b.ranked.slice(0,5);
+    lead = `
+      <div class="lead-title">Ranked field · strongest first <span class="right num">Top ${top.length} of ${b.ranked.length}</span></div>
+      <div class="lead">${top.map((t,i)=>leadRowHtml(t,i,b)).join("")}</div>`;
+  }
+
+  const cap = b.skillMax;
+  const await_ = b.awaitingCount>0
+    ? `<div class="await">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+         <span><b class="num">${b.awaitingCount}</b> ${b.awaitingCount===1?'team':'teams'} awaiting a verifiable rating — not yet placed on the board.</span>
+       </div>`
+    : "";
+
+  return `<div class="body-pad">${zones}${lead}${await_}</div>`;
+}
+
+function leadRowHtml(t, idx, b){
+  const cap = b.skillMax;
+  const hasRinger = t.members.some(m => cap != null && m.rating > cap);
+  const members = t.members.map(m=>{
+    const isRinger = cap != null && m.rating > cap;
+    return `<div class="member ${isRinger?'ringer-m':''}">
+      ${tickSvg(m.status)}
+      <span class="mn">${m.name}</span>
+      ${isRinger?`<span class="ringer-flag">ringer</span>`:''}
+      <span class="mr num">${m.rating.toFixed(2)}</span>
+    </div>`;
+  }).join("");
+  return `
+    <div class="lead-row ${idx===0?'top':''} ${hasRinger?'has-ringer':''}">
+      <div class="lrank num">${t.rank}</div>
+      <div class="lmembers">${members}</div>
+      <div class="lteam"><div class="lt-v num">${t.teamRating.toFixed(2)}</div><div class="lt-k">team</div></div>
+    </div>`;
+}
+
+// ---------- Render rows ----------
+let openId = null;
+function renderRows(preserveOpen){
+  const rowsEl = document.getElementById("rows");
+  const list = sortedBrackets();
+  rowsEl.innerHTML = list.map(rowHtml).join("");
+
+  rowsEl.querySelectorAll(".row").forEach(row=>{
+    const head = row.querySelector(".row-head");
+    const toggle = ()=>{
+      const id = row.dataset.id;
+      const isOpen = row.classList.contains("open");
+      // close others
+      rowsEl.querySelectorAll(".row.open").forEach(r=>{
+        if (r!==row){ r.classList.remove("open"); r.querySelector(".row-head").setAttribute("aria-expanded","false"); }
+      });
+      row.classList.toggle("open", !isOpen);
+      head.setAttribute("aria-expanded", String(!isOpen));
+      openId = !isOpen ? id : null;
+    };
+    head.addEventListener("click", toggle);
+    head.addEventListener("keydown", (e)=>{
+      if (e.key==="Enter" || e.key===" "){ e.preventDefault(); toggle(); }
+    });
+  });
+
+  // restore open state after re-sort
+  if (preserveOpen && openId){
+    const r = rowsEl.querySelector(`.row[data-id="${openId}"]`);
+    if (r){ r.classList.add("open"); r.querySelector(".row-head").setAttribute("aria-expanded","true"); }
+  }
+}
+
+// ---------- Init ----------
+document.getElementById("t-name").textContent = "The Village Mini Tournament";
+renderRollup();
+renderChips();
+renderRows();
+</script>
+</body>
+</html>

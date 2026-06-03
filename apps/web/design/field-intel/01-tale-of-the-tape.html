@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tale of the Tape · PickleRadar Field Intel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --cream:#FBF7ED; --card:#FFFFFF; --card2:#FFFDF8;
+  --ink:#16201B; --muted:#6B7670; --faint:#9AA59E;
+  --emerald:#065F46; --emerald-bright:#047857; --emerald-deep:#053E2E; --tint:#ECFDF3;
+  --line:#E8E3D5; --line2:#EAEDE9;
+  --in:#1F9D57; --below:#AEB6BC; --ringer:#E0483B; --provisional:#D08700; --self:#8A938D;
+  --shadow:0 18px 40px -24px rgba(6,40,30,0.28), 0 2px 8px -6px rgba(6,40,30,0.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px}
+body{
+  font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+  background:var(--cream); color:var(--ink);
+  -webkit-font-smoothing:antialiased; line-height:1.45;
+  padding:0 0 64px;
+}
+.tabnum{font-variant-numeric:tabular-nums}
+.wrap{max-width:430px;margin:0 auto;padding:0 16px}
+
+/* ---- masthead ---- */
+.mast{padding:22px 0 6px}
+.mast .kicker{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--emerald-bright);display:flex;align-items:center;gap:7px}
+.mast .kicker svg{width:15px;height:15px}
+.mast h1{font-size:26px;font-weight:800;line-height:1.12;margin-top:7px;letter-spacing:-.01em}
+.mast .sub{font-size:13px;font-weight:500;color:var(--muted);margin-top:5px}
+
+/* ---- bracket selector ---- */
+.selector{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,var(--cream) 72%,rgba(251,247,237,0));padding:12px 0 14px;margin-top:6px}
+.selrow{display:flex;gap:8px;overflow-x:auto;padding:2px 16px;margin:0 -16px;scrollbar-width:none}
+.selrow::-webkit-scrollbar{display:none}
+.chip{
+  flex:0 0 auto;border:1px solid var(--line);background:var(--card);
+  border-radius:999px;padding:9px 14px;cursor:pointer;
+  display:flex;flex-direction:column;gap:1px;min-width:max-content;
+  transition:transform .14s ease, box-shadow .14s ease, border-color .14s ease, background .14s ease;
+}
+.chip:active{transform:scale(.96)}
+.chip .cn{font-size:13px;font-weight:700;letter-spacing:-.01em;white-space:nowrap}
+.chip .cw{font-size:10.5px;font-weight:600;color:var(--faint);letter-spacing:.02em}
+.chip.on{background:var(--emerald-deep);border-color:var(--emerald-deep);box-shadow:var(--shadow)}
+.chip.on .cn{color:#fff}
+.chip.on .cw{color:#9FD8BE}
+.chip .dot{position:absolute}
+
+/* ---- tale of the tape header ---- */
+.tape-card{
+  background:var(--card2);border:1px solid var(--line);border-radius:18px;
+  box-shadow:var(--shadow);padding:18px 18px 16px;margin-top:2px;overflow:hidden;position:relative;
+}
+.tape-card .toprow{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.weightclass{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--emerald);background:var(--tint);border:1px solid #CFEEDD;
+  padding:5px 10px;border-radius:999px;
+}
+.div-name{font-size:21px;font-weight:800;letter-spacing:-.01em;margin-top:11px;line-height:1.1}
+.div-cat{font-size:12px;font-weight:600;color:var(--faint);letter-spacing:.03em;text-transform:uppercase}
+
+.verdict{
+  display:flex;align-items:center;gap:9px;margin-top:13px;
+  padding:10px 12px;border-radius:12px;font-size:13.5px;font-weight:700;line-height:1.25;
+}
+.verdict svg{width:18px;height:18px;flex:0 0 auto}
+.verdict.sandbagger{background:#FCEDEB;color:#B02D22;border:1px solid #F4CFC9}
+.verdict.stacked{background:#FBEFD8;color:#9A6400;border:1px solid #F0DCAE}
+.verdict.competitive{background:#EAF4EE;color:var(--emerald-deep);border:1px solid #CFE7D7}
+.verdict.friendly{background:var(--tint);color:var(--emerald-deep);border:1px solid #CFEEDD}
+
+.avgrow{display:flex;align-items:flex-end;gap:12px;margin-top:16px}
+.avg-true{display:flex;flex-direction:column}
+.avg-true .lab{font-size:10.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+.avg-true .num{font-size:46px;font-weight:800;line-height:.95;letter-spacing:-.02em;margin-top:2px}
+.avg-listed{padding-bottom:7px}
+.avg-listed .lab{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.avg-listed .num{font-size:20px;font-weight:700;color:var(--below);text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:#C9CEC9}
+.avg-gap{
+  margin-left:auto;padding-bottom:6px;text-align:right;
+}
+.avg-gap .g{font-size:18px;font-weight:800;color:var(--ringer)}
+.avg-gap .gl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block}
+.avg-same{margin-left:auto;padding-bottom:6px;font-size:11px;font-weight:700;color:var(--in);text-transform:uppercase;letter-spacing:.06em}
+
+/* ---- tape strip ---- */
+.strip{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--line2);
+  border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:14px;
+}
+.strip .cell{background:var(--card);padding:11px 10px;text-align:center}
+.strip .cell .n{font-size:22px;font-weight:800;line-height:1;letter-spacing:-.01em}
+.strip .cell .l{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.strip .cell.in .n{color:var(--in)}
+.strip .cell.ring .n{color:var(--ringer)}
+.strip .cell.below .n{color:var(--below)}
+.coverage{
+  display:flex;align-items:center;gap:9px;margin-top:11px;padding:0 2px;
+  font-size:12px;font-weight:600;color:var(--muted);
+}
+.coverage .bar{flex:1;height:6px;border-radius:99px;background:#E9E4D6;overflow:hidden}
+.coverage .bar i{display:block;height:100%;background:var(--in);border-radius:99px}
+.coverage b{color:var(--ink);font-weight:800}
+
+/* ---- ladder section ---- */
+.section-head{display:flex;align-items:center;justify-content:space-between;margin:26px 2px 12px}
+.section-head .t{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.section-head .t b{color:var(--ink);font-weight:800}
+.section-head .scale{font-size:10.5px;font-weight:600;color:var(--faint);letter-spacing:.02em;font-variant-numeric:tabular-nums}
+
+.ladder{display:flex;flex-direction:column;gap:9px}
+.team{
+  background:var(--card);border:1px solid var(--line);border-radius:15px;
+  padding:12px 13px 13px;position:relative;overflow:hidden;
+  box-shadow:0 1px 0 rgba(6,40,30,.02);
+  transition:transform .14s ease, box-shadow .14s ease, border-color .14s ease;
+  opacity:0;transform:translateY(10px);
+  animation:reveal .42s cubic-bezier(.2,.7,.3,1) forwards;
+}
+@keyframes reveal{to{opacity:1;transform:translateY(0)}}
+.team:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:#D9D3C2}
+.team:active{transform:translateY(0) scale(.995)}
+.team.ringer{border-color:#F2C7C0;background:linear-gradient(180deg,#FFF8F6,#FFFFFF)}
+.team.ringer::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--ringer)}
+
+.team .head{display:flex;align-items:center;gap:11px}
+.rankno{
+  flex:0 0 auto;width:30px;height:30px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;
+  background:var(--emerald-deep);color:#fff;letter-spacing:-.02em;
+}
+.team.ringer .rankno{background:var(--ringer)}
+.rankno.silver{background:#E7E2D2;color:var(--emerald-deep)}
+.rankno.podium1{background:var(--emerald-deep)}
+.team .names{flex:1;min-width:0}
+.team .names .nm{display:flex;align-items:center;gap:5px;font-size:14.5px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
+.team .names .nm + .nm{margin-top:1px}
+.team .names .pr{font-size:12px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;flex:0 0 auto;margin-left:auto}
+.tick{width:13px;height:13px;flex:0 0 auto}
+.tick.verified{color:var(--in)}
+.tick.provisional{color:var(--provisional)}
+.tick.self{color:var(--self)}
+.pr.over{color:var(--ringer)}
+
+.teamrating{flex:0 0 auto;text-align:right}
+.teamrating .num{font-size:21px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.teamrating .lab{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin-top:3px}
+.team.ringer .teamrating .num{color:var(--ringer)}
+
+.ringertag{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:9.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+  color:#fff;background:var(--ringer);padding:3px 7px;border-radius:6px;margin-left:6px;vertical-align:1px;
+}
+.ringertag svg{width:10px;height:10px}
+
+/* power bar */
+.powerwrap{margin-top:11px;display:flex;align-items:center;gap:9px}
+.powerbar{flex:1;height:8px;border-radius:99px;background:#EFEBDD;overflow:hidden;position:relative}
+.powerbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--emerald),var(--emerald-bright));
+  width:0;transition:width .6s cubic-bezier(.2,.7,.3,1);transition-delay:.15s}
+.team.ringer .powerbar i{background:linear-gradient(90deg,#E0483B,#F0705F)}
+.powerwrap .tr{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink);min-width:34px;text-align:right}
+
+/* unweighed group */
+.unweighed{margin-top:18px}
+.unweighed .uh{
+  display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:0 2px 10px;
+}
+.unweighed .uh .ln{flex:1;height:1px;background:var(--line)}
+.uw-card{
+  background:#FAF7EF;border:1px dashed var(--line);border-radius:14px;
+  padding:15px 14px;display:flex;align-items:center;gap:13px;
+}
+.uw-card .ic{flex:0 0 auto;width:38px;height:38px;border-radius:11px;background:#F0ECDF;display:flex;align-items:center;justify-content:center;color:var(--faint)}
+.uw-card .ic svg{width:20px;height:20px}
+.uw-card .tx .big{font-size:15px;font-weight:800}
+.uw-card .tx .sm{font-size:12.5px;font-weight:500;color:var(--muted);margin-top:2px;line-height:1.35}
+
+.footer{text-align:center;font-size:11px;color:var(--faint);font-weight:600;margin-top:30px;letter-spacing:.02em}
+.footer b{color:var(--muted)}
+
+@media (min-width:768px){
+  .wrap{max-width:720px}
+  .ladder{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .unweighed{grid-column:1/-1}
+  .mast h1{font-size:30px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="mast">
+    <div class="kicker">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>
+      Field Intel · Tale of the Tape
+    </div>
+    <h1 id="t-name">The Village Mini Tournament</h1>
+    <div class="sub" id="t-sub">DUPR 3.499 and Under · weigh in before you sign up</div>
+  </header>
+
+  <div class="selector">
+    <div class="selrow" id="selrow"></div>
+  </div>
+
+  <main id="stage"></main>
+
+  <div class="footer">PickleRadar · live DUPR scouting · <b>real verified ratings</b></div>
+</div>
+
+<script>
+const DATA = {"tournament":"The Village Mini Tournament (DUPR 3.499 and Under)","brackets":[{"id":"19f9b07c","name":"Mens Doubles","cat":"Men's","skillMin":null,"skillMax":3.5,"registered":30,"liveAvg":2.93,"listedAvg":2.78,"total":60,"liveCount":28,"inRange":59,"below":0,"ringers":1,"ratingMin":2,"ratingMax":3.65,"tone":"sandbagger","ranked":[{"rank":1,"teamRating":3.4,"members":[{"name":"Mateus Brisot Silva","rating":3.37,"status":"verified"},{"name":"Raul Gonzalo","rating":3.43,"status":"verified"}]},{"rank":2,"teamRating":3.27,"members":[{"name":"Richard Turner","rating":3.27,"status":"verified"},{"name":"Brandon Christa","rating":3.27,"status":"verified"}]},{"rank":3,"teamRating":3.25,"members":[{"name":"Sagar Singh","rating":3.33,"status":"verified"},{"name":"Nikhil Kotian","rating":3.16,"status":"verified"}]},{"rank":4,"teamRating":3.07,"members":[{"name":"Edmond Lam","rating":3.39,"status":"verified"},{"name":"Fazz Zainuddin","rating":2.74,"status":"verified"}]},{"rank":5,"teamRating":3.07,"members":[{"name":"Shawn Xu","rating":3.21,"status":"verified"},{"name":"Ryan Ritchey","rating":2.93,"status":"verified"}]},{"rank":6,"teamRating":2.88,"members":[{"name":"Joshua Canada","rating":3,"status":"verified"},{"name":"Tyler Francis","rating":2.76,"status":"verified"}]},{"rank":7,"teamRating":2.61,"members":[{"name":"Jeffrey Toys","rating":2.53,"status":"verified"},{"name":"Kevin Vineyard","rating":2.68,"status":"verified"}]}],"awaitingCount":30},{"id":"aec82c75","name":"Mixed Doubles","cat":"Mixed","skillMin":null,"skillMax":3.5,"registered":29,"liveAvg":2.98,"listedAvg":2.7,"total":56,"liveCount":25,"inRange":55,"below":0,"ringers":1,"ratingMin":2.26,"ratingMax":4.16,"tone":"sandbagger","ranked":[{"rank":1,"teamRating":3.48,"members":[{"name":"Tricia Schulze","rating":2.8,"status":"verified"},{"name":"Raj Nair","rating":4.16,"status":"verified"}]},{"rank":2,"teamRating":3.29,"members":[{"name":"Angela Pho","rating":3.12,"status":"verified"},{"name":"Chacha Horombe","rating":3.46,"status":"verified"}]},{"rank":3,"teamRating":3.14,"members":[{"name":"Victoria Tran","rating":3.3,"status":"verified"},{"name":"LeMichael Nguyen","rating":2.98,"status":"verified"}]},{"rank":4,"teamRating":2.99,"members":[{"name":"Ruby Pulgar","rating":2.55,"status":"verified"},{"name":"Raul Gonzalo","rating":3.43,"status":"verified"}]},{"rank":5,"teamRating":2.96,"members":[{"name":"Maria Dimacali","rating":2.79,"status":"verified"},{"name":"Aldwin Dimacali","rating":3.13,"status":"verified"}]},{"rank":6,"teamRating":2.8,"members":[{"name":"Kimberly Hall","rating":2.86,"status":"verified"},{"name":"Fazz Zainuddin","rating":2.74,"status":"verified"}]},{"rank":7,"teamRating":2.74,"members":[{"name":"Sally Spieldenner","rating":2.26,"status":"verified"},{"name":"Shawn Xu","rating":3.21,"status":"verified"}]}],"awaitingCount":28},{"id":"ca5a11a7","name":"Men's Doubles (3.0)","cat":"Men's","skillMin":3,"skillMax":3.5,"registered":24,"liveAvg":3.06,"listedAvg":2.96,"total":48,"liveCount":24,"inRange":41,"below":7,"ringers":0,"ratingMin":2.5,"ratingMax":3.5,"tone":"friendly","ranked":[{"rank":1,"teamRating":3.28,"members":[{"name":"Morgan Dees","rating":3.27,"status":"verified"},{"name":"Brian Bay","rating":3.28,"status":"verified"}]},{"rank":2,"teamRating":3.28,"members":[{"name":"Ramon Lebron","rating":3.42,"status":"verified"},{"name":"Ramon Lebron-velilla","rating":3.13,"status":"verified"}]},{"rank":3,"teamRating":3.23,"members":[{"name":"Leonidas Otalora","rating":3.19,"status":"verified"},{"name":"Alex Caridad","rating":3.27,"status":"verified"}]},{"rank":4,"teamRating":3.23,"members":[{"name":"Franklin Tu","rating":3.02,"status":"verified"},{"name":"Zach Godlewski","rating":3.44,"status":"verified"}]},{"rank":5,"teamRating":3.21,"members":[{"name":"Bao Duong","rating":3.16,"status":"verified"},{"name":"Dinh Long Tran","rating":3.25,"status":"verified"}]},{"rank":6,"teamRating":3.14,"members":[{"name":"Jack Lafferty","rating":3.35,"status":"verified"},{"name":"Noah Lafferty","rating":2.93,"status":"verified"}]},{"rank":7,"teamRating":2.95,"members":[{"name":"Raiyan Khan","rating":3.15,"status":"verified"},{"name":"Roy Garza-Rodriguez","rating":2.74,"status":"verified"}]},{"rank":8,"teamRating":2.88,"members":[{"name":"Jasper Bernardo","rating":2.7,"status":"verified"},{"name":"Quang D Nguyen","rating":3.05,"status":"verified"}]}],"awaitingCount":24},{"id":"e714e937","name":"Women's Doubles (3.5)","cat":"Women's","skillMin":3.5,"skillMax":4,"registered":11,"liveAvg":3.48,"listedAvg":3.23,"total":22,"liveCount":18,"inRange":14,"below":8,"ringers":0,"ratingMin":2.63,"ratingMax":4,"tone":"friendly","ranked":[{"rank":1,"teamRating":3.7,"members":[{"name":"Janet Kwon","rating":3.61,"status":"verified"},{"name":"PhiYen Norris","rating":3.78,"status":"verified"}]},{"rank":2,"teamRating":3.64,"members":[{"name":"Darleen Castillo","rating":3.38,"status":"verified"},{"name":"Anna Roehm","rating":3.9,"status":"verified"}]},{"rank":3,"teamRating":3.63,"members":[{"name":"Tatiana Marroquin","rating":3.73,"status":"verified"},{"name":"Diane Shao","rating":3.53,"status":"verified"}]},{"rank":4,"teamRating":3.54,"members":[{"name":"Kiely Whitham","rating":3.63,"status":"verified"},{"name":"Ambra Gordner","rating":3.44,"status":"verified"}]},{"rank":5,"teamRating":3.53,"members":[{"name":"Abbie Palmieri","rating":3.53,"status":"verified"},{"name":"Amy Palmieri","rating":3.53,"status":"verified"}]},{"rank":6,"teamRating":3.4,"members":[{"name":"Vy Do","rating":3.38,"status":"verified"},{"name":"Yuki Kaneda","rating":3.42,"status":"verified"}]},{"rank":7,"teamRating":3.33,"members":[{"name":"Stephanie Babin","rating":3.14,"status":"verified"},{"name":"Colleen Stockert","rating":3.52,"status":"verified"}]}],"awaitingCount":11},{"id":"06a3595d","name":"Men's Doubles (3.5)","cat":"Men's","skillMin":3.5,"skillMax":4,"registered":18,"liveAvg":3.4,"listedAvg":3.33,"total":36,"liveCount":16,"inRange":26,"below":10,"ringers":0,"ratingMin":2.5,"ratingMax":3.86,"tone":"friendly","ranked":[{"rank":1,"teamRating":3.71,"members":[{"name":"Sam Wu","rating":3.79,"status":"verified"},{"name":"kanishk chatterjee","rating":3.62,"status":"verified"}]},{"rank":2,"teamRating":3.6,"members":[{"name":"Ellis Detoro","rating":3.64,"status":"verified"},{"name":"Lung Lui","rating":3.56,"status":"verified"}]},{"rank":3,"teamRating":3.57,"members":[{"name":"Hatim Chafi","rating":3.29,"status":"verified"},{"name":"Justin Ojemi","rating":3.84,"status":"verified"}]}],"awaitingCount":18},{"id":"7f83e3ae","name":"Mixed Doubles (3.5)","cat":"Mixed","skillMin":3.5,"skillMax":4,"registered":16,"liveAvg":3.45,"listedAvg":3.19,"total":32,"liveCount":14,"inRange":22,"below":10,"ringers":0,"ratingMin":2.5,"ratingMax":3.97,"tone":"friendly","ranked":[{"rank":1,"teamRating":3.79,"members":[{"name":"Tatiana Marroquin","rating":3.73,"status":"verified"},{"name":"Justin Ojemi","rating":3.84,"status":"verified"}]},{"rank":2,"teamRating":3.62,"members":[{"name":"Vy Do","rating":3.38,"status":"verified"},{"name":"Kenry Le","rating":3.85,"status":"verified"}]},{"rank":3,"teamRating":3.57,"members":[{"name":"Leida Vazquez","rating":3.35,"status":"verified"},{"name":"Jimmy Leatherwood","rating":3.79,"status":"verified"}]},{"rank":4,"teamRating":3.49,"members":[{"name":"Camry Houston","rating":3.16,"status":"verified"},{"name":"Adan Diaz","rating":3.82,"status":"verified"}]},{"rank":5,"teamRating":3.36,"members":[{"name":"Raquetta Portalatin","rating":3.96,"status":"verified"},{"name":"Todd Lovejoy","rating":2.76,"status":"verified"}]}],"awaitingCount":16},{"id":"5a2183a7","name":"Mixed Doubles (3.0)","cat":"Mixed","skillMin":3,"skillMax":3.5,"registered":20,"liveAvg":2.95,"listedAvg":2.75,"total":40,"liveCount":11,"inRange":33,"below":7,"ringers":0,"ratingMin":2,"ratingMax":3.42,"tone":"friendly","ranked":[{"rank":1,"teamRating":3.33,"members":[{"name":"Tara Coates","rating":3.24,"status":"verified"},{"name":"Edward Muniz","rating":3.42,"status":"verified"}]},{"rank":2,"teamRating":2.99,"members":[{"name":"Safieh Hill","rating":2.92,"status":"verified"},{"name":"Carlo Badiola","rating":3.05,"status":"verified"}]}],"awaitingCount":20},{"id":"0fe75bee","name":"Men's Doubles Ladder Round Robin 3.5+ ONLY","cat":"Men's","skillMin":3.5,"skillMax":null,"registered":19,"liveAvg":3.77,"listedAvg":3.21,"total":19,"liveCount":11,"inRange":13,"below":6,"ringers":0,"ratingMin":2,"ratingMax":5.32,"tone":"competitive","ranked":[{"rank":1,"teamRating":5.32,"members":[{"name":"Austin Mireles","rating":5.32,"status":"verified"}]},{"rank":2,"teamRating":5.02,"members":[{"name":"Steve Parshin","rating":5.02,"status":"verified"}]},{"rank":3,"teamRating":4.75,"members":[{"name":"Jeffrey Raley","rating":4.75,"status":"verified"}]},{"rank":4,"teamRating":4.48,"members":[{"name":"Asad Hassan","rating":4.48,"status":"verified"}]},{"rank":5,"teamRating":4.4,"members":[{"name":"Arnaud Cocquerel","rating":4.4,"status":"verified"}]},{"rank":6,"teamRating":4.27,"members":[{"name":"Brandon Cheng","rating":4.27,"status":"verified"}]},{"rank":7,"teamRating":4.16,"members":[{"name":"Scott Morrow","rating":4.16,"status":"verified"}]},{"rank":8,"teamRating":3.92,"members":[{"name":"Phi Tieu","rating":3.92,"status":"verified"}]},{"rank":9,"teamRating":3.91,"members":[{"name":"Hridesh Maggo","rating":3.91,"status":"verified"}]},{"rank":10,"teamRating":3.89,"members":[{"name":"Jaideep Singh","rating":3.89,"status":"verified"}]},{"rank":11,"teamRating":3.05,"members":[{"name":"Maurice Bell","rating":3.05,"status":"verified"}]}],"awaitingCount":19}]};
+
+/* ---------- icons ---------- */
+const I = {
+  tick:'<svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+  alarm:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>',
+  flame:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c.5 3-1.5 4-2.5 5.5C8 11 9 13 9 13s-2-1-2.5-3C5.5 12 5 13.5 5 15a7 7 0 0 0 14 0c0-4-3-6-3.5-9C14.5 7 13.5 8 12 3Z"/></svg>',
+  swords:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2M5 14l-2 2v3h3l2-2M5 13l4-4"/></svg>',
+  hand:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12m0-.5V4.5a1.5 1.5 0 0 1 3 0V12m0-1.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-2.7L4 16a1.6 1.6 0 0 1 2.7-1.7L8 16"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  scale:'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M7 21h10M5 7h14M5 7 2.5 13a3 3 0 0 0 5 0L5 7Zm14 0-2.5 6a3 3 0 0 0 5 0L19 7Z"/></svg>'
+};
+
+const TONE = {
+  sandbagger:{cls:'sandbagger',icon:I.alarm,verb:'Sandbaggers in the field'},
+  stacked:{cls:'stacked',icon:I.flame,verb:'Stacked top to bottom'},
+  competitive:{cls:'competitive',icon:I.swords,verb:'Heavy hitters — bring your A game'},
+  friendly:{cls:'friendly',icon:I.hand,verb:'Even matchup, fair fight'}
+};
+
+function fmt(n){return Number(n).toFixed(2)}
+function weightClass(b){
+  const lo = b.skillMin, hi = b.skillMax;
+  if(lo!=null && hi!=null) return fmt1(lo)+'–'+fmt1(hi)+' class';
+  if(lo!=null) return fmt1(lo)+'+ open class';
+  if(hi!=null) return fmt1(hi)+' & under class';
+  return 'open class';
+}
+function fmt1(n){return Number(n).toFixed(1)}
+function capValue(b){ return b.skillMax; } // ringer = above cap
+function isOverCap(rating, b){ return b.skillMax!=null && rating > b.skillMax + 0.001; }
+function firstName(n){return n.split(' ')[0]}
+
+/* ---------- selector ---------- */
+const selrow = document.getElementById('selrow');
+let active = 0;
+DATA.brackets.forEach((b,i)=>{
+  const c = document.createElement('button');
+  c.className = 'chip'+(i===0?' on':'');
+  c.innerHTML = `<span class="cn">${chipName(b)}</span><span class="cw">${weightLabel(b)} · ${b.registered} teams</span>`;
+  c.addEventListener('click',()=>{ select(i); });
+  selrow.appendChild(c);
+});
+function chipName(b){
+  // short label
+  return b.name.replace('Men’s','Men\'s').replace('Round Robin','RR');
+}
+function weightLabel(b){
+  const lo=b.skillMin,hi=b.skillMax;
+  if(lo!=null&&hi!=null) return fmt1(lo)+'–'+fmt1(hi);
+  if(lo!=null) return fmt1(lo)+'+';
+  if(hi!=null) return '≤'+fmt1(hi);
+  return 'open';
+}
+
+document.getElementById('t-name').textContent = 'The Village Mini Tournament';
+document.getElementById('t-sub').textContent = 'DUPR 3.499 & Under · weigh in before you sign up';
+
+function select(i){
+  active = i;
+  [...selrow.children].forEach((c,ci)=>c.classList.toggle('on',ci===i));
+  render(DATA.brackets[i]);
+  // bring chip into view
+  selrow.children[i].scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'});
+}
+
+/* ---------- render ---------- */
+const stage = document.getElementById('stage');
+function render(b){
+  const t = TONE[b.tone] || TONE.friendly;
+  const gap = +(b.liveAvg - b.listedAvg).toFixed(2);
+  const showStruck = Math.abs(gap) >= 0.01;
+
+  // ladder range across the field
+  const ratings = [];
+  b.ranked.forEach(tm=>tm.members.forEach(m=>ratings.push(m.rating)));
+  const lo = Math.min(...ratings, b.ranked[b.ranked.length-1].teamRating);
+  const hi = Math.max(...ratings, b.ranked[0].teamRating);
+  const span = Math.max(hi - lo, 0.01);
+
+  // avg block
+  const avgGap = showStruck
+    ? `<div class="avg-gap"><span class="g">+${fmt(gap)}</span><span class="gl">stronger than claimed</span></div>`
+    : `<div class="avg-same">As claimed</div>`;
+  const listedBlock = showStruck
+    ? `<div class="avg-listed"><div class="lab">claimed</div><div class="num tabnum">${fmt(b.listedAvg)}</div></div>`
+    : '';
+
+  // tape strip
+  const cap = b.skillMax;
+  const coverPct = b.total ? Math.round(b.liveCount/b.total*100) : 0;
+
+  // ladder rows
+  let rows = '';
+  b.ranked.forEach((tm,idx)=>{
+    const teamPct = ((tm.teamRating - lo)/span)*100;
+    const ringer = tm.members.some(m=>isOverCap(m.rating,b));
+    const memberHTML = tm.members.map(m=>{
+      const over = isOverCap(m.rating,b);
+      const tickClass = m.status==='verified'?'verified':(m.status==='provisional'?'provisional':(m.status==='self'?'self':''));
+      const tick = (m.status==='verified'||m.status==='provisional'||m.status==='self')
+        ? I.tick.replace('class="tick"',`class="tick ${tickClass}"`) : '';
+      const tag = over ? `<span class="ringertag">${I.alarm} Over cap</span>` : '';
+      return `<div class="nm"><span>${esc(m.name)}</span>${tick}${tag}<span class="pr tabnum${over?' over':''}">${fmt(m.rating)}</span></div>`;
+    }).join('');
+    const rankClass = idx===0?'podium1':(idx===1?'silver':'');
+    rows += `
+    <div class="team${ringer?' ringer':''}" style="animation-delay:${idx*55}ms">
+      <div class="head">
+        <div class="rankno ${rankClass}">${tm.rank}</div>
+        <div class="names">${memberHTML}</div>
+        <div class="teamrating">
+          <div class="num tabnum">${fmt(tm.teamRating)}</div>
+          <div class="lab">team</div>
+        </div>
+      </div>
+      <div class="powerwrap">
+        <div class="powerbar"><i data-w="${teamPct.toFixed(1)}"></i></div>
+        <div class="tr tabnum">${fmt(tm.teamRating)}</div>
+      </div>
+    </div>`;
+  });
+
+  // unweighed
+  const unweighed = b.awaitingCount>0 ? `
+    <div class="unweighed">
+      <div class="uh"><span>Unweighed</span><span class="ln"></span></div>
+      <div class="uw-card">
+        <div class="ic">${I.clock}</div>
+        <div class="tx">
+          <div class="big tabnum">${b.awaitingCount} team${b.awaitingCount>1?'s':''} awaiting a weigh-in</div>
+          <div class="sm">Not yet matched to a verified DUPR. They drop into the ladder the moment their rating clears.</div>
+        </div>
+      </div>
+    </div>` : '';
+
+  const ringerLine = b.ringers>0
+    ? `<b>${b.ringers}</b> ringer${b.ringers>1?'s':''} over the cap`
+    : (cap!=null ? 'no ringers over the cap' : 'open ceiling — no cap');
+
+  stage.innerHTML = `
+    <section class="tape-card">
+      <div class="toprow">
+        <span class="weightclass">${I.scale} ${weightClass(b)}</span>
+        <span class="div-cat">${b.cat}</span>
+      </div>
+      <div class="div-name">${esc(b.name)}</div>
+      <div class="verdict ${t.cls}">${t.icon}<span>${t.verb}</span></div>
+
+      <div class="avgrow">
+        <div class="avg-true">
+          <div class="lab">True field avg</div>
+          <div class="num tabnum">${fmt(b.liveAvg)}</div>
+        </div>
+        ${listedBlock}
+        ${avgGap}
+      </div>
+
+      <div class="strip">
+        <div class="cell in"><div class="n tabnum">${b.inRange}</div><div class="l">In window</div></div>
+        <div class="cell ring"><div class="n tabnum">${b.ringers}</div><div class="l">Ringers</div></div>
+        <div class="cell below"><div class="n tabnum">${b.below}</div><div class="l">Below floor</div></div>
+      </div>
+      <div class="coverage">
+        <span><b class="tabnum">${b.liveCount}</b> of <b class="tabnum">${b.total}</b> weighed in</span>
+        <span class="bar"><i style="width:${coverPct}%"></i></span>
+        <span class="tabnum">${coverPct}%</span>
+      </div>
+    </section>
+
+    <div class="section-head">
+      <div class="t">Power ladder · <b>strongest first</b></div>
+      <div class="scale">${fmt(lo)} – ${fmt(hi)} · ${ringerLine}</div>
+    </div>
+    <div class="ladder">${rows}</div>
+    ${unweighed}
+  `;
+
+  // animate power bars after paint
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    stage.querySelectorAll('.powerbar i').forEach(i=>{ i.style.width = i.dataset.w+'%'; });
+  }));
+}
+
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+select(0);
+</script>
+</body>
+</html>

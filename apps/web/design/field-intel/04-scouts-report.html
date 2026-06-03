@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Scout's Report — PickleRadar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#FBF7ED;
+    --card:#FFFDF8;
+    --card-pure:#FFFFFF;
+    --ink:#16201B;
+    --muted:#6B7670;
+    --faint:#9AA59E;
+    --accent:#065F46;
+    --accent-bright:#047857;
+    --accent-deep:#053E2E;
+    --tint:#ECFDF3;
+    --hair:#E8E3D5;
+    --hair-cool:#EAEDE9;
+    --in:#1F9D57;
+    --below:#AEB6BC;
+    --ringer:#E0483B;
+    --provisional:#D08700;
+    --self:#8A938D;
+    --shadow:0 18px 40px -24px rgba(6,40,30,0.28), 0 2px 8px -6px rgba(6,40,30,0.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:16px}
+  body{
+    font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    line-height:1.5;
+  }
+  .tnum{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+
+  /* ---------- Shell ---------- */
+  .shell{max-width:430px;margin:0 auto;padding:0 18px 64px;min-height:100vh}
+
+  /* ---------- Masthead ---------- */
+  .masthead{padding:22px 0 16px;border-bottom:2px solid var(--ink)}
+  .brandrow{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+  .mark{width:26px;height:26px;flex:none;color:var(--accent)}
+  .brandname{font-size:15px;font-weight:800;letter-spacing:-0.01em}
+  .brandname span{color:var(--accent)}
+  .kicker{
+    font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.16em;
+    color:var(--accent-bright);margin-bottom:7px;display:flex;align-items:center;gap:7px;
+  }
+  .kicker .rule{height:1px;flex:1;background:var(--hair)}
+  .masthead h1{
+    font-size:27px;font-weight:800;line-height:1.12;letter-spacing:-0.02em;
+    max-width:18ch;
+  }
+  .dateline{
+    margin-top:10px;font-size:12px;font-weight:600;color:var(--muted);
+    display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+  }
+  .dateline .dot{width:3px;height:3px;border-radius:50%;background:var(--faint)}
+  .byline{font-style:italic;color:var(--accent)}
+
+  /* ---------- Bracket selector ---------- */
+  .selector-wrap{position:sticky;top:0;z-index:20;background:var(--bg);
+    margin:0 -18px;padding:13px 18px 12px;border-bottom:1px solid var(--hair);
+  }
+  .selector-label{
+    font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;
+    color:var(--faint);margin-bottom:9px;
+  }
+  .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none;-ms-overflow-style:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{
+    flex:none;border:1px solid var(--hair);background:var(--card-pure);
+    color:var(--muted);font-family:inherit;font-size:13px;font-weight:700;
+    padding:8px 13px;border-radius:999px;cursor:pointer;white-space:nowrap;
+    transition:all .18s ease;display:flex;align-items:center;gap:7px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .chip:hover{border-color:var(--accent-bright);color:var(--accent)}
+  .chip.active{background:var(--ink);border-color:var(--ink);color:#fff}
+  .chip .flag{width:6px;height:6px;border-radius:50%;background:var(--ringer);box-shadow:0 0 0 3px rgba(224,72,59,.16)}
+  .chip.active .flag{box-shadow:0 0 0 3px rgba(224,72,59,.3)}
+
+  /* ---------- Report animation ---------- */
+  .report{padding-top:22px}
+  .report.swapping{opacity:0;transform:translateY(10px)}
+  .report{transition:opacity .34s ease, transform .34s cubic-bezier(.2,.7,.2,1)}
+
+  /* ---------- Tone tag ---------- */
+  .tone-tag{
+    display:inline-flex;align-items:center;gap:7px;
+    font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;
+    padding:5px 11px;border-radius:999px;margin-bottom:15px;
+  }
+  .tone-tag svg{width:13px;height:13px}
+  .tone-sandbagger{background:#FCEBE8;color:#B8362B}
+  .tone-stacked{background:#FBF0DD;color:#9A6800}
+  .tone-competitive{background:var(--tint);color:var(--accent)}
+  .tone-friendly{background:#EEF4EF;color:#4A6B57}
+
+  /* ---------- Headline verdict ---------- */
+  .verdict{
+    font-size:29px;font-weight:800;line-height:1.13;letter-spacing:-0.025em;
+    margin-bottom:16px;max-width:17ch;
+  }
+  .verdict .hl{color:var(--ringer);position:relative;white-space:nowrap}
+  .verdict .hl-em{color:var(--accent)}
+
+  /* ---------- Lede ---------- */
+  .lede{
+    font-size:16.5px;font-weight:500;line-height:1.62;color:#28332C;
+    max-width:38ch;margin-bottom:6px;
+  }
+  .lede .name{font-weight:700;color:var(--ink)}
+  .lede .num{font-weight:700;font-variant-numeric:tabular-nums}
+  .lede .num.up{color:var(--ringer)}
+  .lede .num.good{color:var(--accent)}
+  .lede::first-letter{
+    float:left;font-size:50px;font-weight:800;line-height:.78;
+    padding:6px 9px 0 0;color:var(--accent);
+  }
+
+  /* ---------- Section heads ---------- */
+  .sec-head{
+    display:flex;align-items:baseline;gap:9px;margin:30px 0 14px;
+  }
+  .sec-head .n{
+    font-size:11px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;
+    color:var(--accent-bright);
+  }
+  .sec-head h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted)}
+  .sec-head .rule{height:1px;flex:1;background:var(--hair);align-self:center}
+
+  /* ---------- Player to watch ---------- */
+  .watch{
+    background:var(--card);border:1px solid var(--hair);border-radius:18px;
+    box-shadow:var(--shadow);padding:18px 18px 19px;position:relative;overflow:hidden;
+  }
+  .watch::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:4px;
+    background:var(--accent);
+  }
+  .watch.is-ringer::before{background:var(--ringer)}
+  .watch-eyebrow{
+    font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.13em;
+    color:var(--faint);margin-bottom:13px;display:flex;align-items:center;gap:6px;
+  }
+  .watch-eyebrow svg{width:13px;height:13px;color:var(--accent-bright)}
+  .watch.is-ringer .watch-eyebrow svg{color:var(--ringer)}
+  .watch-main{display:flex;align-items:center;gap:14px}
+  .avatar{
+    width:54px;height:54px;flex:none;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.02em;
+    background:linear-gradient(140deg,var(--accent-bright),var(--accent-deep));
+  }
+  .watch.is-ringer .avatar{background:linear-gradient(140deg,#E0483B,#A32417)}
+  .watch-id{flex:1;min-width:0}
+  .watch-name{font-size:19px;font-weight:800;letter-spacing:-0.01em;line-height:1.15;display:flex;align-items:center;gap:7px}
+  .watch-sub{font-size:12.5px;font-weight:600;color:var(--muted);margin-top:2px}
+  .watch-rating{text-align:right;flex:none}
+  .watch-rating .num{font-size:28px;font-weight:800;line-height:1;letter-spacing:-0.02em;font-variant-numeric:tabular-nums}
+  .watch.is-ringer .watch-rating .num{color:var(--ringer)}
+  .watch:not(.is-ringer) .watch-rating .num{color:var(--accent)}
+  .watch-rating .lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--faint);margin-top:3px}
+  .watch-why{
+    margin-top:15px;padding-top:14px;border-top:1px solid var(--hair);
+    font-size:14px;font-weight:500;line-height:1.55;color:#2C372F;
+  }
+  .watch-why .em{font-weight:700;color:var(--ink)}
+  .verified-tick{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:16px;height:16px;border-radius:50%;background:var(--in);color:#fff;flex:none;
+  }
+  .verified-tick svg{width:10px;height:10px}
+
+  /* ---------- Stat block ---------- */
+  .statblock{margin-top:4px}
+  .stat-row{
+    display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+    padding:14px 0;border-bottom:1px solid var(--hair);
+  }
+  .stat-row:last-child{border-bottom:none}
+  .stat-key{font-size:13px;font-weight:600;color:var(--muted);padding-top:3px;max-width:15ch}
+  .stat-val{text-align:right;flex:none}
+  .stat-val .big{font-size:23px;font-weight:800;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;line-height:1.05}
+  .stat-val .strike{font-size:13px;font-weight:600;color:var(--faint);text-decoration:line-through;text-decoration-thickness:1.5px;margin-left:7px}
+  .stat-val .unit{font-size:12px;font-weight:600;color:var(--muted);margin-left:3px}
+  .stat-val .sub{font-size:11.5px;font-weight:600;color:var(--faint);margin-top:3px}
+  .delta{
+    display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:700;
+    padding:2px 7px;border-radius:6px;margin-left:7px;vertical-align:middle;
+    font-variant-numeric:tabular-nums;
+  }
+  .delta.up{background:#FCEBE8;color:var(--ringer)}
+  .delta.flat{background:#EEF4EF;color:var(--accent)}
+  .delta svg{width:11px;height:11px}
+  .pill-count{display:inline-flex;align-items:center;gap:5px;font-weight:800}
+  .pill-count .swatch{width:9px;height:9px;border-radius:2.5px;flex:none}
+
+  /* ---------- The field, ranked ---------- */
+  .ranked-list{margin-top:2px}
+  .team-row{
+    display:flex;align-items:center;gap:13px;padding:13px 2px;
+    border-bottom:1px solid var(--hair);
+  }
+  .team-row:first-child{padding-top:6px}
+  .team-rank{
+    font-size:13px;font-weight:800;color:var(--faint);width:20px;flex:none;
+    font-variant-numeric:tabular-nums;text-align:center;
+  }
+  .team-row.lead .team-rank{color:var(--accent)}
+  .team-names{flex:1;min-width:0}
+  .team-names .nm{font-size:14.5px;font-weight:700;letter-spacing:-0.01em;line-height:1.3}
+  .team-names .nm .v{display:inline-flex;vertical-align:middle;margin-left:3px}
+  .team-names .nm .ring{color:var(--ringer)}
+  .team-names .meta{font-size:11.5px;font-weight:600;color:var(--faint);margin-top:2px;font-variant-numeric:tabular-nums}
+  .team-tr{flex:none;text-align:right}
+  .team-tr .num{font-size:17px;font-weight:800;letter-spacing:-0.02em;font-variant-numeric:tabular-nums}
+  .team-row.lead .team-tr .num{color:var(--accent)}
+  .team-tr .lbl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--faint);margin-top:1px}
+  .ring-flag{
+    display:inline-flex;align-items:center;gap:4px;margin-top:4px;
+    font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--ringer);
+  }
+  .ring-flag svg{width:11px;height:11px}
+  .awaiting{
+    display:flex;align-items:center;gap:9px;margin-top:15px;padding:13px 15px;
+    background:var(--card-pure);border:1px dashed var(--hair);border-radius:13px;
+    font-size:13px;font-weight:600;color:var(--muted);line-height:1.45;
+  }
+  .awaiting svg{width:17px;height:17px;flex:none;color:var(--faint)}
+  .awaiting b{color:var(--ink);font-weight:800}
+  .empty-state{
+    text-align:center;padding:34px 20px;background:var(--card-pure);
+    border:1px dashed var(--hair);border-radius:16px;
+  }
+  .empty-state svg{width:30px;height:30px;color:var(--faint);margin-bottom:10px}
+  .empty-state .t{font-size:15px;font-weight:800;margin-bottom:5px}
+  .empty-state .d{font-size:13px;font-weight:500;color:var(--muted);max-width:30ch;margin:0 auto;line-height:1.5}
+
+  /* ---------- How we know ---------- */
+  .howwe{
+    margin-top:30px;padding:16px 17px;background:rgba(6,95,70,0.035);
+    border:1px solid var(--hair-cool);border-radius:14px;
+  }
+  .howwe .h{
+    font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;
+    color:var(--accent);margin-bottom:9px;display:flex;align-items:center;gap:7px;
+  }
+  .howwe .h svg{width:13px;height:13px}
+  .howwe p{font-size:12.5px;font-weight:500;line-height:1.6;color:var(--muted)}
+  .howwe .legend{display:flex;flex-wrap:wrap;gap:11px 16px;margin-top:11px}
+  .howwe .lg{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--muted)}
+  .howwe .lg .sw{width:9px;height:9px;border-radius:3px;flex:none}
+
+  .footer{margin-top:26px;text-align:center;font-size:11px;font-weight:600;color:var(--faint);letter-spacing:0.02em}
+
+  @media (min-width:768px){
+    .shell{max-width:680px;padding-bottom:80px}
+    .masthead h1{font-size:34px}
+    .verdict{font-size:38px;max-width:20ch}
+    .lede{font-size:18px}
+    .selector-wrap{margin:0 -18px}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Masthead -->
+  <header class="masthead">
+    <div class="brandrow">
+      <svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <circle cx="16" cy="16" r="13" stroke="currentColor" stroke-width="1.8" opacity="0.28"/>
+        <circle cx="16" cy="16" r="8" stroke="currentColor" stroke-width="1.8" opacity="0.55"/>
+        <circle cx="16" cy="16" r="2.6" fill="currentColor"/>
+        <path d="M16 16 L26 8" stroke="#047857" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <span class="brandname">Pickle<span>Radar</span></span>
+    </div>
+    <div class="kicker"><span>The Scout's Report</span><span class="rule"></span></div>
+    <h1>The Village Mini Tournament</h1>
+    <div class="dateline">
+      <span>DUPR 3.499 &amp; Under</span><span class="dot"></span>
+      <span>9 divisions</span><span class="dot"></span>
+      <span class="byline">Scouted by PickleRadar</span>
+    </div>
+  </header>
+
+  <!-- Bracket selector -->
+  <div class="selector-wrap">
+    <div class="selector-label">Pick your division</div>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <!-- Report -->
+  <main class="report" id="report"></main>
+
+  <div class="footer">Field intel refreshed from verified DUPR · PickleRadar</div>
+</div>
+
+<script>
+const DATA = {"tournament":"The Village Mini Tournament (DUPR 3.499 and Under)","brackets":[{"id":"19f9b07c","name":"Mens Doubles","cat":"Men's","skillMin":null,"skillMax":3.5,"registered":30,"liveAvg":2.93,"listedAvg":2.78,"total":60,"liveCount":28,"inRange":59,"below":0,"ringers":1,"ratingMin":2,"ratingMax":3.65,"tone":"sandbagger","ranked":[{"rank":1,"teamRating":3.4,"members":[{"name":"Mateus Brisot Silva","rating":3.37,"status":"verified"},{"name":"Raul Gonzalo","rating":3.43,"status":"verified"}]},{"rank":2,"teamRating":3.27,"members":[{"name":"Richard Turner","rating":3.27,"status":"verified"},{"name":"Brandon Christa","rating":3.27,"status":"verified"}]},{"rank":3,"teamRating":3.25,"members":[{"name":"Sagar Singh","rating":3.33,"status":"verified"},{"name":"Nikhil Kotian","rating":3.16,"status":"verified"}]},{"rank":4,"teamRating":3.07,"members":[{"name":"Edmond Lam","rating":3.39,"status":"verified"},{"name":"Fazz Zainuddin","rating":2.74,"status":"verified"}]},{"rank":5,"teamRating":3.07,"members":[{"name":"Shawn Xu","rating":3.21,"status":"verified"},{"name":"Ryan Ritchey","rating":2.93,"status":"verified"}]},{"rank":6,"teamRating":2.88,"members":[{"name":"Joshua Canada","rating":3,"status":"verified"},{"name":"Tyler Francis","rating":2.76,"status":"verified"}]},{"rank":7,"teamRating":2.61,"members":[{"name":"Jeffrey Toys","rating":2.53,"status":"verified"},{"name":"Kevin Vineyard","rating":2.68,"status":"verified"}]}],"awaitingCount":30},{"id":"aec82c75","name":"Mixed Doubles","cat":"Mixed","skillMin":null,"skillMax":3.5,"registered":29,"liveAvg":2.98,"listedAvg":2.7,"total":56,"liveCount":25,"inRange":55,"below":0,"ringers":1,"ratingMin":2.26,"ratingMax":4.16,"tone":"sandbagger","ranked":[{"rank":1,"teamRating":3.48,"members":[{"name":"Tricia Schulze","rating":2.8,"status":"verified"},{"name":"Raj Nair","rating":4.16,"status":"verified"}]},{"rank":2,"teamRating":3.29,"members":[{"name":"Angela Pho","rating":3.12,"status":"verified"},{"name":"Chacha Horombe","rating":3.46,"status":"verified"}]},{"rank":3,"teamRating":3.14,"members":[{"name":"Victoria Tran","rating":3.3,"status":"verified"},{"name":"LeMichael Nguyen","rating":2.98,"status":"verified"}]},{"rank":4,"teamRating":2.99,"members":[{"name":"Ruby Pulgar","rating":2.55,"status":"verified"},{"name":"Raul Gonzalo","rating":3.43,"status":"verified"}]},{"rank":5,"teamRating":2.96,"members":[{"name":"Maria Dimacali","rating":2.79,"status":"verified"},{"name":"Aldwin Dimacali","rating":3.13,"status":"verified"}]},{"rank":6,"teamRating":2.8,"members":[{"name":"Kimberly Hall","rating":2.86,"status":"verified"},{"name":"Fazz Zainuddin","rating":2.74,"status":"verified"}]},{"rank":7,"teamRating":2.74,"members":[{"name":"Sally Spieldenner","rating":2.26,"status":"verified"},{"name":"Shawn Xu","rating":3.21,"status":"verified"}]}],"awaitingCount":28},{"id":"ca5a11a7","name":"Men's Doubles (3.0)","cat":"Men's","skillMin":3,"skillMax":3.5,"registered":24,"liveAvg":3.06,"listedAvg":2.96,"total":48,"liveCount":24,"inRange":41,"below":7,"ringers":0,"ratingMin":2.5,"ratingMax":3.5,"tone":"friendly","ranked":[{"rank":1,"teamRating":3.28,"members":[{"name":"Morgan Dees","rating":3.27,"status":"verified"},{"name":"Brian Bay","rating":3.28,"status":"verified"}]},{"rank":2,"teamRating":3.28,"members":[{"name":"Ramon Lebron","rating":3.42,"status":"verified"},{"name":"Ramon Lebron-velilla","rating":3.13,"status":"verified"}]},{"rank":3,"teamRating":3.23,"members":[{"name":"Leonidas Otalora","rating":3.19,"status":"verified"},{"name":"Alex Caridad","rating":3.27,"status":"verified"}]},{"rank":4,"teamRating":3.23,"members":[{"name":"Franklin Tu","rating":3.02,"status":"verified"},{"name":"Zach Godlewski","rating":3.44,"status":"verified"}]},{"rank":5,"teamRating":3.21,"members":[{"name":"Bao Duong","rating":3.16,"status":"verified"},{"name":"Dinh Long Tran","rating":3.25,"status":"verified"}]},{"rank":6,"teamRating":3.14,"members":[{"name":"Jack Lafferty","rating":3.35,"status":"verified"},{"name":"Noah Lafferty","rating":2.93,"status":"verified"}]},{"rank":7,"teamRating":2.95,"members":[{"name":"Raiyan Khan","rating":3.15,"status":"verified"},{"name":"Roy Garza-Rodriguez","rating":2.74,"status":"verified"}]},{"rank":8,"teamRating":2.88,"members":[{"name":"Jasper Bernardo","rating":2.7,"status":"verified"},{"name":"Quang D Nguyen","rating":3.05,"status":"verified"}]}],"awaitingCount":24},{"id":"e714e937","name":"Women's Doubles (3.5)","cat":"Women's","skillMin":3.5,"skillMax":4,"registered":11,"liveAvg":3.48,"listedAvg":3.23,"total":22,"liveCount":18,"inRange":14,"below":8,"ringers":0,"ratingMin":2.63,"ratingMax":4,"tone":"friendly","ranked":[{"rank":1,"teamRating":3.7,"members":[{"name":"Janet Kwon","rating":3.61,"status":"verified"},{"name":"PhiYen Norris","rating":3.78,"status":"verified"}]},{"rank":2,"teamRating":3.64,"members":[{"name":"Darleen Castillo","rating":3.38,"status":"verified"},{"name":"Anna Roehm","rating":3.9,"status":"verified"}]},{"rank":3,"teamRating":3.63,"members":[{"name":"Tatiana Marroquin","rating":3.73,"status":"verified"},{"name":"Diane Shao","rating":3.53,"status":"verified"}]},{"rank":4,"teamRating":3.54,"members":[{"name":"Kiely Whitham","rating":3.63,"status":"verified"},{"name":"Ambra Gordner","rating":3.44,"status":"verified"}]},{"rank":5,"teamRating":3.53,"members":[{"name":"Abbie Palmieri","rating":3.53,"status":"verified"},{"name":"Amy Palmieri","rating":3.53,"status":"verified"}]},{"rank":6,"teamRating":3.4,"members":[{"name":"Vy Do","rating":3.38,"status":"verified"},{"name":"Yuki Kaneda","rating":3.42,"status":"verified"}]},{"rank":7,"teamRating":3.33,"members":[{"name":"Stephanie Babin","rating":3.14,"status":"verified"},{"name":"Colleen Stockert","rating":3.52,"status":"verified"}]}],"awaitingCount":11},{"id":"06a3595d","name":"Men's Doubles (3.5)","cat":"Men's","skillMin":3.5,"skillMax":4,"registered":18,"liveAvg":3.4,"listedAvg":3.33,"total":36,"liveCount":16,"inRange":26,"below":10,"ringers":0,"ratingMin":2.5,"ratingMax":3.86,"tone":"friendly","ranked":[{"rank":1,"teamRating":3.71,"members":[{"name":"Sam Wu","rating":3.79,"status":"verified"},{"name":"kanishk chatterjee","rating":3.62,"status":"verified"}]},{"rank":2,"teamRating":3.6,"members":[{"name":"Ellis Detoro","rating":3.64,"status":"verified"},{"name":"Lung Lui","rating":3.56,"status":"verified"}]},{"rank":3,"teamRating":3.57,"members":[{"name":"Hatim Chafi","rating":3.29,"status":"verified"},{"name":"Justin Ojemi","rating":3.84,"status":"verified"}]}],"awaitingCount":18},{"id":"7f83e3ae","name":"Mixed Doubles (3.5)","cat":"Mixed","skillMin":3.5,"skillMax":4,"registered":16,"liveAvg":3.45,"listedAvg":3.19,"total":32,"liveCount":14,"inRange":22,"below":10,"ringers":0,"ratingMin":2.5,"ratingMax":3.97,"tone":"friendly","ranked":[{"rank":1,"teamRating":3.79,"members":[{"name":"Tatiana Marroquin","rating":3.73,"status":"verified"},{"name":"Justin Ojemi","rating":3.84,"status":"verified"}]},{"rank":2,"teamRating":3.62,"members":[{"name":"Vy Do","rating":3.38,"status":"verified"},{"name":"Kenry Le","rating":3.85,"status":"verified"}]},{"rank":3,"teamRating":3.57,"members":[{"name":"Leida Vazquez","rating":3.35,"status":"verified"},{"name":"Jimmy Leatherwood","rating":3.79,"status":"verified"}]},{"rank":4,"teamRating":3.49,"members":[{"name":"Camry Houston","rating":3.16,"status":"verified"},{"name":"Adan Diaz","rating":3.82,"status":"verified"}]},{"rank":5,"teamRating":3.36,"members":[{"name":"Raquetta Portalatin","rating":3.96,"status":"verified"},{"name":"Todd Lovejoy","rating":2.76,"status":"verified"}]}],"awaitingCount":16},{"id":"5a2183a7","name":"Mixed Doubles (3.0)","cat":"Mixed","skillMin":3,"skillMax":3.5,"registered":20,"liveAvg":2.95,"listedAvg":2.75,"total":40,"liveCount":11,"inRange":33,"below":7,"ringers":0,"ratingMin":2,"ratingMax":3.42,"tone":"friendly","ranked":[{"rank":1,"teamRating":3.33,"members":[{"name":"Tara Coates","rating":3.24,"status":"verified"},{"name":"Edward Muniz","rating":3.42,"status":"verified"}]},{"rank":2,"teamRating":2.99,"members":[{"name":"Safieh Hill","rating":2.92,"status":"verified"},{"name":"Carlo Badiola","rating":3.05,"status":"verified"}]}],"awaitingCount":20},{"id":"0fe75bee","name":"Men's Doubles Ladder Round Robin 3.5+ ONLY","cat":"Men's","skillMin":3.5,"skillMax":null,"registered":19,"liveAvg":3.77,"listedAvg":3.21,"total":19,"liveCount":11,"inRange":13,"below":6,"ringers":0,"ratingMin":2,"ratingMax":5.32,"tone":"competitive","ranked":[{"rank":1,"teamRating":5.32,"members":[{"name":"Austin Mireles","rating":5.32,"status":"verified"}]},{"rank":2,"teamRating":5.02,"members":[{"name":"Steve Parshin","rating":5.02,"status":"verified"}]},{"rank":3,"teamRating":4.75,"members":[{"name":"Jeffrey Raley","rating":4.75,"status":"verified"}]},{"rank":4,"teamRating":4.48,"members":[{"name":"Asad Hassan","rating":4.48,"status":"verified"}]},{"rank":5,"teamRating":4.4,"members":[{"name":"Arnaud Cocquerel","rating":4.4,"status":"verified"}]},{"rank":6,"teamRating":4.27,"members":[{"name":"Brandon Cheng","rating":4.27,"status":"verified"}]},{"rank":7,"teamRating":4.16,"members":[{"name":"Scott Morrow","rating":4.16,"status":"verified"}]},{"rank":8,"teamRating":3.92,"members":[{"name":"Phi Tieu","rating":3.92,"status":"verified"}]},{"rank":9,"teamRating":3.91,"members":[{"name":"Hridesh Maggo","rating":3.91,"status":"verified"}]},{"rank":10,"teamRating":3.89,"members":[{"name":"Jaideep Singh","rating":3.89,"status":"verified"}]},{"rank":11,"teamRating":3.05,"members":[{"name":"Maurice Bell","rating":3.05,"status":"verified"}]}],"awaitingCount":19}]};
+
+// ---------- helpers ----------
+const fmt = n => (n==null? '—' : Number(n).toFixed(2));
+const cap = s => s.replace(/\b\w/g, c=>c.toUpperCase());
+function shortName(full){
+  // tidy lowercase/odd casing for display
+  return full.split(' ').map(w => w.length>2 ? w[0].toUpperCase()+w.slice(1).toLowerCase() : w[0].toUpperCase()+w.slice(1)).join(' ');
+}
+function initials(name){
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0]||'') + (parts[parts.length-1]?.[0]||'')).toUpperCase();
+}
+function windowLabel(b){
+  if(b.skillMin!=null && b.skillMax!=null) return fmt(b.skillMin)+'–'+fmt(b.skillMax);
+  if(b.skillMax!=null) return 'up to '+fmt(b.skillMax);
+  if(b.skillMin!=null) return fmt(b.skillMin)+' & up';
+  return 'open';
+}
+function chipTitle(b){
+  // shorten long names for chip
+  let n = b.name.replace('Men\'s','M').replace('Mens','M').replace('Women\'s','W').replace('Mixed','Mx');
+  n = n.replace('Doubles Ladder Round Robin 3.5+ ONLY','Ladder 3.5+').replace(' Doubles','');
+  return n;
+}
+
+// SVG snippets
+const SVG = {
+  alarm:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0Z"/></svg>',
+  layers:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18 8.1 4.05a.5.5 0 0 1 0 .9l-8.1 4.05a2 2 0 0 1-1.66 0L3.06 7.13a.5.5 0 0 1 0-.9l8.11-4.05a2 2 0 0 1 1.66 0Z"/><path d="m6 11 5.17 2.59a2 2 0 0 0 1.66 0L18 11"/><path d="m6 16 5.17 2.59a2 2 0 0 0 1.66 0L18 16"/></svg>',
+  eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0Z"/><circle cx="12" cy="12" r="3"/></svg>',
+  swords:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/><line x1="5" y1="14" x2="9" y2="18"/><line x1="7" y1="17" x2="4" y2="20"/><line x1="3" y1="19" x2="5" y2="21"/></svg>',
+  handshake:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>',
+  info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>',
+};
+
+const TONE = {
+  sandbagger:{cls:'tone-sandbagger',icon:SVG.alarm,word:'Sandbagger alert'},
+  stacked:{cls:'tone-stacked',icon:SVG.layers,word:'Top-heavy field'},
+  competitive:{cls:'tone-competitive',icon:SVG.swords,word:'Competitive field'},
+  friendly:{cls:'tone-friendly',icon:SVG.handshake,word:'Friendly field'},
+};
+
+const tick = '<span class="verified-tick">'+SVG.check+'</span>';
+
+// ---------- find the ringer / top player across the field ----------
+function topPlayer(b){
+  let best=null;
+  b.ranked.forEach(t=>t.members.forEach(m=>{
+    if(!best || m.rating>best.rating) best={...m, teamRating:t.teamRating, partners:t.members};
+  }));
+  return best;
+}
+function isRinger(b, p){
+  return b.skillMax!=null && p.rating > b.skillMax;
+}
+
+// ---------- VERDICT generator ----------
+function buildVerdict(b){
+  const top = topPlayer(b);
+  const gap = (b.listedAvg!=null && b.liveAvg!=null) ? (b.liveAvg-b.listedAvg) : 0;
+  if(b.tone==='sandbagger' && top && isRinger(b,top)){
+    const partner = top.partners.find(m=>m.name!==top.name);
+    return `Beware — a <span class="hl">${fmt(top.rating)}</span> is hiding in a ${fmt(b.skillMax)} field.`;
+  }
+  if(b.tone==='competitive'){
+    return `Top of the field is a <span class="hl-em">class apart</span> — ${fmt(top.rating)} sits on an open ceiling.`;
+  }
+  if(b.tone==='stacked'){
+    return `Top-heavy — the lead seeds are a <span class="hl-em">class above</span> the pack.`;
+  }
+  // friendly
+  return `An honest <span class="hl-em">${windowLabel(b)}</span> field — true to the bracket, no shocks.`;
+}
+
+// ---------- LEDE generator ----------
+function buildLede(b){
+  const top = topPlayer(b);
+  const gap = (b.listedAvg!=null && b.liveAvg!=null) ? (b.liveAvg-b.listedAvg) : 0;
+  const N = (n)=>`<span class="name">${shortName(n)}</span>`;
+  const numUp = v=>`<span class="num up">${fmt(v)}</span>`;
+  const numGood = v=>`<span class="num good">${fmt(v)}</span>`;
+  const num = v=>`<span class="num">${fmt(v)}</span>`;
+
+  if(b.tone==='sandbagger' && top && isRinger(b,top)){
+    const partner = top.partners.find(m=>m.name!==top.name);
+    return `Don't be fooled by the cap. ${N(top.name)} (${numUp(top.rating)}) towers over a field that truly averages ${num(b.liveAvg)} — well clear of the ${fmt(b.skillMax)} ceiling this bracket promised. `+
+    (partner?`Paired down with ${shortName(partner.name)} at ${fmt(partner.rating)}, it's the textbook sandbag: a real ${fmt(top.rating)} buying a soft seed. `:'')+
+    `The room listed itself at ${fmt(b.listedAvg)} and verifies near the same — so the danger isn't the average, it's the one name at the top.`;
+  }
+  if(b.tone==='competitive'){
+    const second = b.ranked[1]?.members[0];
+    return `Deep water. This open-ceiling ladder is headlined by ${N(top.name)} at ${numUp(top.rating)}`+
+    (second?`, with ${shortName(second.name)} (${fmt(second.rating)}) a stride behind`:'')+
+    ` — a true ${fmt(b.ratingMax)} ceiling over a field that lives at ${num(b.liveAvg)}. Players self-listed at ${fmt(b.listedAvg)}, but live ratings run a half-point hotter. The 3.5 floor won't protect you here.`;
+  }
+  // friendly
+  const lead = b.ranked[0];
+  return `Honest bracket, no surprises. The room verifies at ${numGood(b.liveAvg)} against a ${windowLabel(b)} window — right where it should sit, with no ringer lurking above the cap. `+
+  (lead?`${N(lead.members[0].name)} & ${shortName(lead.members[1]?lead.members[1].name:lead.members[0].name)} pace the field at ${fmt(lead.teamRating)}. `:'')+
+  `Players listed themselves a touch low (${fmt(b.listedAvg)}); the live read of ${fmt(b.liveAvg)} says competitive but fair.`;
+}
+
+// ---------- WATCH why-line ----------
+function buildWhy(b, top){
+  if(isRinger(b,top)){
+    const over = (top.rating - b.skillMax);
+    return `Verified <span class="em">${fmt(top.rating)}</span> — a full <span class="em">${over.toFixed(2)}</span> above this bracket's ${fmt(b.skillMax)} cap. If you've drawn into this division, this is the team that can't lose to the field. Plan around them.`;
+  }
+  if(b.tone==='competitive'){
+    return `Verified <span class="em">${fmt(top.rating)}</span> on an open ceiling — the strongest confirmed rating in the event. Everyone else is playing for second unless they bring it.`;
+  }
+  return `The highest verified rating in the bracket at <span class="em">${fmt(top.rating)}</span>. Squarely in-window — strong, but no unfair edge. Beat them straight up.`;
+}
+
+// ---------- render one report ----------
+function render(b){
+  const top = topPlayer(b);
+  const ringer = top && isRinger(b,top);
+  const tone = TONE[b.tone] || TONE.friendly;
+  const gap = (b.listedAvg!=null && b.liveAvg!=null) ? (b.liveAvg-b.listedAvg) : 0;
+
+  // stat block deltas
+  const gapBig = Math.abs(gap) >= 0.15;
+  const deltaHtml = gap>0
+    ? `<span class="delta ${gapBig?'up':'flat'}">${SVG.up} +${gap.toFixed(2)}</span>`
+    : '';
+
+  // ranked rows (top 5)
+  const shown = b.ranked.slice(0,5);
+  const rowsHtml = shown.map(t=>{
+    const hasRinger = t.members.some(m=>isRinger(b,m));
+    const names = t.members.map(m=>{
+      const r = isRinger(b,m);
+      return `<span class="${r?'ring':''}">${shortName(m.name)}</span>`;
+    }).join(' &amp; ');
+    const ratings = t.members.map(m=>fmt(m.rating)).join(' · ');
+    return `
+      <div class="team-row ${t.rank===1?'lead':''}">
+        <div class="team-rank tnum">${t.rank}</div>
+        <div class="team-names">
+          <div class="nm">${names} ${tick}</div>
+          <div class="meta tnum">${ratings}${hasRinger?'':''}</div>
+          ${hasRinger?`<div class="ring-flag">${SVG.alarm} Ringer aboard</div>`:''}
+        </div>
+        <div class="team-tr">
+          <div class="num tnum">${fmt(t.teamRating)}</div>
+          <div class="lbl">team</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  const rankedBlock = shown.length
+    ? `<div class="ranked-list">${rowsHtml}</div>
+       <div class="awaiting">${SVG.clock}<div>Showing the <b>${shown.length}</b> verified teams. <b>+${b.awaitingCount}</b> ${b.awaitingCount===1?'team is':'teams are'} registered but awaiting a confirmed DUPR.</div></div>`
+    : `<div class="empty-state">${SVG.clock}<div class="t">Field not yet verifiable</div><div class="d">All ${b.awaitingCount} registered ${b.awaitingCount===1?'team is':'teams are'} still awaiting a confirmed DUPR. Check back as ratings sync.</div></div>`;
+
+  const isDoubles = top && top.partners && top.partners.length>1;
+  const partner = isDoubles ? top.partners.find(m=>m.name!==top.name) : null;
+
+  return `
+    <div class="tone-tag ${tone.cls}">${tone.icon}${tone.word}</div>
+    <div class="verdict">${buildVerdict(b)}</div>
+    <p class="lede">${buildLede(b)}</p>
+
+    <div class="sec-head"><span class="n">01</span><h2>${ringer?'The ringer to watch':'Player to watch'}</h2><span class="rule"></span></div>
+    <div class="watch ${ringer?'is-ringer':''}">
+      <div class="watch-eyebrow">${ringer?SVG.alarm:SVG.eye} ${ringer?'Over the cap':'Top of the field'}</div>
+      <div class="watch-main">
+        <div class="avatar">${initials(top.name)}</div>
+        <div class="watch-id">
+          <div class="watch-name">${shortName(top.name)} ${tick}</div>
+          <div class="watch-sub">${partner?'Paired with '+shortName(partner.name)+' ('+fmt(partner.rating)+')':'Verified DUPR · in-window'}</div>
+        </div>
+        <div class="watch-rating">
+          <div class="num tnum">${fmt(top.rating)}</div>
+          <div class="lbl">DUPR</div>
+        </div>
+      </div>
+      <div class="watch-why">${buildWhy(b, top)}</div>
+    </div>
+
+    <div class="sec-head"><span class="n">02</span><h2>The field, by the numbers</h2><span class="rule"></span></div>
+    <div class="statblock">
+      <div class="stat-row">
+        <div class="stat-key">True field average</div>
+        <div class="stat-val">
+          <span class="big tnum">${fmt(b.liveAvg)}</span><span class="strike tnum">${fmt(b.listedAvg)}</span>${deltaHtml}
+          <div class="sub">verified DUPR vs. self-listed at signup</div>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-key">Field range</div>
+        <div class="stat-val">
+          <span class="big tnum">${fmt(b.ratingMin)}–${fmt(b.ratingMax)}</span>
+          <div class="sub">${windowLabel(b)} window</div>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-key">In window / ringers / below</div>
+        <div class="stat-val">
+          <span class="big">
+            <span class="pill-count" style="color:var(--in)"><span class="swatch" style="background:var(--in)"></span>${b.inRange}</span>
+            <span style="color:var(--faint);font-weight:600;margin:0 4px">·</span>
+            <span class="pill-count" style="color:${b.ringers>0?'var(--ringer)':'var(--faint)'}"><span class="swatch" style="background:${b.ringers>0?'var(--ringer)':'var(--below)'}"></span>${b.ringers}</span>
+            <span style="color:var(--faint);font-weight:600;margin:0 4px">·</span>
+            <span class="pill-count" style="color:var(--muted)"><span class="swatch" style="background:var(--below)"></span>${b.below}</span>
+          </span>
+          <div class="sub">${b.ringers>0?'One name plays above the cap':'No one above the cap'}</div>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-key">Verified coverage</div>
+        <div class="stat-val">
+          <span class="big tnum">${b.liveCount}<span class="unit">/ ${b.total}</span></span>
+          <div class="sub">${Math.round(b.liveCount/b.total*100)}% of players have a live DUPR</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-head"><span class="n">03</span><h2>The field, ranked</h2><span class="rule"></span></div>
+    ${rankedBlock}
+
+    <div class="howwe">
+      <div class="h">${SVG.info} How we know</div>
+      <p><b style="color:var(--accent)">Live DUPR</b> is each player's verified, match-tested rating — what we scout from. <b style="color:var(--ink)">Self-listed</b> is what they typed at signup, which often runs low. When the two diverge, the gap is where the sandbaggers live.</p>
+      <div class="legend">
+        <span class="lg"><span class="sw" style="background:var(--in)"></span>In window</span>
+        <span class="lg"><span class="sw" style="background:var(--ringer)"></span>Over the cap (ringer)</span>
+        <span class="lg"><span class="sw" style="background:var(--below)"></span>Below floor</span>
+        <span class="lg">${tick} Verified live DUPR</span>
+      </div>
+    </div>
+  `;
+}
+
+// ---------- wire up ----------
+const chipsEl = document.getElementById('chips');
+const reportEl = document.getElementById('report');
+let active = 0;
+
+DATA.brackets.forEach((b,i)=>{
+  const chip = document.createElement('button');
+  chip.className = 'chip'+(i===0?' active':'');
+  const flag = (b.ringers>0) ? '<span class="flag" title="ringer detected"></span>' : '';
+  chip.innerHTML = flag+chipTitle(b);
+  chip.addEventListener('click',()=>select(i,chip));
+  chipsEl.appendChild(chip);
+});
+
+function select(i, chipEl){
+  if(i===active && reportEl.innerHTML) return;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  chipEl.classList.add('active');
+  active = i;
+  reportEl.classList.add('swapping');
+  setTimeout(()=>{
+    reportEl.innerHTML = render(DATA.brackets[i]);
+    reportEl.scrollTop = 0;
+    requestAnimationFrame(()=>reportEl.classList.remove('swapping'));
+  }, 200);
+}
+
+// initial
+reportEl.innerHTML = render(DATA.brackets[0]);
+</script>
+</body>
+</html>
