@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { TournamentEvent } from "@/lib/types";
 import { TeamLeaderboard } from "./team-leaderboard";
 import { DuprDistribution } from "./dupr-distribution";
+import { FieldHonesty } from "./field-honesty";
 import { FieldStrip } from "./field-strip";
 import { eventIntel, registrantLabel } from "@/lib/field-intel";
 
@@ -95,7 +96,8 @@ export function EventCard({ event }: { event: TournamentEvent }) {
       )}
 
       {expanded && hasPlayers && (
-        <div className="border-t border-gray-100 bg-[#fbfcfb] px-4 pb-4 pt-2 sm:px-5">
+        <div className="border-t border-gray-100 bg-[#fbfcfb] px-4 pb-4 pt-3 sm:px-5">
+          <FieldHonesty event={event} />
           <DuprDistribution event={event} />
           <TeamLeaderboard event={event} />
         </div>

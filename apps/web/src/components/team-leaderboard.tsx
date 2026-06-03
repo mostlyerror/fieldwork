@@ -19,11 +19,12 @@ const RATING_COLOR: Record<RatingStatus, string> = {
   none: "text-gray-300",
 };
 
-function MemberRow({ m }: { m: LbMember }) {
+function MemberRow({ m, overCap }: { m: LbMember; overCap: boolean }) {
   return (
     // Three columns so ratings scan as a table: name (fills) · right-aligned
     // number · a fixed check slot that's always reserved (keeps numbers aligned
-    // whether or not a row is verified).
+    // whether or not a row is verified). The over-cap signal attaches to the
+    // rating (the data), never to the name — players aren't being called out.
     <div className="grid grid-cols-[1fr_auto_0.75rem] items-center gap-x-1.5">
       <span className="min-w-0 truncate t-body font-semibold text-gray-900">
         {m.id ? (
@@ -34,8 +35,15 @@ function MemberRow({ m }: { m: LbMember }) {
           m.name
         )}
       </span>
-      <span className={`text-right t-body font-bold tabular-nums ${RATING_COLOR[m.status]}`}>
-        {m.rating != null ? m.rating.toFixed(2) : "—"}
+      <span className="flex items-center justify-end gap-1.5">
+        {overCap && (
+          <span className="rounded-[5px] bg-red-50 px-1.5 py-px text-[9px] font-extrabold uppercase tracking-wide text-red-600">
+            over cap
+          </span>
+        )}
+        <span className={`text-right t-body font-bold tabular-nums ${overCap ? "text-red-600" : RATING_COLOR[m.status]}`}>
+          {m.rating != null ? m.rating.toFixed(2) : "—"}
+        </span>
       </span>
       <span className="flex w-3 justify-center">
         {m.status === "verified" && <Check className="h-2.5 w-2.5 text-emerald-700" />}
@@ -44,7 +52,15 @@ function MemberRow({ m }: { m: LbMember }) {
   );
 }
 
-function TeamRow({ team, scoreLabel }: { team: LbTeam; scoreLabel: string }) {
+function TeamRow({
+  team,
+  scoreLabel,
+  skillMax,
+}: {
+  team: LbTeam;
+  scoreLabel: string;
+  skillMax: number | null;
+}) {
   return (
     <div className="grid grid-cols-[22px_1fr_auto] items-center gap-x-3 border-b border-gray-100 px-3 py-2.5 last:border-b-0">
       <span className={`text-center t-body font-bold tabular-nums ${team.rank != null ? "text-emerald-700" : "text-gray-300"}`}>
@@ -52,7 +68,11 @@ function TeamRow({ team, scoreLabel }: { team: LbTeam; scoreLabel: string }) {
       </span>
       <div className="flex flex-col gap-1 border-l-2 border-gray-100 pl-2.5">
         {team.members.map((m, i) => (
-          <MemberRow key={`${m.name}-${i}`} m={m} />
+          <MemberRow
+            key={`${m.name}-${i}`}
+            m={m}
+            overCap={skillMax != null && m.rating != null && m.rating > skillMax + 0.05}
+          />
         ))}
       </div>
       <div className="flex min-w-[56px] flex-col items-end">
@@ -73,6 +93,7 @@ export function TeamLeaderboard({ event }: { event: TournamentEvent }) {
 
   const scoreLabel = lb.isDoubles ? "Team" : "Rating";
   const groupNoun = lb.isDoubles ? "teams" : "players";
+  const skillMax = event.skill_level_max;
 
   return (
     <div className="mt-4 border-t border-gray-100 pt-3.5">
@@ -88,7 +109,7 @@ export function TeamLeaderboard({ event }: { event: TournamentEvent }) {
           </p>
           <div className="overflow-hidden rounded-xl border border-gray-100">
             {lb.ranked.map((t) => (
-              <TeamRow key={t.key} team={t} scoreLabel={scoreLabel} />
+              <TeamRow key={t.key} team={t} scoreLabel={scoreLabel} skillMax={skillMax} />
             ))}
           </div>
         </>
@@ -101,7 +122,7 @@ export function TeamLeaderboard({ event }: { event: TournamentEvent }) {
           </p>
           <div className="overflow-hidden rounded-xl border border-gray-100">
             {lb.awaiting.map((t) => (
-              <TeamRow key={t.key} team={t} scoreLabel={scoreLabel} />
+              <TeamRow key={t.key} team={t} scoreLabel={scoreLabel} skillMax={skillMax} />
             ))}
           </div>
         </>

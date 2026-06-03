@@ -26,7 +26,7 @@ const BADGE_CONFIG: Record<FieldStrengthLevel, { label: string; className: strin
     className: "bg-red-50 text-red-700 ring-red-200",
   },
   sandbagger: {
-    label: "Sandbagger Alert",
+    label: "Over-cap field",
     className: "bg-red-50 text-red-700 ring-red-200",
   },
 };

@@ -1,157 +1,211 @@
 "use client";
 
 import type { TournamentEvent } from "@/lib/types";
-import { ratingHistogram, eventIntel, type Zone } from "@/lib/field-intel";
+import { ratingHistogram, eventIntel } from "@/lib/field-intel";
 
-const ZONE_FILL: Record<Zone, string> = {
-  in: "#1f9d57",
-  below: "#aeb6bc",
-  above: "#e0483b",
-};
+// Zone semantics — consistent across the app. Over-cap is the alarm color, and
+// it attaches to the rating/bar (the data), never to a person.
+const IN = "#1F9D57"; // in window
+const BELOW = "#AEB6BC"; // below floor
+const OVER = "#E0483B"; // over the cap
+const TINT = "#ECFDF3"; // window shading
+const AVG = "#053E2E"; // average marker
+const EDGE = "#065F46"; // floor/cap labels
+const AXIS = "#9AA59E";
+const HAIR = "#D9D3C2";
 
-// Windowless events (Beginner brackets, junior 10U–16U) have no DUPR floor/cap,
-// so "in window / below / over" doesn't apply — squares render neutral.
-const NEUTRAL = "#9aa6a0";
+const f2 = (n: number) => n.toFixed(2);
+const floorHalf = (v: number) => Math.floor(v * 2) / 2;
+const ceilHalf = (v: number) => Math.ceil(v * 2) / 2;
 
-const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
-const floorHalf = (v: number) => Math.floor(v / 0.5) * 0.5;
-const ceilHalf = (v: number) => Math.ceil(v / 0.5) * 0.5;
+interface Bucket {
+  key: number;
+  count: number;
+  zin: number;
+  zbelow: number;
+  zabove: number;
+}
 
 /**
- * Unit-square histogram of a bracket's DUPR ratings ("The Column").
- * Each square is one real player, stacked into 0.1 bins positioned by rating,
- * zone-colored against the bracket's skill window. Tall stacks (big fields) cap
- * at MAX_ROWS squares with a +N overflow marker so it never runs off the card.
+ * Rating distribution — a plain, legible bar histogram of the field's effective
+ * DUPR ratings against the bracket's skill window. Ratings are bucketed into
+ * 0.25-wide bars so the shape reads in under two seconds; the window is shaded,
+ * over-cap bars are red (with a count), and the true average is marked.
  */
 export function DuprDistribution({ event }: { event: TournamentEvent }) {
   const histo = ratingHistogram(event);
   if (histo.total === 0 || histo.avg == null) return null;
 
   const intel = eventIntel(event);
-  const { skill_level_min: skillMin, skill_level_max: skillMax } = event;
+  const skillMin = event.skill_level_min;
+  const skillMax = event.skill_level_max;
 
-  // Axis domain — pad to the nearest 0.5 around both the data and the window.
-  const lo = Math.min(histo.min!, skillMin ?? histo.min!);
-  const hi = Math.max(histo.max!, skillMax ?? histo.max!);
-  const axisMin = floorHalf(lo - 0.1);
-  const axisMax = ceilHalf(hi + 0.1);
-  const span = Math.max(0.5, axisMax - axisMin);
-
-  // Geometry (viewBox units; the SVG scales to container width).
-  const W = 356;
-  const padL = 8;
-  const padR = 8;
+  // ── geometry (viewBox units; scales to container width) ──
+  const W = 358;
+  const H = 150;
+  const padL = 4;
+  const padR = 4;
+  const padTop = 18;
+  const axisH = 26;
   const plotW = W - padL - padR;
-  const numSlots = Math.max(1, Math.round(span / 0.1));
-  const slot = plotW / numSlots;
-  const sq = clamp(slot - 2, 5, 13);
-  const gap = Math.max(2, Math.round(sq * 0.18));
+  const plotH = H - padTop - axisH;
 
-  const MAX_ROWS = 9;
-  const shownMax = Math.min(histo.maxStack, MAX_ROWS);
-  const topPad = 42; // room for the stacked avg + window labels above the band
-  const columnsH = shownMax * sq + (shownMax - 1) * gap;
-  const baseY = topPad + columnsH;
-  const H = baseY + 24;
+  // domain padded to the nearest 0.5 around the data and the window
+  const ratings = histo.bins.map((b) => b.rating);
+  const lo = floorHalf(Math.min(...ratings, skillMin ?? ratings[0]));
+  let hi = ceilHalf(Math.max(...ratings, skillMax ?? ratings[ratings.length - 1]));
+  if (hi - lo < 1) hi = lo + 1;
+  const span = hi - lo;
+  const x = (r: number) => padL + ((r - lo) / span) * plotW;
 
-  const xOf = (r: number) => padL + ((r - axisMin) / span) * plotW;
-  const bandTop = topPad - 6;
+  // ── bucket the 0.1 bins into 0.25-wide bars ──
+  const bw = 0.25;
+  const map = new Map<number, Bucket>();
+  for (const bin of histo.bins) {
+    const key = Math.floor(bin.rating / bw) * bw;
+    const cur = map.get(key) ?? { key, count: 0, zin: 0, zbelow: 0, zabove: 0 };
+    cur.count += bin.count;
+    if (bin.zone === "above") cur.zabove += bin.count;
+    else if (bin.zone === "below") cur.zbelow += bin.count;
+    else cur.zin += bin.count;
+    map.set(key, cur);
+  }
+  const buckets = [...map.values()];
+  const maxC = Math.max(1, ...buckets.map((d) => d.count));
+  const barW = Math.max(3, (bw / span) * plotW - 3);
 
+  const zoneColor = (d: Bucket) => {
+    if (d.zabove > 0) return OVER;
+    if (d.zbelow > 0 && d.zin === 0) return BELOW;
+    return IN;
+  };
+
+  const hasWindow = skillMin != null || skillMax != null;
+  const winLo = skillMin != null ? x(skillMin) : padL;
+  const winHi = skillMax != null ? x(skillMax) : W - padR;
+
+  // axis ticks every 0.5
   const ticks: number[] = [];
-  for (let t = axisMin; t <= axisMax + 1e-9; t = Math.round((t + 0.5) * 10) / 10) ticks.push(t);
+  for (let t = ceilHalf(lo); t <= hi + 1e-6; t = Math.round((t + 0.5) * 10) / 10) {
+    ticks.push(t);
+  }
 
-  const avgX = xOf(histo.avg);
-  const hasBand = skillMin != null && skillMax != null; // both bounds → draw the band rect
-  const hasWindow = skillMin != null || skillMax != null; // any bound → zones are meaningful
-  const winX1 = hasBand ? Math.max(padL, xOf(skillMin!) - slot / 2) : 0;
-  const winX2 = hasBand ? Math.min(W - padR, xOf(skillMax!) + slot / 2) : 0;
+  const avgX = x(histo.avg);
+  const baseY = padTop + plotH;
 
   return (
     <div className="my-4 max-w-full rounded-xl bg-gray-50/80 p-4">
       <div className="mb-2 flex items-center justify-between">
-        <p className="t-caption font-bold uppercase tracking-wide text-gray-500">Rating spread</p>
+        <p className="t-label text-gray-500">Rating distribution</p>
         <span className="t-caption text-gray-400">{histo.total} rated</span>
       </div>
 
-      <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto block h-auto w-full" style={{ maxWidth: 420 }} role="img" aria-label={hasWindow ? `Rating distribution: ${intel.inRange} in the window, ${intel.below} below the floor, ${intel.above} above the cap.` : `Rating distribution of ${histo.total} players. Open bracket with no rating limits.`}>
-        {/* bracket window band */}
-        {hasBand && (
-          <>
-            <rect x={winX1} y={bandTop} width={winX2 - winX1} height={baseY - bandTop} rx={9} fill="rgba(31,157,87,0.07)" stroke="rgba(6,95,70,0.26)" strokeWidth={1} strokeDasharray="2 4" />
-            <text x={(winX1 + winX2) / 2} y={bandTop - 8} textAnchor="middle" fontSize={9} fontWeight={700} letterSpacing="0.1em" fill="#065f46">
-              {skillMin === skillMax ? `BRACKET ${skillMin!.toFixed(1)}` : `BRACKET ${skillMin!.toFixed(1)}–${skillMax!.toFixed(1)}`}
-            </text>
-          </>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="block h-auto w-full"
+        role="img"
+        aria-label={
+          hasWindow
+            ? `Rating distribution: ${intel.inRange} in the window, ${intel.below} below the floor, ${intel.above} over the cap. Average ${f2(histo.avg)}.`
+            : `Rating distribution of ${histo.total} players, average ${f2(histo.avg)}. Open bracket with no rating limits.`
+        }
+      >
+        {/* window shading */}
+        {hasWindow && (
+          <rect
+            x={Math.max(padL, winLo)}
+            y={padTop}
+            width={Math.min(W - padR, winHi) - Math.max(padL, winLo)}
+            height={plotH}
+            fill={TINT}
+          />
+        )}
+        {skillMin != null && (
+          <line x1={winLo} y1={padTop} x2={winLo} y2={baseY} stroke={IN} strokeWidth={1} strokeDasharray="2 2" opacity={0.6} />
+        )}
+        {skillMax != null && (
+          <line x1={winHi} y1={padTop} x2={winHi} y2={baseY} stroke={IN} strokeWidth={1} strokeDasharray="2 2" opacity={0.6} />
         )}
 
-        {/* average reference */}
-        <line x1={avgX} y1={bandTop + 2} x2={avgX} y2={baseY} stroke="#16201b" strokeWidth={1} strokeDasharray="1.5 3" opacity={0.5} />
-        <circle cx={avgX} cy={bandTop + 2} r={2} fill="#16201b" opacity={0.65} />
-        <text x={avgX} y={bandTop - 22} textAnchor="middle" fontSize={10} fontWeight={700} fill="#16201b">{`avg ${histo.avg.toFixed(2)}`}</text>
-
         {/* baseline */}
-        <line x1={padL} y1={baseY + 0.5} x2={W - padR} y2={baseY + 0.5} stroke="#d9d8cf" strokeWidth={1} />
+        <line x1={padL} y1={baseY} x2={W - padR} y2={baseY} stroke={HAIR} strokeWidth={1.2} />
 
-        {/* stacked unit squares */}
-        {histo.bins.map((bin) => {
-          const cx = xOf(bin.rating);
-          const rows = Math.min(bin.count, MAX_ROWS);
-          const overflow = bin.count - rows;
+        {/* axis ticks */}
+        {ticks.map((t) => {
+          const edge =
+            (skillMin != null && Math.abs(t - skillMin) < 1e-9) ||
+            (skillMax != null && Math.abs(t - skillMax) < 1e-9);
           return (
-            <g key={bin.rating}>
-              {Array.from({ length: rows }).map((_, i) => (
-                <rect
-                  key={i}
-                  x={cx - sq / 2}
-                  y={baseY - sq - i * (sq + gap)}
-                  width={sq}
-                  height={sq}
-                  rx={Math.max(2, sq * 0.25)}
-                  fill={hasWindow ? ZONE_FILL[bin.zone] : NEUTRAL}
-                  opacity={hasWindow && bin.zone === "above" ? 0.92 : 1}
-                />
-              ))}
-              {overflow > 0 && (
-                <text x={cx} y={baseY - rows * (sq + gap) - 1} textAnchor="middle" fontSize={9} fontWeight={800} fill="#5c6661">{`+${overflow}`}</text>
+            <g key={t}>
+              <line x1={x(t)} y1={baseY} x2={x(t)} y2={baseY + 4} stroke={edge ? EDGE : HAIR} strokeWidth={1} />
+              <text x={x(t)} y={baseY + 17} textAnchor="middle" fontSize={10} fontWeight={edge ? 700 : 600} fill={edge ? EDGE : AXIS} style={{ fontVariantNumeric: "tabular-nums" }}>
+                {t.toFixed(1)}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* bars */}
+        {buckets.map((d) => {
+          const bx = x(d.key) + 1.5;
+          const bh = Math.max(2, (d.count / maxC) * plotH);
+          const by = baseY - bh;
+          return (
+            <g key={d.key}>
+              <rect x={bx} y={by} width={barW} height={bh} rx={2.5} fill={zoneColor(d)} />
+              {d.zabove > 0 && (
+                <text x={bx + barW / 2} y={by - 4} textAnchor="middle" fontSize={9.5} fontWeight={800} fill={OVER}>
+                  {d.zabove}
+                </text>
               )}
             </g>
           );
         })}
 
-        {/* axis ticks every 0.5 */}
-        {ticks.map((t) => {
-          const edge = (skillMin != null && Math.abs(t - skillMin) < 1e-9) || (skillMax != null && Math.abs(t - skillMax) < 1e-9);
-          return (
-            <g key={t}>
-              <line x1={xOf(t)} y1={baseY + 1} x2={xOf(t)} y2={baseY + 5} stroke={edge ? "#065f46" : "#c7c6bc"} strokeWidth={1} />
-              <text x={xOf(t)} y={baseY + 17} textAnchor="middle" fontSize={10.5} fontWeight={edge ? 700 : 600} fill={edge ? "#065f46" : "#97a09a"}>{t.toFixed(1)}</text>
-            </g>
-          );
-        })}
+        {/* average marker */}
+        <line x1={avgX} y1={padTop - 6} x2={avgX} y2={baseY} stroke={AVG} strokeWidth={1.6} strokeDasharray="3 3" />
+        <g transform={`translate(${avgX}, ${padTop - 7})`}>
+          <rect x={-22} y={-13} width={44} height={15} rx={4} fill={AVG} />
+          <text x={0} y={-2} textAnchor="middle" fontSize={9.5} fontWeight={800} fill="#fff" style={{ fontVariantNumeric: "tabular-nums" }}>
+            avg {f2(histo.avg)}
+          </text>
+        </g>
+
+        {/* floor / cap labels */}
+        {skillMin != null && (
+          <text x={winLo + 3} y={padTop + 10} fontSize={9} fontWeight={700} fill={EDGE}>
+            floor {skillMin.toFixed(1)}
+          </text>
+        )}
+        {skillMax != null && (
+          <text x={winHi - 3} y={padTop + 10} textAnchor="end" fontSize={9} fontWeight={700} fill={EDGE}>
+            cap {skillMax.toFixed(1)}
+          </text>
+        )}
       </svg>
 
-      {/* merged zone legend: color + count + label (only when a window exists) */}
+      {/* legend doubles as the count summary */}
       {hasWindow ? (
-        <div className="mt-4 flex flex-wrap items-baseline gap-x-5 gap-y-2 t-small font-semibold text-gray-600">
-          <span className="inline-flex items-baseline gap-1.5">
-            <span className="h-2.5 w-2.5 translate-y-0.5 rounded-[3px]" style={{ background: ZONE_FILL.in }} />
-            <b className="t-h3 font-extrabold tracking-tight text-emerald-700">{intel.inRange}</b> in window
+        <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 t-small font-semibold text-gray-600">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: IN }} />
+            <b className="tabular-nums text-gray-900">{intel.inRange}</b> in window
           </span>
-          {intel.below > 0 && (
-            <span className="inline-flex items-baseline gap-1.5">
-              <span className="h-2.5 w-2.5 translate-y-0.5 rounded-[3px]" style={{ background: ZONE_FILL.below }} />
-              <b className="t-h3 font-extrabold tracking-tight text-gray-500">{intel.below}</b> below floor
+          {intel.above > 0 && (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: OVER }} />
+              <b className="tabular-nums text-gray-900">{intel.above}</b> over cap
             </span>
           )}
-          {intel.above > 0 && (
-            <span className="inline-flex items-baseline gap-1.5">
-              <span className="h-2.5 w-2.5 translate-y-0.5 rounded-[3px]" style={{ background: ZONE_FILL.above }} />
-              <b className="t-h3 font-extrabold tracking-tight text-red-600">{intel.above}</b> over cap
+          {intel.below > 0 && (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: BELOW }} />
+              <b className="tabular-nums text-gray-900">{intel.below}</b> below floor
             </span>
           )}
         </div>
       ) : (
-        <p className="mt-4 t-small text-gray-400">
+        <p className="mt-3 t-small text-gray-400">
           Open bracket — no rating limits, so ratings aren&apos;t scored against a floor or cap.
         </p>
       )}

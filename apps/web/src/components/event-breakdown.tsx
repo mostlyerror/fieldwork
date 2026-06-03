@@ -6,6 +6,7 @@ import { EventCard } from "./event-card";
 import { IntelSectionHeader } from "@/components/intel-section-header";
 import { DuprDistribution } from "./dupr-distribution";
 import { TeamLeaderboard } from "./team-leaderboard";
+import { FieldHonesty } from "./field-honesty";
 import { FieldStrengthBadge } from "./field-strength-badge";
 import { effectiveAvgDupr, avgDuprPair } from "@/lib/dupr-utils";
 import { registrantLabel } from "@/lib/field-intel";
@@ -20,9 +21,29 @@ function categorizeEvent(event: TournamentEvent): string {
   return "Other";
 }
 
+const CATEGORY_ORDER = ["Men's", "Women's", "Mixed Doubles", "Seniors", "Other"];
+const CAT_RANK: Record<string, number> = Object.fromEntries(
+  CATEGORY_ORDER.map((c, i) => [c, i]),
+);
+
+/**
+ * Stable, content-independent ordering: category first, then skill window
+ * ascending. The same on every tournament so a player always finds their
+ * bracket in the same place — field strength is conveyed by the badges, never
+ * by position.
+ */
+function standardEventOrder(a: TournamentEvent, b: TournamentEvent): number {
+  const ra = CAT_RANK[categorizeEvent(a)] ?? 99;
+  const rb = CAT_RANK[categorizeEvent(b)] ?? 99;
+  if (ra !== rb) return ra - rb;
+  const fa = a.skill_level_min ?? 0;
+  const fb = b.skill_level_min ?? 0;
+  if (fa !== fb) return fa - fb;
+  return (a.skill_level_max ?? 99) - (b.skill_level_max ?? 99);
+}
+
 function groupEvents(events: TournamentEvent[]): Map<string, TournamentEvent[]> {
   const groups = new Map<string, TournamentEvent[]>();
-  const order = ["Men's", "Women's", "Mixed Doubles", "Seniors", "Other"];
 
   for (const event of events) {
     const cat = categorizeEvent(event);
@@ -31,21 +52,22 @@ function groupEvents(events: TournamentEvent[]): Map<string, TournamentEvent[]> 
   }
 
   const sorted = new Map<string, TournamentEvent[]>();
-  for (const key of order) {
-    if (groups.has(key)) sorted.set(key, groups.get(key)!);
+  for (const key of CATEGORY_ORDER) {
+    if (groups.has(key)) {
+      sorted.set(key, groups.get(key)!.slice().sort(standardEventOrder));
+    }
   }
   return sorted;
 }
 
 export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(
-    events[0]?.id ?? null
-  );
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
   if (events.length === 0) return null;
 
+  const orderedEvents = [...events].sort(standardEventOrder);
   const selectedEvent =
-    events.find((e) => e.id === selectedEventId) ?? events[0];
+    events.find((e) => e.id === selectedEventId) ?? orderedEvents[0];
 
   const totalLiveDupr = events.reduce(
     (sum, e) =>
@@ -63,7 +85,7 @@ export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
 
       {/* Mobile: stacked expandable cards */}
       <div className="lg:hidden">
-        {events.map((event) => (
+        {orderedEvents.map((event) => (
           <EventCard key={event.id} event={event} />
         ))}
       </div>
@@ -163,7 +185,8 @@ export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
           </div>
 
           {hasPlayers ? (
-            <div className="mt-4">
+            <div className="mt-4 space-y-3">
+              <FieldHonesty event={selectedEvent} />
               <DuprDistribution event={selectedEvent} />
               <TeamLeaderboard event={selectedEvent} />
             </div>
