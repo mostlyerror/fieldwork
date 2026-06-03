@@ -9,6 +9,31 @@
   --color-cream: #FFFDF7;
   --color-peach: #fdba74;
   --color-peach-light: #fed7aa;
+  /* Brand elevation — tinted to the emerald background hue (no flat gray boxes). */
+  --shadow-card: 0 18px 40px -24px rgba(6, 40, 30, 0.28), 0 2px 8px -6px rgba(6, 40, 30, 0.1);
+  --shadow-card-hover: 0 30px 56px -28px rgba(6, 40, 30, 0.36), 0 4px 12px -6px rgba(6, 40, 30, 0.12);
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   TYPOGRAPHIC SCALE — the single source of truth for text.
+   Use these role classes (size + line-height + weight + tracking bundled)
+   instead of ad-hoc text-[12.5px] / leading-* combos. Override only color and,
+   rarely, weight. html is 18px-rooted, so these are declared in raw px.
+   ─────────────────────────────────────────────────────────────────────────── */
+@layer components {
+  .t-display { font-size: 36px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; }
+  .t-h1 { font-size: 26px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em; }
+  .t-h2 { font-size: 20px; line-height: 1.25; font-weight: 800; letter-spacing: -0.02em; }
+  .t-h3 { font-size: 17px; line-height: 1.3; font-weight: 700; letter-spacing: -0.01em; }
+  .t-body { font-size: 15px; line-height: 1.55; font-weight: 500; }
+  .t-small { font-size: 13px; line-height: 1.5; font-weight: 500; }
+  .t-caption { font-size: 12px; line-height: 1.45; font-weight: 500; }
+  .t-label { font-size: 11px; line-height: 1; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  @media (min-width: 640px) {
+    .t-display { font-size: 42px; }
+    .t-h1 { font-size: 30px; }
+  }
 }
 
 @layer base {

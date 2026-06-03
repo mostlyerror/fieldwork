@@ -52,7 +52,7 @@ export function TournamentCard({
   return (
     <Link
       href={href}
-      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-black/[0.08] bg-white shadow-[0_18px_40px_-24px_rgba(6,40,30,0.28)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_30px_56px_-28px_rgba(6,40,30,0.36)] motion-reduce:hover:transform-none"
+      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-black/[0.08] bg-white shadow-card transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-card-hover motion-reduce:hover:transform-none"
     >
       {/* ── Banner: venue photo, or branded fallback ── */}
       <div className="relative aspect-[16/9] overflow-hidden bg-emerald-900">
@@ -92,16 +92,14 @@ export function TournamentCard({
 
       {/* ── Body ── */}
       <div className="flex flex-1 flex-col p-4">
-        <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-emerald-700">
+        <div className="t-label mb-1.5 flex items-center gap-1.5 text-emerald-700">
           <CalendarIcon className="h-3 w-3" />
           <span className="truncate">{dateLine}</span>
         </div>
 
-        <h3 className="text-lg font-extrabold leading-snug tracking-tight text-gray-900">
-          {t.name}
-        </h3>
+        <h3 className="t-h2 text-gray-900">{t.name}</h3>
 
-        <p className="mt-1 flex items-center gap-1.5 text-[13px] font-medium text-gray-500">
+        <p className="t-small mt-1 flex items-center gap-1.5 text-gray-500">
           <MapPinIcon className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
           <span className="truncate">{venueName}</span>
         </p>
@@ -110,16 +108,14 @@ export function TournamentCard({
         {fs && (
           <div className={`mt-3 rounded-xl px-3 py-2.5 ring-1 ${fs.box} ${fs.ring}`}>
             <div className="mb-1.5 flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
-                Field strength
-              </span>
+              <span className="t-label text-gray-500">Field strength</span>
               <span className={`text-xs font-extrabold ${fs.text}`}>{fs.label}</span>
             </div>
             <div className="h-1.5 overflow-hidden rounded-full bg-black/[0.07]">
               <div className={`h-full rounded-full ${fs.bar}`} style={{ width: `${fsFill}%` }} />
             </div>
             {t.max_sandbagger_pct != null && t.max_sandbagger_pct > 0 && (
-              <p className="mt-1.5 text-[11px] font-medium text-gray-500">
+              <p className="t-caption mt-1.5 text-gray-500">
                 <span className={`font-bold ${fs.text}`}>
                   {Math.round(t.max_sandbagger_pct * 100)}%
                 </span>{" "}
@@ -131,7 +127,7 @@ export function TournamentCard({
 
         {/* Footer */}
         <div className="mt-auto flex items-center justify-between gap-2 pt-3">
-          <span className="inline-flex min-w-0 items-center gap-1.5 text-[12px] font-semibold text-gray-400">
+          <span className="t-caption inline-flex min-w-0 items-center gap-1.5 font-semibold text-gray-400">
             {past ? (
               <>
                 <MedalIcon className="h-3.5 w-3.5" />
