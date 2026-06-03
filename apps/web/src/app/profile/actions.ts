@@ -71,6 +71,7 @@ export async function updateProfile(formData: FormData) {
 
   const name = formData.get("name") as string;
   const skillLevel = formData.get("skill_level") as string;
+  const gender = formData.get("gender") as string;
 
   const admin = getSupabaseAdmin();
   const { error } = await admin
@@ -78,6 +79,7 @@ export async function updateProfile(formData: FormData) {
     .update({
       name: name || null,
       skill_level: skillLevel || null,
+      gender: gender || null,
     })
     .eq("id", user.id);
 

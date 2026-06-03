@@ -7,6 +7,7 @@ import { SKILL_LEVELS } from "@/lib/constants";
 interface Profile {
   name: string | null;
   skill_level: string | null;
+  gender: string | null;
 }
 
 export function ProfileForm({ profile }: { profile: Profile | null }) {
@@ -57,6 +58,28 @@ export function ProfileForm({ profile }: { profile: Profile | null }) {
             </option>
           ))}
         </select>
+      </div>
+
+      <div>
+        <label
+          htmlFor="gender"
+          className="mb-1 block t-body text-gray-700"
+        >
+          Division
+        </label>
+        <select
+          id="gender"
+          name="gender"
+          defaultValue={profile?.gender ?? ""}
+          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+        >
+          <option value="">Prefer not to say</option>
+          <option value="male">Men&apos;s</option>
+          <option value="female">Women&apos;s</option>
+        </select>
+        <p className="mt-1 t-caption text-gray-400">
+          Lets us show which brackets you can enter. You&apos;ll always see mixed and open events too.
+        </p>
       </div>
 
       <button
