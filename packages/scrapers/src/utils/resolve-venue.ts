@@ -10,6 +10,7 @@ import {
 } from "./places-client.js";
 import { normalizeVenueName, nameSimilarity, venueDedupKey } from "./venue-identity.js";
 import { venueSlug } from "./venue-slug.js";
+import { ensureVenuePhotoBucket, storeVenuePhoto } from "./venue-photo.js";
 
 const PRECHECK_RADIUS_M = 75;
 const NAME_SIMILARITY_THRESHOLD = 0.5;
@@ -118,7 +119,7 @@ async function linkOrCreateVenue(
     if (!nErr && Array.isArray(near) && near.length > 0) return near[0].id;
   }
 
-  return upsertVenue(db, {
+  const newId = await upsertVenue(db, {
     placeId: hit.placeId,
     name,
     formattedAddress: hit.formattedAddress,
@@ -126,6 +127,22 @@ async function linkOrCreateVenue(
     longitude: hit.longitude,
     source: "places",
   });
+
+  // Fetch the venue's Google photo ONCE — only for a newly-created venue that has
+  // a photo and doesn't already carry one. Existing venues get theirs via the
+  // one-time backfill, so re-scraping known venues never re-bills.
+  if (newId && hit.photoName) {
+    const { data: cur } = await db
+      .from("venues")
+      .select("photo_url")
+      .eq("id", newId)
+      .single();
+    if (cur && !cur.photo_url) {
+      await ensureVenuePhotoBucket(db);
+      await storeVenuePhoto(db, newId, hit.photoName);
+    }
+  }
+  return newId;
 }
 
 /**

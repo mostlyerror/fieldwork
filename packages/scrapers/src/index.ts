@@ -197,6 +197,20 @@ async function main() {
     console.error("[auto-archive] Error:", err);
   }
 
+  // Propagate venue photos onto tournaments (denormalized for the grid cards).
+  try {
+    const { data: synced, error } = await supabase.rpc(
+      "sync_tournament_venue_photos",
+    );
+    if (error) {
+      console.error("[venue-photo-sync] RPC failed:", error.message);
+    } else if (typeof synced === "number" && synced > 0) {
+      console.log(`[venue-photo-sync] Synced ${synced} tournament photo(s).`);
+    }
+  } catch (err) {
+    console.error("[venue-photo-sync] Error:", err);
+  }
+
   // Check for active tournaments that weren't seen in this scrape (may have been cancelled)
   try {
     const successfulSources = results.filter((r) => r.ok).map((r) => r.name);

@@ -6,6 +6,8 @@ export interface PlacesVenue {
   latitude: number | null;
   longitude: number | null;
   types: string[];
+  /** Place Photos resource name (e.g. "places/ID/photos/REF"), or null. */
+  photoName: string | null;
 }
 
 interface SearchTextJson {
@@ -15,6 +17,7 @@ interface SearchTextJson {
     formattedAddress?: string;
     location?: { latitude?: number; longitude?: number };
     types?: string[];
+    photos?: Array<{ name?: string }>;
   }>;
 }
 
@@ -28,6 +31,7 @@ export function mapSearchTextResponse(json: SearchTextJson): PlacesVenue | null 
     latitude: p.location?.latitude ?? null,
     longitude: p.location?.longitude ?? null,
     types: p.types ?? [],
+    photoName: p.photos?.[0]?.name ?? null,
   };
 }
 
@@ -77,6 +81,7 @@ export function pickSportsVenue(json: SearchTextJson): PlacesVenue | null {
       latitude: p.location?.latitude ?? null,
       longitude: p.location?.longitude ?? null,
       types: p.types ?? [],
+      photoName: p.photos?.[0]?.name ?? null,
     };
   }
   return null;
@@ -107,7 +112,7 @@ export const realNearbyClient: NearbyPlacesClient = async (args) => {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": apiKey,
       "X-Goog-FieldMask":
-        "places.id,places.displayName,places.formattedAddress,places.location,places.types",
+        "places.id,places.displayName,places.formattedAddress,places.location,places.types,places.photos",
     },
     body: JSON.stringify({
       locationRestriction: {
@@ -158,7 +163,7 @@ export const realPlacesClient: PlacesClient = async (args) => {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": apiKey,
       "X-Goog-FieldMask":
-        "places.id,places.displayName,places.formattedAddress,places.location,places.types",
+        "places.id,places.displayName,places.formattedAddress,places.location,places.types,places.photos",
     },
     body: JSON.stringify(body),
   });
@@ -168,3 +173,47 @@ export const realPlacesClient: PlacesClient = async (args) => {
   }
   return mapSearchTextResponse(await res.json());
 };
+
+/**
+ * Look up a venue's first photo resource name by place_id (Place Details, New).
+ * Used by the photo backfill for venues resolved before photos were requested.
+ */
+export async function fetchPlaceDetailsPhotoName(
+  placeId: string,
+): Promise<string | null> {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!apiKey) return null;
+  const res = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
+    headers: { "X-Goog-Api-Key": apiKey, "X-Goog-FieldMask": "photos" },
+  });
+  if (!res.ok) {
+    console.error(`[places] details failed: ${res.status}`);
+    return null;
+  }
+  const json = (await res.json()) as { photos?: Array<{ name?: string }> };
+  return json.photos?.[0]?.name ?? null;
+}
+
+/**
+ * Download the actual image bytes for a Place Photos resource name. This is the
+ * separately-billed Place Photos request — we call it once per venue at ingest
+ * (or backfill) and store the result, never per page view.
+ */
+export async function fetchPlacePhotoBytes(
+  photoName: string,
+  maxWidthPx = 800,
+): Promise<{ bytes: Buffer; contentType: string } | null> {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!apiKey) return null;
+  const res = await fetch(
+    `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=${maxWidthPx}`,
+    { headers: { "X-Goog-Api-Key": apiKey } },
+  );
+  if (!res.ok) {
+    console.error(`[places] photo media failed: ${res.status}`);
+    return null;
+  }
+  const contentType = res.headers.get("content-type") ?? "image/jpeg";
+  const bytes = Buffer.from(await res.arrayBuffer());
+  return { bytes, contentType };
+}
