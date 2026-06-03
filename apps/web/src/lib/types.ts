@@ -18,6 +18,7 @@ export interface Tournament {
   venue_id?: string | null;
   venue_slug?: string | null;
   venue_name?: string | null;
+  venue_photo_url?: string | null;
   description: string | null;
   status: string;
   created_at: string;
