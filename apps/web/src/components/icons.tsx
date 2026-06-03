@@ -80,6 +80,31 @@ export function MedalIcon({ className }: IconProps) {
   );
 }
 
+export function ListIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M8 6h12M8 12h12M8 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01" />
+    </svg>
+  );
+}
+
+export function MapIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M9 4 3.5 6.2v13.6L9 17.6l6 2.2 5.5-2.2V4L15 6.2 9 4Z" />
+      <path d="M9 4v13.6M15 6.2v13.6" />
+    </svg>
+  );
+}
+
+export function NavigationIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M20 4 4 11l7 2.4L13.5 20 20 4Z" />
+    </svg>
+  );
+}
+
 /** Radar-paddle brand mark (stroke-only, harmonized with the line set). */
 export function RadarMarkIcon({ className }: IconProps) {
   return (

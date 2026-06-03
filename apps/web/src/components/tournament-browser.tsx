@@ -10,6 +10,7 @@ import { distanceMiles } from "@/lib/format";
 import { TournamentFilters } from "./tournament-filters";
 import { TournamentList } from "./tournament-list";
 import { ViewToggle, type ViewMode } from "./view-toggle";
+import { NavigationIcon } from "./icons";
 
 const TournamentMap = dynamic(() => import("./tournament-map"), { ssr: false });
 
@@ -100,25 +101,28 @@ export function TournamentBrowser({
         <div className="min-w-0 flex-1">
           <TournamentFilters filters={filters} onChange={setFilters} />
         </div>
-        <div className="flex items-center gap-3 sm:flex-shrink-0 sm:pt-0.5">
+        <div className="flex items-center gap-2 sm:flex-shrink-0">
           {userLocation && (
             <button
+              type="button"
               onClick={() => setSortByDistance((d) => !d)}
+              aria-pressed={sortByDistance}
               aria-label="Sort by nearest tournament"
-              className={`rounded-xl border min-h-[40px] px-3.5 py-2 sm:min-h-0 sm:px-2.5 sm:py-1.5 text-xs font-medium transition ${
+              className={`t-small inline-flex min-h-[42px] items-center gap-1.5 rounded-xl border px-3 font-semibold transition active:scale-[0.97] ${
                 sortByDistance
-                  ? "border-green-600 bg-green-50 text-green-700"
-                  : "border-gray-300 bg-white text-gray-600 hover:border-gray-400"
+                  ? "border-emerald-700 bg-emerald-700 text-white"
+                  : "border-gray-200 bg-white text-gray-600 hover:text-gray-900"
               }`}
             >
-              Nearest first
+              <NavigationIcon className="h-4 w-4" />
+              Nearest
             </button>
           )}
           <ViewToggle view={view} onChange={setView} />
         </div>
       </div>
 
-      <p className="text-sm text-gray-500">
+      <p className="t-small text-gray-500">
         {filtered.length} tournament{filtered.length !== 1 ? "s" : ""}
       </p>
 
