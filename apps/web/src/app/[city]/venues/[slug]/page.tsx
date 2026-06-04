@@ -98,7 +98,7 @@ export default async function VenuePage({ params }: PageProps) {
         </header>
 
         {venue.latitude != null && venue.longitude != null && (
-          <div className="mb-8 overflow-hidden rounded-xl border border-gray-200">
+          <div className="mb-8 overflow-hidden rounded-2xl border border-gray-200/70 shadow-card">
             <MiniMap latitude={venue.latitude} longitude={venue.longitude} />
           </div>
         )}

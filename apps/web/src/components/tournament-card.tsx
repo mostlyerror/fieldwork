@@ -14,15 +14,16 @@ import {
   RadarMarkIcon,
 } from "./icons";
 
-/** Color system keyed to the field-strength level (the card's only accent). */
+/** Quiet field-intel tone keyed to the field-strength level (the card's only
+ *  accent). Demoted from a filled panel to a one-line dot + verdict. */
 const FS_TONE: Record<
   FieldStrengthLevel,
-  { label: string; text: string; bar: string; box: string; ring: string }
+  { label: string; tone: "good" | "alert" }
 > = {
-  friendly: { label: "Friendly field", text: "text-emerald-700", bar: "bg-emerald-600", box: "bg-emerald-50", ring: "ring-emerald-100" },
-  competitive: { label: "Competitive", text: "text-amber-700", bar: "bg-amber-500", box: "bg-amber-50", ring: "ring-amber-100" },
-  stacked: { label: "Stacked", text: "text-red-700", bar: "bg-red-500", box: "bg-red-50", ring: "ring-red-100" },
-  sandbagger: { label: "Sandbagger alert", text: "text-red-700", bar: "bg-red-500", box: "bg-red-50", ring: "ring-red-100" },
+  friendly: { label: "Friendly field", tone: "good" },
+  competitive: { label: "Competitive", tone: "good" },
+  stacked: { label: "Stacked", tone: "alert" },
+  sandbagger: { label: "Over-cap field", tone: "alert" },
 };
 
 export function TournamentCard({
@@ -42,7 +43,6 @@ export function TournamentCard({
 
   const fsLevel = getFieldStrengthLevel(t.avg_field_strength, t.max_sandbagger_pct);
   const fs = fsLevel ? FS_TONE[fsLevel] : null;
-  const fsFill = Math.round(Math.min(1, Math.max(0.12, t.avg_field_strength ?? 0)) * 100);
 
   const venueName = t.venue_name || t.location_name;
   const dateLine =
@@ -52,7 +52,7 @@ export function TournamentCard({
   return (
     <Link
       href={href}
-      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-black/[0.08] bg-white shadow-card transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-card-hover motion-reduce:hover:transform-none"
+      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200/70 bg-white shadow-card transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-card-hover motion-reduce:hover:transform-none"
     >
       {/* ── Banner: venue photo, or branded fallback ── */}
       <div className="relative aspect-[16/9] overflow-hidden bg-emerald-900">
@@ -104,23 +104,28 @@ export function TournamentCard({
           <span className="truncate">{venueName}</span>
         </p>
 
-        {/* Honest field-strength gauge — the differentiator, shown only with real intel */}
+        {/* Quiet field-intel one-liner — the differentiator, shown only with real intel */}
         {fs && (
-          <div className={`mt-3 rounded-xl px-3 py-2.5 ring-1 ${fs.box} ${fs.ring}`}>
-            <div className="mb-1.5 flex items-center justify-between">
-              <span className="t-label text-gray-500">Field strength</span>
-              <span className={`text-xs font-extrabold ${fs.text}`}>{fs.label}</span>
-            </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-black/[0.07]">
-              <div className={`h-full rounded-full ${fs.bar}`} style={{ width: `${fsFill}%` }} />
-            </div>
+          <div
+            className={`mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 t-small font-medium ${
+              fs.tone === "alert" ? "text-red-700/80" : "text-gray-500"
+            }`}
+          >
+            <span
+              className={`h-[7px] w-[7px] shrink-0 rounded-full ring-[3px] ${
+                fs.tone === "alert" ? "bg-red-500 ring-red-100" : "bg-emerald-500 ring-emerald-100"
+              }`}
+            />
+            <span className={`font-bold ${fs.tone === "alert" ? "text-red-700" : "text-emerald-800"}`}>
+              {fs.label}
+            </span>
             {t.max_sandbagger_pct != null && t.max_sandbagger_pct > 0 && (
-              <p className="t-caption mt-1.5 text-gray-500">
-                <span className={`font-bold ${fs.text}`}>
-                  {Math.round(t.max_sandbagger_pct * 100)}%
-                </span>{" "}
-                rated over the skill cap
-              </p>
+              <>
+                <span className="text-gray-300">·</span>
+                <span className="tabular-nums">
+                  {Math.round(t.max_sandbagger_pct * 100)}% over the cap
+                </span>
+              </>
             )}
           </div>
         )}

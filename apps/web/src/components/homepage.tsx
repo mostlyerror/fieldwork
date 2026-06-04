@@ -109,7 +109,7 @@ export function Homepage({
 
       {/* Email subscribe — end-of-page CTA, just before the footer */}
       <section className="mx-auto max-w-6xl px-3 sm:px-5 pt-2 pb-14">
-        <div className="flex flex-col gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 sm:flex-row sm:items-center sm:gap-4">
+        <div className="flex flex-col gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 shadow-card sm:flex-row sm:items-center sm:gap-4">
           <div className="flex items-center gap-2 t-body text-emerald-700">
             <span aria-hidden="true">📬</span>
             <span>Get weekly updates</span>

@@ -14,7 +14,7 @@ export function Footer({ citySlug }: { citySlug?: string }) {
             </p>
             <p className="mt-2 t-body text-gray-500">
               Tournament intel for competitive pickleball players.
-              Real ratings. Sandbagger detection. Know what
+              Real ratings. Over-cap field alerts. Know what
               you&apos;re walking into before you register.
             </p>
           </div>

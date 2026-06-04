@@ -67,7 +67,7 @@ export function DuprLinker() {
       )}
 
       {status === "saved" && (
-        <div className="rounded-lg bg-green-50 p-3 t-body text-green-700">
+        <div className="rounded-lg bg-emerald-50 p-3 t-body text-emerald-700">
           Rating linked successfully!
         </div>
       )}
@@ -78,7 +78,7 @@ export function DuprLinker() {
           onClick={() => setMode("search")}
           className={`rounded-lg px-3 py-1 font-medium transition ${
             mode === "search"
-              ? "bg-green-100 text-green-700"
+              ? "bg-emerald-50 text-emerald-700"
               : "text-gray-500 hover:bg-gray-50"
           }`}
         >
@@ -89,7 +89,7 @@ export function DuprLinker() {
           onClick={() => setMode("manual")}
           className={`rounded-lg px-3 py-1 font-medium transition ${
             mode === "manual"
-              ? "bg-green-100 text-green-700"
+              ? "bg-emerald-50 text-emerald-700"
               : "text-gray-500 hover:bg-gray-50"
           }`}
         >
@@ -106,13 +106,13 @@ export function DuprLinker() {
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               placeholder="Search by your name..."
-              className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+              className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
             <button
               type="button"
               onClick={handleSearch}
               disabled={searching || query.length < 2}
-              className="rounded-lg bg-green-600 px-4 py-2 t-body text-white transition hover:bg-green-700 disabled:opacity-50"
+              className="rounded-lg bg-emerald-700 px-4 py-2 t-body font-bold text-white transition hover:bg-emerald-800 active:scale-[0.98] disabled:opacity-50"
             >
               {searching ? "..." : "Search"}
             </button>
@@ -129,7 +129,7 @@ export function DuprLinker() {
                   type="button"
                   onClick={() => handleSelect(player)}
                   disabled={status === "saving"}
-                  className="flex w-full items-center justify-between rounded-lg border border-gray-100 px-3 py-2 text-left t-body transition hover:bg-green-50 hover:ring-1 hover:ring-green-200 disabled:opacity-50"
+                  className="flex w-full items-center justify-between rounded-lg border border-gray-200 px-3 py-2 text-left t-body transition hover:border-emerald-300 hover:bg-emerald-50/60 active:scale-[0.99] disabled:opacity-50"
                 >
                   <div>
                     <span className="font-medium text-gray-900">
@@ -141,7 +141,7 @@ export function DuprLinker() {
                       </span>
                     )}
                   </div>
-                  <span className="font-bold text-green-600">
+                  <span className="font-bold tabular-nums text-emerald-800">
                     {player.dupr_rating.toFixed(2)}
                   </span>
                 </button>
@@ -155,7 +155,7 @@ export function DuprLinker() {
               <button
                 type="button"
                 onClick={() => setMode("manual")}
-                className="font-medium text-green-600 hover:text-green-700"
+                className="font-medium text-emerald-700 hover:text-emerald-800"
               >
                 enter your rating manually
               </button>
@@ -183,7 +183,7 @@ export function DuprLinker() {
                 min="1.0"
                 max="8.0"
                 placeholder="e.g. 3.50"
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               />
             </div>
             <div>
@@ -201,7 +201,7 @@ export function DuprLinker() {
                 min="1.0"
                 max="8.0"
                 placeholder="e.g. 3.75"
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               />
             </div>
           </div>
@@ -209,7 +209,7 @@ export function DuprLinker() {
           <button
             type="submit"
             disabled={status === "saving"}
-            className="rounded-xl bg-green-600 px-4 py-2 t-body font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
+            className="rounded-xl bg-emerald-700 px-5 py-2.5 t-body font-bold text-white transition hover:bg-emerald-800 active:scale-[0.98] disabled:opacity-50"
           >
             {status === "saving" ? "Saving..." : "Save rating"}
           </button>

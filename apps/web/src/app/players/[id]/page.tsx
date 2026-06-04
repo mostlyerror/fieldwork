@@ -148,111 +148,101 @@ export default async function PlayerPage({ params }: PageProps) {
         />
 
         {/* Player header card */}
-        <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h1 className="t-h1 text-gray-900">
-                {player.name}
-              </h1>
-              {player.location && (
-                <p className="mt-1 t-body text-gray-500">{player.location}</p>
-              )}
-              {player.dupr_last_checked && (
-                <p className="mt-1 t-caption text-gray-400">
-                  Updated{" "}
-                  {new Date(player.dupr_last_checked).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </p>
+        <div className="rounded-2xl border border-gray-200/70 bg-white p-6 shadow-card sm:rounded-3xl">
+          <div>
+            <h1 className="t-h1 text-gray-900">
+              {player.name}
+            </h1>
+            {player.location && (
+              <p className="mt-1 t-body text-gray-500">{player.location}</p>
+            )}
+            {player.dupr_last_checked && (
+              <p className="mt-1 t-caption text-gray-400">
+                Updated{" "}
+                {new Date(player.dupr_last_checked).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </p>
+            )}
+          </div>
+
+          {/* Rating fact row — uniform, hairline-divided */}
+          <div className="mt-5 grid grid-cols-2 divide-x divide-gray-100 border-t border-gray-100 pt-4">
+            <div className="min-w-0 px-2.5 first:pl-0 last:pr-0">
+              <div className="t-label text-gray-400">Doubles</div>
+              {player.dupr_doubles != null ? (
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span className="t-h3 tabular-nums text-emerald-800">
+                    {player.dupr_doubles.toFixed(2)}
+                  </span>
+                  {player.dupr_verified && (
+                    <span className="inline-block rounded-full bg-emerald-50 px-2 py-0.5 t-label text-emerald-700">
+                      Verified
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <div className="mt-1 t-h3 tabular-nums text-gray-300">--</div>
               )}
             </div>
-
-            <div className="flex shrink-0 flex-row items-stretch gap-4 sm:items-start">
-              <div className="text-right">
-                <p className="t-label text-gray-400">
-                  Doubles
-                </p>
-                {player.dupr_doubles != null ? (
-                  <>
-                    <p className="t-h1 text-emerald-600 leading-none mt-0.5">
-                      {player.dupr_doubles.toFixed(2)}
-                    </p>
-                    {player.dupr_verified && (
-                      <span className="mt-1.5 inline-block rounded-full bg-emerald-50 px-2 py-0.5 t-label text-emerald-600">
-                        Verified
-                      </span>
-                    )}
-                  </>
-                ) : (
-                  <p className="t-h1 text-gray-200 leading-none mt-0.5">--</p>
-                )}
-              </div>
-              <div className="text-right border-l border-gray-100 pl-4">
-                <p className="t-label text-gray-400">
-                  Singles
-                </p>
-                {player.dupr_singles != null ? (
-                  <>
-                    <p className="t-h1 text-emerald-600 leading-none mt-0.5">
-                      {player.dupr_singles.toFixed(2)}
-                    </p>
-                    {player.dupr_verified && (
-                      <span className="mt-1.5 inline-block rounded-full bg-emerald-50 px-2 py-0.5 t-label text-emerald-600">
-                        Verified
-                      </span>
-                    )}
-                  </>
-                ) : (
-                  <p className="t-h1 text-gray-200 leading-none mt-0.5">--</p>
-                )}
-              </div>
+            <div className="min-w-0 px-2.5 first:pl-0 last:pr-0">
+              <div className="t-label text-gray-400">Singles</div>
+              {player.dupr_singles != null ? (
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span className="t-h3 tabular-nums text-emerald-800">
+                    {player.dupr_singles.toFixed(2)}
+                  </span>
+                  {player.dupr_verified && (
+                    <span className="inline-block rounded-full bg-emerald-50 px-2 py-0.5 t-label text-emerald-700">
+                      Verified
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <div className="mt-1 t-h3 tabular-nums text-gray-300">--</div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Record breakdown */}
+        {/* Record breakdown — editorial fact row, hairline-divided */}
         {hasMatches && (
           <section className="mt-6">
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {/* Overall */}
-              <div className="rounded-xl bg-white p-3 sm:p-4 shadow-sm ring-1 ring-gray-100">
-                <p className="t-label text-gray-400">
-                  Overall
-                </p>
-                <p className="mt-1 t-h2 text-gray-900">
-                  {totalWins}W–{totalLosses}L
-                </p>
-                <p className="t-caption text-gray-500">
-                  {winRate(totalWins, totalLosses)} win rate
-                </p>
-              </div>
-
-              {/* Per format */}
-              {records.map((r) => (
-                <div
-                  key={r.format}
-                  className="rounded-xl bg-white p-3 sm:p-4 shadow-sm ring-1 ring-gray-100"
-                >
-                  <p className="t-label text-gray-400">
-                    {r.format}
-                  </p>
-                  <p className="mt-1 t-h2 text-gray-900">
-                    {r.wins}W–{r.losses}L
-                  </p>
-                  <p className="t-caption text-gray-500">
-                    {winRate(r.wins, r.losses)} win rate
-                  </p>
+            <div className="rounded-2xl border border-gray-200/70 bg-white p-5 shadow-card sm:rounded-3xl sm:p-6">
+              <div className={`grid divide-x divide-gray-100 ${records.length >= 3 ? "grid-cols-4" : records.length === 2 ? "grid-cols-3" : "grid-cols-2"}`}>
+                {/* Overall */}
+                <div className="min-w-0 px-2.5 first:pl-0 last:pr-0">
+                  <div className="t-label text-gray-400">Overall</div>
+                  <div className="mt-1 t-h3 tabular-nums text-gray-900">
+                    {totalWins}W–{totalLosses}L
+                  </div>
+                  <div className="mt-0.5 t-caption text-gray-500">
+                    {winRate(totalWins, totalLosses)} win rate
+                  </div>
                 </div>
-              ))}
+
+                {/* Per format */}
+                {records.map((r) => (
+                  <div key={r.format} className="min-w-0 px-2.5 first:pl-0 last:pr-0">
+                    <div className="t-label text-gray-400">{r.format}</div>
+                    <div className="mt-1 t-h3 tabular-nums text-gray-900">
+                      {r.wins}W–{r.losses}L
+                    </div>
+                    <div className="mt-0.5 t-caption text-gray-500">
+                      {winRate(r.wins, r.losses)} win rate
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
         )}
 
         {/* Frequent Partners */}
         {partners.length > 0 && (
-          <section className="mt-6 overflow-hidden rounded-xl shadow-sm ring-1 ring-gray-100">
+          <section className="mt-6 overflow-hidden rounded-2xl border border-gray-200/70 shadow-card sm:rounded-3xl">
             <IntelSectionHeader title="Frequent Partners" />
             <div className="divide-y divide-gray-50 bg-white">
               {partners.map((p) => (
@@ -294,7 +284,7 @@ export default async function PlayerPage({ params }: PageProps) {
 
         {/* Recent Matches */}
         {recentMatches.length > 0 && (
-          <section className="mt-6 overflow-hidden rounded-xl shadow-sm ring-1 ring-gray-100">
+          <section className="mt-6 overflow-hidden rounded-2xl border border-gray-200/70 shadow-card sm:rounded-3xl">
             <IntelSectionHeader
               title="Recent Matches"
               badge={`${matches.length} match${matches.length !== 1 ? "es" : ""}`}
@@ -372,7 +362,7 @@ export default async function PlayerPage({ params }: PageProps) {
 
         {/* Upcoming Tournaments */}
         {upcoming.length > 0 && (
-          <section className="mt-6 overflow-hidden rounded-xl shadow-sm ring-1 ring-gray-100">
+          <section className="mt-6 overflow-hidden rounded-2xl border border-gray-200/70 shadow-card sm:rounded-3xl">
             <IntelSectionHeader title="Upcoming Tournaments" />
             <div className="divide-y divide-gray-50 bg-white">
               {upcoming.map((t, i) => (
@@ -403,7 +393,7 @@ export default async function PlayerPage({ params }: PageProps) {
 
         {/* Empty state */}
         {!hasMatches && upcoming.length === 0 && (
-          <div className="mt-8 rounded-xl bg-white p-8 text-center shadow-sm ring-1 ring-gray-100">
+          <div className="mt-8 rounded-2xl border border-gray-200/70 bg-white p-8 text-center shadow-card sm:rounded-3xl">
             <p className="text-gray-400">No match history or upcoming tournaments available yet</p>
           </div>
         )}

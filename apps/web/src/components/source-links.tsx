@@ -15,7 +15,7 @@ export function SourceLinks({ sources }: { sources: TournamentSource[] }) {
             href={source.registration_url!}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-4 py-2 t-body text-white shadow-sm transition hover:bg-green-700"
+            className="inline-flex items-center gap-1.5 rounded-2xl bg-emerald-700 px-4 py-2 t-body font-bold text-white transition hover:bg-emerald-800 active:scale-[0.98]"
           >
             Register on{" "}
             {SOURCE_DISPLAY_NAMES[source.source_platform] ??

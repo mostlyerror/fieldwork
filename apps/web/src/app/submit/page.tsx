@@ -138,16 +138,16 @@ export default function SubmitTournamentPage() {
           <p className="text-gray-500 mb-8">
             Your tournament will appear on PickleRadar after review.
           </p>
-          <div className="flex items-center justify-center gap-3">
+          <div className="mx-auto grid max-w-md grid-cols-2 gap-2.5">
             <button
               onClick={resetForm}
-              className="rounded-lg border border-gray-200 px-6 py-3 t-body font-bold text-gray-700 transition hover:bg-gray-50"
+              className="rounded-2xl border border-gray-200 px-6 py-3 t-body font-bold text-gray-700 transition hover:border-emerald-300 hover:text-emerald-700 active:scale-[0.97]"
             >
               Submit another
             </button>
             <Link
               href="/"
-              className="inline-block rounded-lg bg-emerald-700 px-6 py-3 t-body font-bold text-white transition hover:bg-emerald-800"
+              className="inline-flex items-center justify-center rounded-2xl bg-emerald-700 px-6 py-3 t-body font-bold text-white transition hover:bg-emerald-800 active:scale-[0.98]"
             >
               Back to tournaments
             </Link>
@@ -205,7 +205,7 @@ export default function SubmitTournamentPage() {
 
               <button
                 type="submit"
-                className="w-full rounded-lg bg-emerald-700 px-6 py-3 t-body font-bold text-white transition hover:bg-emerald-800"
+                className="w-full rounded-2xl bg-emerald-700 px-6 py-3 t-body font-bold text-white transition hover:bg-emerald-800 active:scale-[0.98]"
               >
                 Next
               </button>
@@ -466,12 +466,12 @@ export default function SubmitTournamentPage() {
               </div>
 
               {state === "error" && (
-                <p className="rounded-lg bg-red-50 px-4 py-3 t-body text-red-700">
+                <p className="rounded-2xl bg-red-50 px-4 py-3 t-body text-red-700">
                   {errorMsg}
                 </p>
               )}
 
-              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between sm:gap-2">
+              <div className="flex flex-col-reverse gap-2.5 sm:grid sm:grid-cols-[auto_1fr]">
                 <button
                   type="button"
                   onClick={() => {
@@ -480,14 +480,14 @@ export default function SubmitTournamentPage() {
                     setLatitude(null);
                     setLongitude(null);
                   }}
-                  className="w-full min-h-[44px] rounded-lg border border-gray-200 px-6 py-3 t-body font-bold text-gray-600 transition hover:bg-gray-50 sm:w-auto"
+                  className="min-h-[44px] w-full rounded-2xl border border-gray-200 px-6 py-3 t-body font-bold text-gray-600 transition hover:border-emerald-300 hover:text-emerald-700 active:scale-[0.97] sm:w-auto"
                 >
                   Back
                 </button>
                 <button
                   type="submit"
                   disabled={state === "submitting"}
-                  className="w-full min-h-[44px] flex-1 rounded-lg bg-emerald-700 px-6 py-3 t-body font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50 sm:w-auto"
+                  className="min-h-[44px] w-full rounded-2xl bg-emerald-700 px-6 py-3 t-body font-bold text-white transition hover:bg-emerald-800 active:scale-[0.98] disabled:opacity-50"
                 >
                   {state === "submitting"
                     ? "Submitting..."

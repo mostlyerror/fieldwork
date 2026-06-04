@@ -79,14 +79,14 @@ export function ReportIssue({
         <button
           type="button"
           onClick={() => setState("idle")}
-          className="w-full rounded-lg px-4 py-2.5 t-body font-semibold text-gray-600 hover:text-gray-900 sm:w-auto"
+          className="w-full rounded-xl px-4 py-2.5 t-body font-semibold text-gray-600 hover:text-gray-900 sm:w-auto"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={state === "submitting"}
-          className="w-full min-h-[44px] rounded-lg bg-emerald-700 px-4 py-2.5 t-body font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50 sm:w-auto"
+          className="w-full min-h-[44px] rounded-xl bg-emerald-700 px-4 py-2.5 t-body font-bold text-white transition hover:bg-emerald-800 active:scale-[0.98] disabled:opacity-50 sm:w-auto"
         >
           {state === "submitting" ? "Sending…" : "Send report"}
         </button>

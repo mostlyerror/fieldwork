@@ -24,7 +24,7 @@ export default async function ProfilePage() {
 
         <div className="space-y-6">
           {/* Basic info */}
-          <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+          <div className="rounded-2xl border border-gray-200/70 bg-white p-6 shadow-card sm:rounded-3xl">
             <h2 className="mb-4 t-body font-bold uppercase tracking-wide text-gray-500">
               Account
             </h2>
@@ -33,7 +33,7 @@ export default async function ProfilePage() {
           </div>
 
           {/* Rating */}
-          <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+          <div className="rounded-2xl border border-gray-200/70 bg-white p-6 shadow-card sm:rounded-3xl">
             <h2 className="mb-1 t-body font-bold uppercase tracking-wide text-gray-500">
               Rating
             </h2>
@@ -42,27 +42,23 @@ export default async function ProfilePage() {
             </p>
 
             {profile?.dupr_rating_doubles != null || profile?.dupr_rating_singles != null ? (
-              <div className="mb-4 flex gap-4">
-                {profile.dupr_rating_doubles != null && (
-                  <div className="rounded-xl bg-green-50 px-4 py-3">
-                    <p className="t-label text-green-600">
-                      Doubles
-                    </p>
-                    <p className="t-h1 text-green-700">
-                      {profile.dupr_rating_doubles.toFixed(2)}
-                    </p>
+              <div className="mb-5 grid grid-cols-2 divide-x divide-gray-100 border-t border-gray-100 pt-4">
+                <div className="min-w-0 px-2.5 first:pl-0 last:pr-0">
+                  <div className="t-label text-gray-400">Doubles</div>
+                  <div className={`mt-1 t-h3 tabular-nums ${profile.dupr_rating_doubles != null ? "text-emerald-800" : "text-gray-300"}`}>
+                    {profile.dupr_rating_doubles != null
+                      ? profile.dupr_rating_doubles.toFixed(2)
+                      : "--"}
                   </div>
-                )}
-                {profile.dupr_rating_singles != null && (
-                  <div className="rounded-xl bg-blue-50 px-4 py-3">
-                    <p className="t-label text-blue-600">
-                      Singles
-                    </p>
-                    <p className="t-h1 text-blue-700">
-                      {profile.dupr_rating_singles.toFixed(2)}
-                    </p>
+                </div>
+                <div className="min-w-0 px-2.5 first:pl-0 last:pr-0">
+                  <div className="t-label text-gray-400">Singles</div>
+                  <div className={`mt-1 t-h3 tabular-nums ${profile.dupr_rating_singles != null ? "text-emerald-800" : "text-gray-300"}`}>
+                    {profile.dupr_rating_singles != null
+                      ? profile.dupr_rating_singles.toFixed(2)
+                      : "--"}
                   </div>
-                )}
+                </div>
               </div>
             ) : null}
 

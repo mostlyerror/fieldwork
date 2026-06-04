@@ -34,7 +34,7 @@ export function ProfileForm({ profile }: { profile: Profile | null }) {
           name="name"
           type="text"
           defaultValue={profile?.name ?? ""}
-          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
         />
       </div>
 
@@ -49,7 +49,7 @@ export function ProfileForm({ profile }: { profile: Profile | null }) {
           id="skill_level"
           name="skill_level"
           defaultValue={profile?.skill_level ?? ""}
-          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
         >
           <option value="">Select your level</option>
           {SKILL_LEVELS.map((level) => (
@@ -71,7 +71,7 @@ export function ProfileForm({ profile }: { profile: Profile | null }) {
           id="gender"
           name="gender"
           defaultValue={profile?.gender ?? ""}
-          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
         >
           <option value="">Prefer not to say</option>
           <option value="male">Men&apos;s</option>
@@ -85,7 +85,7 @@ export function ProfileForm({ profile }: { profile: Profile | null }) {
       <button
         type="submit"
         disabled={status === "saving"}
-        className="rounded-xl bg-green-600 px-4 py-2 t-body font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
+        className="rounded-xl bg-emerald-700 px-5 py-2.5 t-body font-bold text-white transition hover:bg-emerald-800 active:scale-[0.98] disabled:opacity-50"
       >
         {status === "saving"
           ? "Saving..."

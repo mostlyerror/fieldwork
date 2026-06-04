@@ -159,7 +159,7 @@ export function VenueSearch({
   // Selected state — show a card
   if (selection) {
     return (
-      <div className="flex items-start gap-3 rounded-xl border border-green-200 bg-green-50/50 px-4 py-3">
+      <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/50 px-4 py-3">
         <div className="min-w-0 flex-1">
           <p className="t-body text-gray-800">
             {selection.locationName}
@@ -173,7 +173,7 @@ export function VenueSearch({
         <button
           type="button"
           onClick={handleClear}
-          className="shrink-0 t-caption text-green-700 hover:text-green-900"
+          className="shrink-0 t-caption font-semibold text-emerald-700 hover:text-emerald-800"
         >
           Change
         </button>
@@ -187,8 +187,8 @@ export function VenueSearch({
   // Loading state — fetching place details after selection
   if (loading) {
     return (
-      <div className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5">
-        <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-200 border-t-green-600" />
+      <div className="flex items-center gap-2 rounded-2xl border border-gray-200 px-4 py-2.5">
+        <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" />
         <span className="t-body text-gray-500">Loading venue details...</span>
         <input type="hidden" name="locationName" value={query} />
         <input type="hidden" name="locationAddress" value="" />
@@ -203,7 +203,7 @@ export function VenueSearch({
         type="text"
         value={query}
         onChange={(e) => handleChange(e.target.value)}
-        className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+        className="w-full rounded-2xl border border-gray-200 px-4 py-2.5 text-sm focus:border-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-700"
         placeholder="Search for a venue or address..."
         autoComplete="off"
       />
@@ -211,13 +211,13 @@ export function VenueSearch({
       <input type="hidden" name="locationAddress" value="" />
 
       {open && suggestions.length > 0 && (
-        <ul className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
+        <ul className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-2xl border border-gray-200/70 bg-white py-1 shadow-card">
           {suggestions.map((s) => (
             <li key={s.placeId}>
               <button
                 type="button"
                 onClick={() => handleSelect(s)}
-                className="w-full px-4 py-2.5 text-left hover:bg-green-50"
+                className="w-full px-4 py-2.5 text-left hover:bg-emerald-50"
               >
                 <span className="block t-body text-gray-800">{s.mainText}</span>
                 {s.secondaryText && (

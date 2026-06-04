@@ -47,7 +47,7 @@ function SectionLabel({
 export function TournamentList({ tournaments, citySlug }: { tournaments: Tournament[]; citySlug?: string }) {
   if (tournaments.length === 0) {
     return (
-      <div className="animate-fade-up rounded-xl bg-white p-16 text-center shadow-sm">
+      <div className="animate-fade-up rounded-2xl border border-gray-200/70 bg-white p-16 text-center shadow-card">
         <div className="inline-block animate-paddle">
           <span className="block text-5xl" aria-hidden="true">{"\u{1F3D3}"}</span>
         </div>
