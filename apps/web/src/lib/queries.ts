@@ -340,6 +340,30 @@ export async function getPlayer(id: string): Promise<Player | null> {
   return data as Player;
 }
 
+export interface RatingPoint {
+  date: string;
+  rating: number;
+}
+
+/** A player's doubles rating timeline (oldest → newest) from DUPR match history. */
+export async function getPlayerRatingHistory(playerId: string): Promise<RatingPoint[]> {
+  const { data, error } = await supabase
+    .from("player_rating_history")
+    .select("event_date, rating")
+    .eq("player_id", playerId)
+    .eq("format", "DOUBLES")
+    .order("event_date", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching rating history:", error);
+    return [];
+  }
+  return (data ?? []).map((r) => ({
+    date: r.event_date as string,
+    rating: Number(r.rating),
+  }));
+}
+
 export interface PlayerTournamentHistory {
   tournamentId: string;
   tournamentName: string;

@@ -5,10 +5,12 @@ import {
   getPlayer,
   getPlayerMatches,
   getPlayerUpcomingTournaments,
+  getPlayerRatingHistory,
   computePlayerRecord,
   computeFrequentPartners,
 } from "@/lib/queries";
 import { IntelSectionHeader } from "@/components/intel-section-header";
+import { PlayerRatingChart } from "@/components/player-rating-chart";
 import { BackButton } from "@/components/back-button";
 import { ServerHeader } from "@/components/server-header";
 import { getDefaultCity } from "@/lib/cities";
@@ -117,10 +119,11 @@ function GameScores({ match }: { match: Match }) {
 
 export default async function PlayerPage({ params }: PageProps) {
   const { id } = await params;
-  const [player, matches, upcoming] = await Promise.all([
+  const [player, matches, upcoming, ratingHistory] = await Promise.all([
     getPlayer(id),
     getPlayerMatches(id, 20),
     getPlayerUpcomingTournaments(id),
+    getPlayerRatingHistory(id),
   ]);
 
   if (!player) notFound();
@@ -206,6 +209,13 @@ export default async function PlayerPage({ params }: PageProps) {
             </div>
           </div>
         </div>
+
+        {/* Doubles rating trend over time (from DUPR match history) */}
+        {ratingHistory.length >= 2 && (
+          <section className="mt-6">
+            <PlayerRatingChart points={ratingHistory} />
+          </section>
+        )}
 
         {/* Record breakdown — editorial fact row, hairline-divided */}
         {hasMatches && (

@@ -75,6 +75,7 @@ interface DuprTeamPlayer {
   id: number;
   fullName: string;
   duprId?: string;
+  postMatchRating?: { singles: number | null; doubles: number | null };
 }
 
 interface DuprTeam {
@@ -87,6 +88,12 @@ interface DuprTeam {
   game4?: number;
   game5?: number;
   winner: boolean;
+  preMatchRatingAndImpact?: {
+    preMatchDoubleRatingPlayer1: number | null;
+    matchDoubleRatingImpactPlayer1: number | null;
+    preMatchDoubleRatingPlayer2: number | null;
+    matchDoubleRatingImpactPlayer2: number | null;
+  };
 }
 
 interface DuprMatchHit {
@@ -168,41 +175,62 @@ async function getNumericId(
   return match?.id ?? null;
 }
 
-async function fetchMatchHistory(
+const HISTORY_PAGE = 25; // DUPR caps the history limit at 25 per request
+const MAX_HISTORY = 150; // cap matches pulled per player (enough for a trend)
+
+async function fetchMatchPage(
   numericId: number,
   token: string,
+  offset: number,
   attempt = 0
-): Promise<DuprMatchHit[]> {
+): Promise<{ hits: DuprMatchHit[]; total: number }> {
   const res = await fetch(`${DUPR_API_BASE}/player/v1.0/${numericId}/history`, {
     method: "POST",
     headers: apiHeaders(token),
     body: JSON.stringify({
       filters: {},
       sort: { order: "DESC", parameter: "MATCH_DATE" },
-      limit: 25,
-      offset: 0,
+      limit: HISTORY_PAGE,
+      offset,
     }),
   });
 
   if (res.status === 429) {
     if (attempt >= MAX_RETRIES) {
       console.error(`[match-history] Rate limited ${MAX_RETRIES + 1}x for player ${numericId}, giving up`);
-      return [];
+      return { hits: [], total: 0 };
     }
     const wait = backoffDelay();
     console.warn(`[match-history] Rate limited, backing off ${(wait / 1000).toFixed(0)}s (attempt ${attempt + 1})...`);
     await sleep(wait);
-    return fetchMatchHistory(numericId, token, attempt + 1);
+    return fetchMatchPage(numericId, token, offset, attempt + 1);
   }
 
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     console.error(`[match-history] History fetch failed for player ${numericId}: ${res.status} ${body.slice(0, 200)}`);
-    return [];
+    return { hits: [], total: 0 };
   }
 
   const data = await res.json() as DuprHistoryResponse;
-  return data.result?.hits ?? [];
+  return { hits: data.result?.hits ?? [], total: data.result?.total ?? 0 };
+}
+
+/** Paginate a player's match history up to MAX_HISTORY (most recent first). */
+async function fetchMatchHistory(numericId: number, token: string): Promise<DuprMatchHit[]> {
+  const all: DuprMatchHit[] = [];
+  let offset = 0;
+  let total = Infinity;
+  while (offset < Math.min(total, MAX_HISTORY)) {
+    const { hits, total: t } = await fetchMatchPage(numericId, token, offset);
+    total = t || all.length; // if total missing, stop after this page
+    if (hits.length === 0) break;
+    all.push(...hits);
+    offset += HISTORY_PAGE;
+    if (hits.length < HISTORY_PAGE) break;
+    if (offset < Math.min(total, MAX_HISTORY)) await sleep(randBetween(800, 1800));
+  }
+  return all;
 }
 
 /**
@@ -328,6 +356,61 @@ async function upsertMatches(matches: DuprMatchHit[]): Promise<number> {
   return count ?? rows.length;
 }
 
+interface RatingRow {
+  player_id: string;
+  dupr_match_id: number;
+  event_date: string;
+  format: string;
+  rating: number;
+  pre_rating: number | null;
+  impact: number | null;
+}
+
+/** Pull THIS player's post-match doubles rating out of each match they're in. */
+function buildRatingRows(
+  matches: DuprMatchHit[],
+  playerDuprId: string,
+  playerUuid: string,
+): RatingRow[] {
+  const rows: RatingRow[] = [];
+  const seen = new Set<number>();
+  for (const m of matches) {
+    for (const team of m.teams) {
+      const slot = team.player1?.duprId === playerDuprId ? 1 : team.player2?.duprId === playerDuprId ? 2 : 0;
+      if (!slot) continue;
+      const player = slot === 1 ? team.player1 : team.player2;
+      const post = player?.postMatchRating?.doubles;
+      if (post == null) continue;
+      if (seen.has(m.matchId)) continue;
+      seen.add(m.matchId);
+      const pim = team.preMatchRatingAndImpact;
+      rows.push({
+        player_id: playerUuid,
+        dupr_match_id: m.matchId,
+        event_date: m.eventDate,
+        format: "DOUBLES",
+        rating: post,
+        pre_rating: slot === 1 ? pim?.preMatchDoubleRatingPlayer1 ?? null : pim?.preMatchDoubleRatingPlayer2 ?? null,
+        impact: slot === 1 ? pim?.matchDoubleRatingImpactPlayer1 ?? null : pim?.matchDoubleRatingImpactPlayer2 ?? null,
+      });
+    }
+  }
+  return rows;
+}
+
+async function upsertRatingHistory(rows: RatingRow[]): Promise<number> {
+  if (rows.length === 0) return 0;
+  const { error, count } = await supabase
+    .from("player_rating_history")
+    .upsert(rows, { onConflict: "player_id,dupr_match_id,format", ignoreDuplicates: false })
+    .select();
+  if (error) {
+    console.error("[match-history] rating-history upsert failed:", error);
+    return 0;
+  }
+  return count ?? rows.length;
+}
+
 export async function fetchAllMatchHistory(token: string): Promise<{
   playersChecked: number;
   matchesInserted: number;
@@ -364,6 +447,13 @@ export async function fetchAllMatchHistory(token: string): Promise<{
       // Step 3: Upsert matches
       const inserted = await upsertMatches(hits);
       matchesInserted += inserted;
+
+      // Step 3b: Capture this player's rating timeline from the same data
+      const ratingRows = buildRatingRows(hits, player.dupr_id, player.id);
+      const ratingPoints = await upsertRatingHistory(ratingRows);
+      if (ratingPoints > 0) {
+        console.log(`[match-history]   ${player.name}: ${ratingPoints} rating points`);
+      }
 
       // Step 4: Update player's matches_last_checked
       const { error: updateError } = await supabase
