@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import type { Tournament, TournamentSource } from "@/lib/types";
+import type { Tournament, TournamentSource, TournamentEvent } from "@/lib/types";
 import {
   formatDateRange,
   formatCurrency,
@@ -10,6 +10,8 @@ import {
   googleMapsUrl,
   isTournamentPast,
 } from "@/lib/format";
+import { eventIntel, ratingHistogram } from "@/lib/field-intel";
+import { cleanEventName } from "@/lib/event-name";
 import { googleCalendarUrl } from "@/lib/calendar";
 import { SOURCE_DISPLAY_NAMES } from "@/lib/constants";
 import { ShareButtons } from "./share-buttons";
@@ -31,23 +33,67 @@ import {
   RadarMarkIcon,
 } from "./icons";
 
-const FS_TONE: Record<
-  FieldStrengthLevel,
-  { label: string; text: string; bar: string; box: string; ring: string }
-> = {
-  friendly: { label: "Friendly field", text: "text-emerald-700", bar: "bg-emerald-600", box: "bg-emerald-50", ring: "ring-emerald-100" },
-  competitive: { label: "Competitive", text: "text-amber-700", bar: "bg-amber-500", box: "bg-amber-50", ring: "ring-amber-100" },
-  stacked: { label: "Stacked", text: "text-red-700", bar: "bg-red-500", box: "bg-red-50", ring: "ring-red-100" },
-  sandbagger: { label: "Over-cap field", text: "text-red-700", bar: "bg-red-500", box: "bg-red-50", ring: "ring-red-100" },
+const FS_LABEL: Record<FieldStrengthLevel, string> = {
+  friendly: "Friendly field",
+  competitive: "Competitive field",
+  stacked: "Stacked field",
+  sandbagger: "Over-cap field",
 };
+
+/** A quiet one-line read of the field, shown in the overview and linking to the
+ *  Field Intelligence section. Single bracket → that field's verdict; multiple
+ *  brackets → a roll-up that leads with the over-cap alarm. */
+type IntelLine = { tone: "good" | "alert"; strong: string; detail: string };
+
+function overviewIntel(events: TournamentEvent[]): IntelLine | null {
+  const withData = events.filter((e) => (e.players?.length ?? 0) > 0);
+  if (withData.length === 0) return null;
+
+  if (withData.length === 1) {
+    const e = withData[0];
+    const intel = eventIntel(e);
+    if (intel.above > 0) {
+      return {
+        tone: "alert",
+        strong: "Over-cap field",
+        detail: `${intel.above} rating${intel.above > 1 ? "s" : ""} over the cap`,
+      };
+    }
+    const avg = ratingHistogram(e).avg;
+    let lvl = getFieldStrengthLevel(e.field_strength ?? undefined, e.sandbagger_pct ?? undefined);
+    // Fallback when no stored strength score: infer from headroom under the cap.
+    if (!lvl && avg != null && e.skill_level_max != null) {
+      const headroom = e.skill_level_max - avg;
+      lvl = headroom >= 0.5 ? "friendly" : headroom >= 0.2 ? "competitive" : "stacked";
+    }
+    const strong = lvl ? FS_LABEL[lvl] : "Field intel";
+    const tail =
+      intel.delta != null && Math.abs(intel.delta) >= 0.18
+        ? `plays ${Math.abs(intel.delta).toFixed(2)} ${intel.delta >= 0 ? "above" : "below"} its listed level`
+        : "plays true to level";
+    return { tone: "good", strong, detail: avg != null ? `true avg ${avg.toFixed(2)} · ${tail}` : tail };
+  }
+
+  const overCap = withData.filter((e) => eventIntel(e).above > 0).length;
+  if (overCap > 0) {
+    return {
+      tone: "alert",
+      strong: "Heads up",
+      detail: `${overCap} of ${withData.length} brackets have ratings over the cap`,
+    };
+  }
+  return { tone: "good", strong: "All clear", detail: `${withData.length} brackets · every field plays true to level` };
+}
 
 export function TournamentDetail({
   tournament,
   sources,
+  events = [],
   citySlug,
 }: {
   tournament: Tournament;
   sources: TournamentSource[];
+  events?: TournamentEvent[];
   citySlug?: string;
 }) {
   const withUrl = sources.filter((s) => s.registration_url);
@@ -73,16 +119,19 @@ export function TournamentDetail({
   const past = isTournamentPast(tournament);
   const closed = !past && regStatus.isClosed;
 
-  const fsLevel = getFieldStrengthLevel(
-    tournament.avg_field_strength,
-    tournament.max_sandbagger_pct,
-  );
-  const fs = fsLevel ? FS_TONE[fsLevel] : null;
-  const fsFill = Math.round(
-    Math.min(1, Math.max(0.12, tournament.avg_field_strength ?? 0)) * 100,
-  );
-
   const venueName = tournament.venue_name || tournament.location_name;
+
+  const intel = overviewIntel(events);
+  const eyebrow =
+    events.length === 0
+      ? null
+      : events.length === 1
+        ? cleanEventName(events[0])
+        : `${events.length} divisions`;
+  const shortDate = new Date(tournament.date_start + "T00:00:00").toLocaleDateString(
+    "en-US",
+    { month: "short", day: "numeric" },
+  );
 
   useEffect(() => {
     track("tournament_viewed", {
@@ -102,23 +151,11 @@ export function TournamentDetail({
     });
   }
 
-  const stats: { value: string; label: string }[] = [
-    {
-      value: tournament.entry_fee != null ? formatCurrency(tournament.entry_fee) : "—",
-      label: "Entry",
-    },
-    {
-      value: tournament.total_registered ? String(tournament.total_registered) : "—",
-      label: "Registered",
-    },
-    {
-      value: tournament.total_live_dupr
-        ? String(tournament.total_live_dupr)
-        : tournament.event_count
-          ? String(tournament.event_count)
-          : "—",
-      label: tournament.total_live_dupr ? "Live ratings" : "Events",
-    },
+  const facts: { label: string; value: string; accent?: boolean }[] = [
+    { label: "Entry", value: tournament.entry_fee != null ? formatCurrency(tournament.entry_fee) : "—", accent: true },
+    { label: "Registered", value: tournament.total_registered ? String(tournament.total_registered) : "—" },
+    { label: "Events", value: tournament.event_count ? String(tournament.event_count) : "—" },
+    { label: "Date", value: shortDate },
   ];
 
   return (
@@ -215,133 +252,134 @@ export function TournamentDetail({
         ) : null}
       </div>
 
-      {/* ── Header content (centered reading column on desktop) ── */}
-      <div className="mx-auto max-w-3xl pt-5 pb-1">
-        <h1 className="text-2xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-[34px]">
-          {tournament.name}
-        </h1>
+      {/* ── Overview card (overlaps the hero) ── */}
+      <div className="relative z-10 mx-auto -mt-8 max-w-3xl sm:-mt-14">
+        <div className="rounded-2xl border border-gray-200/70 bg-white p-5 shadow-card sm:rounded-3xl sm:p-7">
+          {eyebrow && <div className="t-label text-emerald-700">{eyebrow}</div>}
 
-        <div className="mt-2 flex items-center gap-1.5 text-[15px] font-medium text-gray-500">
-          <MapPinIcon className="h-4 w-4 shrink-0 text-emerald-600" />
-          {tournament.venue_slug && citySlug ? (
-            <Link
-              href={`/${citySlug}/venues/${tournament.venue_slug}`}
-              className="font-semibold text-emerald-700 underline decoration-emerald-300 decoration-2 underline-offset-2 hover:decoration-emerald-600"
+          <h1 className="mt-1.5 t-h1 text-gray-900">{tournament.name}</h1>
+
+          <div className="mt-2 flex items-center gap-1.5 t-small font-medium text-gray-500">
+            <MapPinIcon className="h-4 w-4 shrink-0 text-emerald-600" />
+            {tournament.venue_slug && citySlug ? (
+              <Link
+                href={`/${citySlug}/venues/${tournament.venue_slug}`}
+                className="font-semibold text-emerald-700 underline decoration-emerald-300 decoration-2 underline-offset-2 hover:decoration-emerald-600"
+              >
+                {venueName}
+              </Link>
+            ) : (
+              <a
+                href={mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-emerald-700 underline decoration-emerald-300 decoration-2 underline-offset-2 hover:decoration-emerald-600"
+              >
+                {tournament.location_name}
+              </a>
+            )}
+          </div>
+
+          {/* Quiet field-intel one-liner → Field Intelligence */}
+          {intel && (
+            <a
+              href="#field-intelligence"
+              className={`mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 t-small font-medium transition hover:opacity-75 ${
+                intel.tone === "alert" ? "text-red-700/80" : "text-gray-500"
+              }`}
             >
-              {venueName}
-            </Link>
-          ) : (
+              <span
+                className={`h-[7px] w-[7px] shrink-0 rounded-full ring-[3px] ${
+                  intel.tone === "alert" ? "bg-red-500 ring-red-100" : "bg-emerald-500 ring-emerald-100"
+                }`}
+              />
+              <span className={`font-bold ${intel.tone === "alert" ? "text-red-700" : "text-emerald-800"}`}>
+                {intel.strong}
+              </span>
+              <span className="text-gray-300">·</span>
+              <span className="tabular-nums">{intel.detail}</span>
+              <span className="ml-0.5 hidden items-center gap-0.5 font-bold text-emerald-700 sm:inline-flex">
+                See the field <ArrowRightIcon className="h-3 w-3" />
+              </span>
+            </a>
+          )}
+
+          {/* Editorial fact row — uniform, hairline-divided */}
+          <div className="mt-5 grid grid-cols-4 divide-x divide-gray-100 border-t border-gray-100 pt-4">
+            {facts.map((f) => (
+              <div key={f.label} className="min-w-0 px-2.5 first:pl-0 last:pr-0">
+                <div className="t-label text-gray-400">{f.label}</div>
+                <div className={`mt-1 t-h3 tabular-nums ${f.accent ? "text-emerald-800" : "text-gray-900"}`}>
+                  {f.value}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Primary CTA */}
+          {withUrl.length > 0 && (
+            <div className="mt-5 flex flex-col gap-2.5">
+              {withUrl.map((source) => {
+                const label = SOURCE_DISPLAY_NAMES[source.source_platform] ?? "source";
+                return closed || past ? (
+                  <a
+                    key={source.id}
+                    href={source.registration_url!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => logRegister(source.source_platform)}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-200 px-5 py-3.5 t-body font-bold text-gray-600 transition active:scale-[0.98]"
+                  >
+                    View on {label} <ArrowRightIcon className="h-4 w-4" />
+                  </a>
+                ) : (
+                  <a
+                    key={source.id}
+                    href={source.registration_url!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => logRegister(source.source_platform)}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-700 px-5 py-3.5 t-body font-bold text-white shadow-[0_12px_28px_-12px_rgba(6,78,59,0.6)] transition hover:bg-emerald-800 active:scale-[0.98]"
+                  >
+                    Register on {label} <ArrowRightIcon className="h-4 w-4" />
+                  </a>
+                );
+              })}
+              <div className="flex justify-center">
+                <RegistrationPill tournament={tournament} />
+              </div>
+            </div>
+          )}
+
+          {/* Secondary actions — aligned 3-up */}
+          <div className="mt-4 grid grid-cols-3 gap-2.5">
             <a
               href={mapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-emerald-700 underline decoration-emerald-300 decoration-2 underline-offset-2 hover:decoration-emerald-600"
+              className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white py-2.5 t-small font-bold text-gray-700 transition hover:border-emerald-300 hover:text-emerald-700 active:scale-[0.97]"
             >
-              {tournament.location_name}
+              <MapPinIcon className="h-4 w-4" /> Map
             </a>
-          )}
-        </div>
-
-        {/* Stat strip — divided, no boxes-on-boxes */}
-        <div className="mt-5 grid grid-cols-3 divide-x divide-gray-100 overflow-hidden rounded-2xl border border-gray-200/80 bg-white">
-          {stats.map((s) => (
-            <div key={s.label} className="px-2 py-3 text-center">
-              <div className="text-xl font-extrabold tracking-tight text-gray-900">
-                {s.value}
-              </div>
-              <div className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                {s.label}
-              </div>
+            <a
+              href={googleCalendarUrl(tournament)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white py-2.5 t-small font-bold text-gray-700 transition hover:border-emerald-300 hover:text-emerald-700 active:scale-[0.97]"
+            >
+              <CalendarIcon className="h-4 w-4" /> Calendar
+            </a>
+            <div className="flex items-stretch [&>*]:w-full [&_button]:w-full [&_button]:justify-center [&_button]:gap-1.5 [&_button]:rounded-xl [&_button]:border [&_button]:border-gray-200 [&_button]:bg-white [&_button]:py-2.5 [&_button]:text-[13px] [&_button]:font-bold [&_button]:text-gray-700">
+              <ShareButtons
+                tournamentId={tournament.id}
+                tournamentName={tournament.name}
+                dateRange={formatDateRange(tournament.date_start, tournament.date_end)}
+                venue={venueName}
+                registered={tournament.total_registered ?? undefined}
+                eventCount={tournament.event_count ?? undefined}
+                liveRatings={tournament.total_live_dupr ?? undefined}
+              />
             </div>
-          ))}
-        </div>
-
-        {/* Field-strength overview — the summary the long event list lacks */}
-        {fs && (
-          <div className={`mt-3 rounded-2xl px-4 py-3 ring-1 ${fs.box} ${fs.ring}`}>
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                Field strength
-              </span>
-              <span className={`text-sm font-extrabold ${fs.text}`}>{fs.label}</span>
-            </div>
-            <div className="h-2 overflow-hidden rounded-full bg-black/[0.07]">
-              <div className={`h-full rounded-full ${fs.bar}`} style={{ width: `${fsFill}%` }} />
-            </div>
-            {tournament.max_sandbagger_pct != null && tournament.max_sandbagger_pct > 0 && (
-              <p className="mt-2 text-xs font-medium text-gray-500">
-                <span className={`font-bold ${fs.text}`}>
-                  {Math.round(tournament.max_sandbagger_pct * 100)}%
-                </span>{" "}
-                of players rated over the skill cap
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Primary CTA */}
-        {withUrl.length > 0 && (
-          <div className="mt-5 flex flex-col gap-2">
-            {withUrl.map((source) => {
-              const label = SOURCE_DISPLAY_NAMES[source.source_platform] ?? "source";
-              return closed || past ? (
-                <a
-                  key={source.id}
-                  href={source.registration_url!}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => logRegister(source.source_platform)}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-200 px-5 py-3.5 text-base font-bold text-gray-600 transition active:scale-[0.98]"
-                >
-                  View on {label} <ArrowRightIcon className="h-4 w-4" />
-                </a>
-              ) : (
-                <a
-                  key={source.id}
-                  href={source.registration_url!}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => logRegister(source.source_platform)}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-700 px-5 py-3.5 text-base font-bold text-white shadow-[0_12px_28px_-12px_rgba(6,78,59,0.6)] transition hover:bg-emerald-800 active:scale-[0.98]"
-                >
-                  Register on {label} <ArrowRightIcon className="h-4 w-4" />
-                </a>
-              );
-            })}
-            <div className="flex justify-center">
-              <RegistrationPill tournament={tournament} />
-            </div>
-          </div>
-        )}
-
-        {/* Secondary actions — tactile icon buttons */}
-        <div className="mt-3 flex items-stretch gap-2">
-          <a
-            href={mapsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white py-2.5 text-[13px] font-bold text-gray-700 transition hover:border-emerald-300 hover:text-emerald-700 active:scale-[0.97]"
-          >
-            <MapPinIcon className="h-4 w-4" /> Map
-          </a>
-          <a
-            href={googleCalendarUrl(tournament)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white py-2.5 text-[13px] font-bold text-gray-700 transition hover:border-emerald-300 hover:text-emerald-700 active:scale-[0.97]"
-          >
-            <CalendarIcon className="h-4 w-4" /> Calendar
-          </a>
-          <div className="flex flex-1 items-stretch [&>*]:w-full [&_button]:w-full [&_button]:justify-center [&_button]:rounded-xl [&_button]:border [&_button]:border-gray-200 [&_button]:bg-white [&_button]:py-2.5 [&_button]:text-[13px] [&_button]:font-bold [&_button]:text-gray-700">
-            <ShareButtons
-              tournamentId={tournament.id}
-              tournamentName={tournament.name}
-              dateRange={formatDateRange(tournament.date_start, tournament.date_end)}
-              venue={venueName}
-              registered={tournament.total_registered ?? undefined}
-              eventCount={tournament.event_count ?? undefined}
-              liveRatings={tournament.total_live_dupr ?? undefined}
-            />
           </div>
         </div>
       </div>

@@ -156,11 +156,12 @@ export default async function TournamentPage({ params }: PageProps) {
         <TournamentDetail
           tournament={tournament}
           sources={sources}
+          events={events}
           citySlug={citySlug}
         />
 
         {events.length > 0 && (
-          <section className="mt-6">
+          <section id="field-intelligence" className="mt-6 scroll-mt-20">
             <EventBreakdown events={events} />
           </section>
         )}
