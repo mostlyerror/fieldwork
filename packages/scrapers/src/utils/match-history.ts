@@ -411,72 +411,93 @@ async function upsertRatingHistory(rows: RatingRow[]): Promise<number> {
   return count ?? rows.length;
 }
 
+/** Fetch + store one player's matches and rating timeline. Returns matches upserted. */
+async function processPlayer(player: PlayerNeedingMatches, token: string): Promise<number> {
+  try {
+    const numericId = await getNumericId(player.dupr_id, token);
+    if (!numericId) {
+      console.warn(`[match-history] Could not resolve numeric ID for "${player.name}" (${player.dupr_id})`);
+      await supabase.from("players").update({ matches_last_checked: new Date().toISOString() }).eq("id", player.id);
+      return 0;
+    }
+
+    await sleep(randBetween(800, 2000)); // pause between search and history fetch
+
+    const hits = await fetchMatchHistory(numericId, token);
+    console.log(`[match-history] ${player.name}: fetched ${hits.length} matches`);
+
+    const inserted = await upsertMatches(hits);
+
+    // Capture this player's rating timeline from the same data
+    const ratingPoints = await upsertRatingHistory(buildRatingRows(hits, player.dupr_id, player.id));
+    if (ratingPoints > 0) console.log(`[match-history]   ${player.name}: ${ratingPoints} rating points`);
+
+    const { error: updateError } = await supabase
+      .from("players")
+      .update({ matches_last_checked: new Date().toISOString() })
+      .eq("id", player.id);
+    if (updateError) console.error(`[match-history] Failed to update matches_last_checked for "${player.name}":`, updateError);
+    else console.log(`[match-history] ✓ ${player.name}: ${inserted} matches upserted`);
+
+    return inserted;
+  } catch (err) {
+    console.error(`[match-history] Error processing "${player.name}":`, err);
+    return 0;
+  }
+}
+
 export async function fetchAllMatchHistory(token: string): Promise<{
   playersChecked: number;
   matchesInserted: number;
 }> {
   console.log("[match-history] Starting match history fetch...");
-
   const players = await getPlayersNeedingMatches(BATCH_SIZE);
   console.log(`[match-history] Found ${players.length} players needing match history refresh`);
 
   let matchesInserted = 0;
-
   for (const player of players) {
-    try {
-      // Step 1: Resolve numeric DUPR ID
-      const numericId = await getNumericId(player.dupr_id, token);
-      if (!numericId) {
-        console.warn(`[match-history] Could not resolve numeric ID for "${player.name}" (${player.dupr_id})`);
-        await supabase
-          .from("players")
-          .update({ matches_last_checked: new Date().toISOString() })
-          .eq("id", player.id);
-        const delay = humanDelay();
-        await sleep(delay);
-        continue;
-      }
-
-      // Brief pause between search and history fetch
-      await sleep(randBetween(800, 2000));
-
-      // Step 2: Fetch match history
-      const hits = await fetchMatchHistory(numericId, token);
-      console.log(`[match-history] ${player.name}: fetched ${hits.length} matches`);
-
-      // Step 3: Upsert matches
-      const inserted = await upsertMatches(hits);
-      matchesInserted += inserted;
-
-      // Step 3b: Capture this player's rating timeline from the same data
-      const ratingRows = buildRatingRows(hits, player.dupr_id, player.id);
-      const ratingPoints = await upsertRatingHistory(ratingRows);
-      if (ratingPoints > 0) {
-        console.log(`[match-history]   ${player.name}: ${ratingPoints} rating points`);
-      }
-
-      // Step 4: Update player's matches_last_checked
-      const { error: updateError } = await supabase
-        .from("players")
-        .update({ matches_last_checked: new Date().toISOString() })
-        .eq("id", player.id);
-
-      if (updateError) {
-        console.error(`[match-history] Failed to update matches_last_checked for "${player.name}":`, updateError);
-      } else {
-        console.log(`[match-history] ✓ ${player.name}: ${inserted} matches upserted`);
-      }
-    } catch (err) {
-      console.error(`[match-history] Error processing "${player.name}":`, err);
-    }
-
-    const delay = humanDelay();
-    await sleep(delay);
+    matchesInserted += await processPlayer(player, token);
+    await sleep(humanDelay());
   }
 
-  console.log(
-    `[match-history] Done. Players checked: ${players.length}, Matches inserted/updated: ${matchesInserted}`
-  );
+  console.log(`[match-history] Done. Players checked: ${players.length}, Matches inserted/updated: ${matchesInserted}`);
+  return { playersChecked: players.length, matchesInserted };
+}
 
+/** Brand-new players (have a verified dupr_id but were never fetched). */
+async function getNewPlayers(limit: number): Promise<PlayerNeedingMatches[]> {
+  const { data, error } = await supabase
+    .from("players")
+    .select("id, name, dupr_id")
+    .not("dupr_id", "is", null)
+    .eq("dupr_verified", true)
+    .is("matches_last_checked", null)
+    .order("created_at", { ascending: true })
+    .limit(limit);
+  if (error) {
+    console.error("[match-history] Error fetching new players:", error);
+    return [];
+  }
+  return (data ?? []) as PlayerNeedingMatches[];
+}
+
+/**
+ * Metered backfill for up to `limit` brand-new players (never fetched). Called
+ * from the hourly urgent refresh so a freshly-added player lights up within
+ * ~an hour — capped low + human-paced so we never burst DUPR.
+ */
+export async function fetchNewPlayerMatchHistory(
+  token: string,
+  limit = 5,
+): Promise<{ playersChecked: number; matchesInserted: number }> {
+  const players = await getNewPlayers(limit);
+  if (players.length === 0) return { playersChecked: 0, matchesInserted: 0 };
+  console.log(`[match-history] New-player pass: ${players.length} player(s)`);
+
+  let matchesInserted = 0;
+  for (const player of players) {
+    matchesInserted += await processPlayer(player, token);
+    await sleep(humanDelay());
+  }
   return { playersChecked: players.length, matchesInserted };
 }

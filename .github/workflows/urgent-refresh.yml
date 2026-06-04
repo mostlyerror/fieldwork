@@ -28,3 +28,5 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+          DUPR_EMAIL: ${{ secrets.DUPR_EMAIL }}
+          DUPR_PASSWORD: ${{ secrets.DUPR_PASSWORD }}
