@@ -146,7 +146,7 @@ export default async function TournamentPage({ params }: PageProps) {
       )}
       <ServerHeader city={city} />
 
-      <main className="mx-auto max-w-6xl px-3 sm:px-5 py-10">
+      <main className="mx-auto max-w-4xl px-3 sm:px-5 py-10">
         <Link
           href={`/${citySlug}`}
           className="mb-8 inline-flex items-center t-body text-gray-400 hover:text-emerald-700"

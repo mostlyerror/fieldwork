@@ -38,7 +38,7 @@ const FS_TONE: Record<
   friendly: { label: "Friendly field", text: "text-emerald-700", bar: "bg-emerald-600", box: "bg-emerald-50", ring: "ring-emerald-100" },
   competitive: { label: "Competitive", text: "text-amber-700", bar: "bg-amber-500", box: "bg-amber-50", ring: "ring-amber-100" },
   stacked: { label: "Stacked", text: "text-red-700", bar: "bg-red-500", box: "bg-red-50", ring: "ring-red-100" },
-  sandbagger: { label: "Sandbagger alert", text: "text-red-700", bar: "bg-red-500", box: "bg-red-50", ring: "ring-red-100" },
+  sandbagger: { label: "Over-cap field", text: "text-red-700", bar: "bg-red-500", box: "bg-red-50", ring: "ring-red-100" },
 };
 
 export function TournamentDetail({
@@ -141,7 +141,7 @@ export function TournamentDetail({
           stickyVisible ? "translate-y-0" : "-translate-y-full"
         }`}
       >
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-3 py-2.5 sm:px-5">
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-3 py-2.5 sm:px-5">
           <span className="min-w-0 max-w-[58%] truncate text-sm font-bold text-gray-900 sm:max-w-none">
             {tournament.name}
           </span>
@@ -215,8 +215,8 @@ export function TournamentDetail({
         ) : null}
       </div>
 
-      {/* ── Header content ── */}
-      <div className="pt-5 pb-1">
+      {/* ── Header content (centered reading column on desktop) ── */}
+      <div className="mx-auto max-w-3xl pt-5 pb-1">
         <h1 className="text-2xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-[34px]">
           {tournament.name}
         </h1>
