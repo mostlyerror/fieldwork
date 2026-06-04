@@ -6,10 +6,10 @@ export function IntelSectionHeader({
   badge?: string;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-t-xl bg-[#065f46] px-4 py-2.5 text-white">
-      <span className="t-label">{title}</span>
+    <div className="flex items-center justify-between bg-[#065f46] px-5 py-3 text-white">
+      <span className="t-label tracking-[0.12em]">{title}</span>
       {badge && (
-        <span className="t-caption opacity-70">{badge}</span>
+        <span className="t-caption font-semibold opacity-75">{badge}</span>
       )}
     </div>
   );

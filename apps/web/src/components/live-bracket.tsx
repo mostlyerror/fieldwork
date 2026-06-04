@@ -353,7 +353,7 @@ export function LiveBracket({
   const current = grouped.get(selectedEvent);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-gray-200/70 shadow-card sm:rounded-3xl">
       <IntelSectionHeader title="Bracket & Results" badge={badgeText} />
 
       {eventKeys.length > 1 && (

@@ -13,7 +13,7 @@ export function TournamentPodium({ events }: { events: TournamentEvent[] }) {
   if (eventsWithPlacements.length === 0) return null;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-gray-200/70 shadow-card sm:rounded-3xl">
       <IntelSectionHeader title="Results" />
       <div className="divide-y divide-gray-100 bg-white">
         {eventsWithPlacements.map((event) => {
