@@ -61,23 +61,42 @@ async function postPlayerHistory(players: PlayerHistorySummary[]): Promise<void>
 }
 
 async function rosterHistoryPass(): Promise<void> {
-  if (!process.env.DUPR_EMAIL || !process.env.DUPR_PASSWORD) return;
+  if (!process.env.DUPR_EMAIL || !process.env.DUPR_PASSWORD) {
+    console.warn("[urgent-refresh] roster history: DUPR creds missing, skipping");
+    return;
+  }
+  console.log("[urgent-refresh] roster history: starting DUPR login...");
   try {
     const res = await fetch("https://api.dupr.gg/auth/v1.0/login/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: process.env.DUPR_EMAIL, password: process.env.DUPR_PASSWORD }),
     });
-    if (!res.ok) return;
-    const data = await res.json();
-    if (data?.status !== "SUCCESS") return;
+    const data = await res.json().catch(() => null);
+    if (!res.ok || data?.status !== "SUCCESS" || !data?.result?.accessToken) {
+      // Surface the failure — a silent return here is exactly what hid this
+      // pass's behavior. DUPR may block datacenter IPs or rate-limit.
+      const detail = `HTTP ${res.status}, status=${data?.status ?? "?"}`;
+      console.error(`[urgent-refresh] roster history: DUPR login failed (${detail})`);
+      await sendDiscordAlert({
+        title: "⚠️ Roster history skipped — DUPR login failed",
+        description: `Could not log in to DUPR (${detail}). No player history pulled this run.`,
+      }).catch(() => {});
+      return;
+    }
     const r = await fetchTournamentRosterHistory(data.result.accessToken, ROSTER_REFRESH_CAP);
+    console.log(`[urgent-refresh] roster history: ${r.playersChecked} player(s) due, ${r.matchesInserted} matches`);
     if (r.playersChecked > 0) {
-      console.log(`[urgent-refresh] roster history: ${r.playersChecked} player(s), ${r.matchesInserted} matches`);
       await postPlayerHistory(r.players);
+    } else {
+      console.log("[urgent-refresh] roster history: nobody due for refresh (all within 24h floor)");
     }
   } catch (err) {
     console.error("[urgent-refresh] roster history pass failed (non-fatal):", err);
+    await sendDiscordAlert({
+      title: "⚠️ Roster history pass errored",
+      description: `${err instanceof Error ? err.message : String(err)} (non-fatal — refresh itself succeeded).`,
+    }).catch(() => {});
   }
 }
 
