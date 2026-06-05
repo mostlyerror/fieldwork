@@ -69,7 +69,17 @@ async function rosterHistoryPass(): Promise<void> {
   try {
     const res = await fetch("https://api.dupr.gg/auth/v1.0/login/", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        // DUPR's edge returns 400/FAILURE to bare datacenter requests; a
+        // browser-like header set gets the login past it from CI IPs.
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+        Accept: "application/json, text/plain, */*",
+        "Accept-Language": "en-US,en;q=0.9",
+        Origin: "https://dashboard.dupr.com",
+        Referer: "https://dashboard.dupr.com/",
+      },
       body: JSON.stringify({ email: process.env.DUPR_EMAIL, password: process.env.DUPR_PASSWORD }),
     });
     const data = await res.json().catch(() => null);
