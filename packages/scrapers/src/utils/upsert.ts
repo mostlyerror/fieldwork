@@ -335,6 +335,23 @@ export async function upsertEvents(
   // Upsert persistent players and get sourcePlayerId → players.id map
   const playerIdMap = await upsertPlayers(allPlayers);
 
+  // Per-bracket start times come from the urgent-refresh JSON path, not this
+  // (Playwright) scrape — so preserve them across the delete+reinsert, keyed by
+  // source_event_id, instead of wiping them on every full scrape.
+  const { data: priorEvents } = await supabase
+    .from("tournament_events")
+    .select("source_event_id, start_time, start_time_raw")
+    .eq("tournament_id", tournamentId);
+  const priorStart = new Map<string, { start_time: string | null; start_time_raw: string | null }>();
+  for (const e of priorEvents ?? []) {
+    if (e.source_event_id) {
+      priorStart.set(e.source_event_id as string, {
+        start_time: (e.start_time as string | null) ?? null,
+        start_time_raw: (e.start_time_raw as string | null) ?? null,
+      });
+    }
+  }
+
   // Delete existing events (cascades to event_players)
   const { error: deleteError } = await supabase
     .from("tournament_events")
@@ -379,6 +396,8 @@ export async function upsertEvents(
         field_strength: fieldStrength,
         sandbagger_pct: sandbaggerPct,
         source_event_id: event.sourceEventId ?? null,
+        start_time: event.sourceEventId ? priorStart.get(event.sourceEventId)?.start_time ?? null : null,
+        start_time_raw: event.sourceEventId ? priorStart.get(event.sourceEventId)?.start_time_raw ?? null : null,
       })
       .select("id")
       .single();

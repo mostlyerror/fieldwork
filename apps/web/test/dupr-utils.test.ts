@@ -35,6 +35,8 @@ function makeEvent(overrides: Partial<TournamentEvent> = {}): TournamentEvent {
     avg_dupr: null,
     field_strength: null,
     sandbagger_pct: null,
+    start_time: null,
+    start_time_raw: null,
     players: [],
     ...overrides,
   };

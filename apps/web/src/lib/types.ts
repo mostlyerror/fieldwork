@@ -70,6 +70,8 @@ export interface TournamentEvent {
   avg_dupr: number | null;
   field_strength: number | null;
   sandbagger_pct: number | null;
+  start_time: string | null; // parsed ISO instant (when a precise time is known)
+  start_time_raw: string | null; // exact source label, e.g. "Jun 7 2026 8:30 AM" or "Jun 13 2026 Morning"
   players?: EventPlayer[];
 }
 

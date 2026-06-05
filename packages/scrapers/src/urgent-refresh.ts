@@ -22,6 +22,7 @@ import {
   computeSandbaggerPct,
 } from "./utils/intelligence.js";
 import type { ScrapedPlayer } from "./types.js";
+import { parsePbbEventDate } from "./utils/event-time.js";
 
 const PBB_API = "https://pickleballtournaments.com/tournaments/api";
 
@@ -34,6 +35,8 @@ interface PbbEvent {
   silverMedalTeam: string;
   bronzeMedalTeam: string;
   numOfRegistered?: number;
+  /** Per-bracket start, e.g. "Jun 7 2026 8:30 AM" (venue-local). */
+  date?: string;
 }
 
 interface PbbEventPlayer {
@@ -203,6 +206,7 @@ async function refreshEvent(
   }
 
   const registeredCount = pbbEvent.numOfRegistered ?? fresh.length;
+  const startTime = parsePbbEventDate(pbbEvent.date);
 
   // Update event row
   await supabase
@@ -212,6 +216,8 @@ async function refreshEvent(
       avg_dupr: avgDupr,
       field_strength: fieldStrength,
       sandbagger_pct: sandbaggerPct,
+      start_time: startTime.iso,
+      start_time_raw: startTime.raw,
     })
     .eq("id", dbEvent.id);
 

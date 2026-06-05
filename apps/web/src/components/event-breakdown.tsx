@@ -13,6 +13,13 @@ import { effectiveAvgDupr, avgDuprPair } from "@/lib/dupr-utils";
 import { registrantLabel } from "@/lib/field-intel";
 import { AvgDuprCell } from "./avg-dupr-cell";
 
+/** Per-bracket start, shown faithfully from the source label (already venue-local).
+ *  "Jun 7 2026 8:30 AM" -> "Jun 7 · 8:30 AM"; "Jun 13 2026 Morning" -> "Jun 13 · Morning". */
+function formatEventStart(event: TournamentEvent): string | null {
+  if (!event.start_time_raw) return null;
+  return event.start_time_raw.replace(/\s+\d{4}\s+/, " · ").trim();
+}
+
 function categorizeEvent(event: TournamentEvent): string {
   const name = event.name.toLowerCase();
   if (name.includes("mixed")) return "Mixed Doubles";
@@ -126,7 +133,13 @@ export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
                     >
                       {cleanEventName(event)}
                     </span>
-                    <div className="mt-1 flex items-center gap-3 t-caption text-gray-400">
+                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 t-caption text-gray-400">
+                      {formatEventStart(event) && (
+                        <span className="flex items-center gap-1 font-semibold text-emerald-700">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-3 w-3"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+                          {formatEventStart(event)}
+                        </span>
+                      )}
                       {event.registered_count > 0 && (
                         <span>{registrantLabel(event.registered_count, event.event_type)}</span>
                       )}
@@ -158,6 +171,12 @@ export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
           </h3>
 
           <div className="mt-2 flex flex-wrap gap-5 t-body text-gray-500">
+            {formatEventStart(selectedEvent) && (
+              <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-4 w-4"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+                {formatEventStart(selectedEvent)}
+              </span>
+            )}
             {selectedEvent.registered_count > 0 && (
               <span className="font-bold text-gray-900">
                 {registrantLabel(selectedEvent.registered_count, selectedEvent.event_type)}
