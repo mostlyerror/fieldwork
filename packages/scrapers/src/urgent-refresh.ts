@@ -113,14 +113,17 @@ async function fetchUrgentTournaments(): Promise<DbTournament[]> {
     .gte("registration_close_date", now.toISOString())
     .lte("registration_close_date", in72h);
 
-  // Starting soon (no explicit close date)
+  // Starting soon — regardless of registration status. A tournament whose
+  // registration has already closed but hasn't been played yet still gets
+  // roster changes (late adds, waitlist, withdrawals) and rating drift, so we
+  // must keep refreshing it through the event. Previously these fell into a
+  // dead zone between reg-close and start and went stale.
   const today = now.toISOString().split("T")[0];
   const { data: starting } = await supabase
     .from("tournaments")
     .select("id, source_url, source_platform")
     .eq("status", "active")
     .eq("source_platform", "pickleballbrackets")
-    .is("registration_close_date", null)
     .gte("date_start", today)
     .lte("date_start", in7d);
 
