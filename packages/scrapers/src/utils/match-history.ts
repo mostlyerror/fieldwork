@@ -411,15 +411,76 @@ async function upsertRatingHistory(rows: RatingRow[]): Promise<number> {
   return count ?? rows.length;
 }
 
-/** Fetch + store one player's matches and rating timeline. Returns matches upserted. */
-async function processPlayer(player: PlayerNeedingMatches, token: string): Promise<number> {
+/**
+ * The player's known doubles rating BEFORE this run, used as the "before" in
+ * the Discord delta. Prefers the most recent rating_history row (the value we
+ * displayed last time); falls back to the players.dupr_doubles column. Returns
+ * null when neither exists, so we render the current rating without a fake delta.
+ */
+async function getPriorRating(playerId: string): Promise<number | null> {
+  const { data: hist } = await supabase
+    .from("player_rating_history")
+    .select("rating")
+    .eq("player_id", playerId)
+    .eq("format", "DOUBLES")
+    .order("event_date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (hist?.rating != null) return hist.rating as number;
+
+  const { data: player } = await supabase
+    .from("players")
+    .select("dupr_doubles")
+    .eq("id", playerId)
+    .maybeSingle();
+  return (player?.dupr_doubles as number | null) ?? null;
+}
+
+/** Latest (most recent event_date) doubles rating out of freshly built rows. */
+function latestRating(rows: RatingRow[]): number | null {
+  let best: RatingRow | null = null;
+  for (const r of rows) {
+    if (r.format !== "DOUBLES") continue;
+    if (!best || r.event_date > best.event_date) best = r;
+  }
+  return best?.rating ?? null;
+}
+
+/** Per-player summary surfaced in the Discord refresh alert. */
+export interface PlayerHistorySummary {
+  name: string;
+  /** Known rating before this run (null when we can't compute honestly). */
+  ratingBefore: number | null;
+  /** Most recent rating after this run (null if no rating points found). */
+  ratingAfter: number | null;
+  matchesAdded: number;
+}
+
+/**
+ * Fetch + store one player's matches and rating timeline.
+ * Returns matches upserted plus a per-player summary for the Discord alert.
+ */
+async function processPlayer(
+  player: PlayerNeedingMatches,
+  token: string,
+): Promise<{ inserted: number; summary: PlayerHistorySummary }> {
+  const summary: PlayerHistorySummary = {
+    name: player.name,
+    ratingBefore: null,
+    ratingAfter: null,
+    matchesAdded: 0,
+  };
   try {
     const numericId = await getNumericId(player.dupr_id, token);
     if (!numericId) {
       console.warn(`[match-history] Could not resolve numeric ID for "${player.name}" (${player.dupr_id})`);
       await supabase.from("players").update({ matches_last_checked: new Date().toISOString() }).eq("id", player.id);
-      return 0;
+      return { inserted: 0, summary };
     }
+
+    // Snapshot the rating we knew BEFORE upserting this run's data, so the
+    // before→after delta is honest (or null when there's nothing to compare).
+    summary.ratingBefore = await getPriorRating(player.id);
 
     await sleep(randBetween(800, 2000)); // pause between search and history fetch
 
@@ -429,8 +490,12 @@ async function processPlayer(player: PlayerNeedingMatches, token: string): Promi
     const inserted = await upsertMatches(hits);
 
     // Capture this player's rating timeline from the same data
-    const ratingPoints = await upsertRatingHistory(buildRatingRows(hits, player.dupr_id, player.id));
+    const ratingRows = buildRatingRows(hits, player.dupr_id, player.id);
+    const ratingPoints = await upsertRatingHistory(ratingRows);
     if (ratingPoints > 0) console.log(`[match-history]   ${player.name}: ${ratingPoints} rating points`);
+
+    summary.ratingAfter = latestRating(ratingRows) ?? summary.ratingBefore;
+    summary.matchesAdded = inserted;
 
     const { error: updateError } = await supabase
       .from("players")
@@ -439,7 +504,7 @@ async function processPlayer(player: PlayerNeedingMatches, token: string): Promi
     if (updateError) console.error(`[match-history] Failed to update matches_last_checked for "${player.name}":`, updateError);
     else console.log(`[match-history] ✓ ${player.name}: ${inserted} matches upserted`);
 
-    return inserted;
+    return { inserted, summary };
   } catch (err) {
     console.error(`[match-history] Error processing "${player.name}":`, err);
     // Mark attempted so a failing player isn't retried every hour by the
@@ -449,7 +514,7 @@ async function processPlayer(player: PlayerNeedingMatches, token: string): Promi
     } catch {
       /* best-effort */
     }
-    return 0;
+    return { inserted: 0, summary };
   }
 }
 
@@ -463,7 +528,8 @@ export async function fetchAllMatchHistory(token: string): Promise<{
 
   let matchesInserted = 0;
   for (const player of players) {
-    matchesInserted += await processPlayer(player, token);
+    const { inserted } = await processPlayer(player, token);
+    matchesInserted += inserted;
     await sleep(humanDelay());
   }
 
@@ -504,15 +570,22 @@ async function getRosterPlayersToRefresh(limit: number): Promise<PlayerNeedingMa
 export async function fetchTournamentRosterHistory(
   token: string,
   limit = 5,
-): Promise<{ playersChecked: number; matchesInserted: number }> {
+): Promise<{
+  playersChecked: number;
+  matchesInserted: number;
+  players: PlayerHistorySummary[];
+}> {
   const players = await getRosterPlayersToRefresh(limit);
-  if (players.length === 0) return { playersChecked: 0, matchesInserted: 0 };
+  if (players.length === 0) return { playersChecked: 0, matchesInserted: 0, players: [] };
   console.log(`[match-history] Roster refresh: ${players.length} player(s)`);
 
   let matchesInserted = 0;
+  const summaries: PlayerHistorySummary[] = [];
   for (const player of players) {
-    matchesInserted += await processPlayer(player, token);
+    const { inserted, summary } = await processPlayer(player, token);
+    matchesInserted += inserted;
+    summaries.push(summary);
     await sleep(humanDelay());
   }
-  return { playersChecked: players.length, matchesInserted };
+  return { playersChecked: players.length, matchesInserted, players: summaries };
 }

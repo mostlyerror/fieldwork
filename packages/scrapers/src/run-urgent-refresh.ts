@@ -12,13 +12,53 @@
  */
 
 import { runUrgentRefresh } from "./urgent-refresh.js";
-import { fetchTournamentRosterHistory } from "./utils/match-history.js";
+import {
+  fetchTournamentRosterHistory,
+  type PlayerHistorySummary,
+} from "./utils/match-history.js";
+import { sendDiscordAlert } from "./utils/discord.js";
 import { startRun, completeRun, failRun } from "./utils/logger.js";
 
 // Metered: at most this many tournament-rostered players get their DUPR history
 // refreshed per hourly run, so current/recent tournaments stay complete and
 // fresh without bursting the DUPR API. Best-effort — never fails the refresh.
 const ROSTER_REFRESH_CAP = 5;
+
+/** Format one player line, e.g. "• Ben Poon  3.38 → 3.40  (+0.02, +5 matches)". */
+function formatPlayerLine(p: PlayerHistorySummary): string {
+  const matches = `${p.matchesAdded >= 0 ? "+" : ""}${p.matchesAdded} match${p.matchesAdded === 1 ? "" : "es"}`;
+
+  // Honest rating display: only show a before→after delta when we have both
+  // numbers; otherwise just show the current rating (or nothing if unknown).
+  let rating = "";
+  if (p.ratingBefore != null && p.ratingAfter != null) {
+    const delta = p.ratingAfter - p.ratingBefore;
+    const deltaStr = `${delta >= 0 ? "+" : ""}${delta.toFixed(2)}`;
+    rating =
+      delta === 0
+        ? `${p.ratingAfter.toFixed(2)}  `
+        : `${p.ratingBefore.toFixed(2)} → ${p.ratingAfter.toFixed(2)}  (${deltaStr}, `;
+  } else if (p.ratingAfter != null) {
+    rating = `${p.ratingAfter.toFixed(2)}  `;
+  }
+
+  // When there's a non-zero delta we opened a paren above; close it with matches.
+  if (rating.endsWith(", ")) return `• ${p.name}  ${rating}${matches})`;
+  return `• ${p.name}  ${rating}(${matches})`;
+}
+
+/** Best-effort: post the refreshed player history (name, rating, matches) to Discord. */
+async function postPlayerHistory(players: PlayerHistorySummary[]): Promise<void> {
+  if (players.length === 0) return;
+  try {
+    await sendDiscordAlert({
+      title: `📊 Player history refreshed (${players.length})`,
+      description: players.map(formatPlayerLine).join("\n"),
+    });
+  } catch (err) {
+    console.error("[urgent-refresh] player history alert failed (non-fatal):", err);
+  }
+}
 
 async function rosterHistoryPass(): Promise<void> {
   if (!process.env.DUPR_EMAIL || !process.env.DUPR_PASSWORD) return;
@@ -34,6 +74,7 @@ async function rosterHistoryPass(): Promise<void> {
     const r = await fetchTournamentRosterHistory(data.result.accessToken, ROSTER_REFRESH_CAP);
     if (r.playersChecked > 0) {
       console.log(`[urgent-refresh] roster history: ${r.playersChecked} player(s), ${r.matchesInserted} matches`);
+      await postPlayerHistory(r.players);
     }
   } catch (err) {
     console.error("[urgent-refresh] roster history pass failed (non-fatal):", err);
