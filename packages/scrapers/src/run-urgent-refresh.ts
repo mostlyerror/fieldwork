@@ -68,13 +68,6 @@ async function rosterHistoryPass(): Promise<void> {
   }
   console.log("[urgent-refresh] roster history: starting DUPR login...");
   try {
-    // TEMP DIAGNOSTIC — what IP does DUPR actually see from CI?
-    try {
-      const ipr = await duprFetch("http://ip-api.com/json?fields=query,country,proxy,hosting", {});
-      console.log("[diag] egress:", (await ipr.text()).slice(0, 200));
-    } catch (e) {
-      console.log("[diag] egress check threw:", e instanceof Error ? e.message : e, "| cause:", (e as { cause?: { message?: string } })?.cause?.message);
-    }
     const res = await duprFetch("https://api.dupr.gg/auth/v1.0/login/", {
       method: "POST",
       headers: {
@@ -92,12 +85,15 @@ async function rosterHistoryPass(): Promise<void> {
     });
     const data = await res.json().catch(() => null);
     if (!res.ok || data?.status !== "SUCCESS" || !data?.result?.accessToken) {
-      // Known condition: DUPR's edge blocks GitHub Actions datacenter IPs
-      // (400/FAILURE) regardless of headers. Log only — Discord-alerting this
-      // hourly would be pure noise. DUPR pulls run from a residential egress
-      // (see infra), not from CI.
+      // DUPR login works from CI directly; a failure here is a real problem —
+      // most often a stale DUPR_EMAIL/DUPR_PASSWORD secret (DUPR returns
+      // 400/FAILURE for bad creds). Surface it so it doesn't silently rot.
       const detail = `HTTP ${res.status}, status=${data?.status ?? "?"}`;
-      console.warn(`[urgent-refresh] roster history: DUPR login failed (${detail}) — expected from CI IPs, skipping`);
+      console.error(`[urgent-refresh] roster history: DUPR login failed (${detail})`);
+      await sendDiscordAlert({
+        title: "⚠️ DUPR login failed — player history not refreshed",
+        description: `DUPR returned ${detail}. Usually a stale DUPR_EMAIL/DUPR_PASSWORD secret. No player data pulled this run.`,
+      }).catch(() => {});
       return;
     }
     const r = await fetchTournamentRosterHistory(data.result.accessToken, ROSTER_REFRESH_CAP);
