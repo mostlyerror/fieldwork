@@ -12,7 +12,11 @@
  * This is a drop-in replacement for `fetch` at DUPR call sites: same signature,
  * it just injects undici's ProxyAgent as the dispatcher when configured.
  */
-import { ProxyAgent } from "undici";
+// IMPORTANT: use undici's OWN fetch with its ProxyAgent. Node's built-in fetch
+// uses Node's internal undici, which is a different version from this package —
+// passing this ProxyAgent to the global fetch throws "invalid onRequestStart
+// method". Keeping fetch + ProxyAgent on the same undici version avoids that.
+import { fetch as undiciFetch, ProxyAgent } from "undici";
 
 let agent: ProxyAgent | null | undefined;
 
@@ -36,7 +40,8 @@ function proxyDispatcher(): ProxyAgent | null {
 /** `fetch`, but routed through the residential proxy when DUPR_PROXY_URL is set. */
 export function duprFetch(url: string, init: RequestInit = {}): Promise<Response> {
   const dispatcher = proxyDispatcher();
-  if (!dispatcher) return fetch(url, init);
-  // `dispatcher` is an undici extension to RequestInit, not in the DOM types.
-  return fetch(url, { ...init, dispatcher } as RequestInit);
+  if (!dispatcher) return fetch(url, init); // direct (local dev) — global fetch is fine
+  // undici's Response/RequestInit are structurally compatible for our use
+  // (.ok/.status/.json()/.text()); cast across the two type worlds.
+  return undiciFetch(url, { ...init, dispatcher } as Parameters<typeof undiciFetch>[1]) as unknown as Promise<Response>;
 }
