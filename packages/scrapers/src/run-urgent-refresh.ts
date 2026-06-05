@@ -84,14 +84,12 @@ async function rosterHistoryPass(): Promise<void> {
     });
     const data = await res.json().catch(() => null);
     if (!res.ok || data?.status !== "SUCCESS" || !data?.result?.accessToken) {
-      // Surface the failure — a silent return here is exactly what hid this
-      // pass's behavior. DUPR may block datacenter IPs or rate-limit.
+      // Known condition: DUPR's edge blocks GitHub Actions datacenter IPs
+      // (400/FAILURE) regardless of headers. Log only — Discord-alerting this
+      // hourly would be pure noise. DUPR pulls run from a residential egress
+      // (see infra), not from CI.
       const detail = `HTTP ${res.status}, status=${data?.status ?? "?"}`;
-      console.error(`[urgent-refresh] roster history: DUPR login failed (${detail})`);
-      await sendDiscordAlert({
-        title: "⚠️ Roster history skipped — DUPR login failed",
-        description: `Could not log in to DUPR (${detail}). No player history pulled this run.`,
-      }).catch(() => {});
+      console.warn(`[urgent-refresh] roster history: DUPR login failed (${detail}) — expected from CI IPs, skipping`);
       return;
     }
     const r = await fetchTournamentRosterHistory(data.result.accessToken, ROSTER_REFRESH_CAP);
