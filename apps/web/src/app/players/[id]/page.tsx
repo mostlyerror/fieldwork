@@ -57,7 +57,10 @@ export default async function PlayerPage({ params }: PageProps) {
   const { id } = await params;
   const [player, matches, upcoming, ratingHistory] = await Promise.all([
     getPlayer(id),
-    getPlayerMatches(id, 20),
+    // Lifetime matches so Record / Partner Chemistry / the READ's format splits
+    // are career figures. Form (last ~10) and the recent-matches list slice from
+    // the front of this set, so they stay "recent".
+    getPlayerMatches(id, 300),
     getPlayerUpcomingTournaments(id),
     getPlayerRatingHistory(id),
   ]);

@@ -164,6 +164,12 @@ function pick<T>(variants: T[], seed: number, slot: number): T {
 const fmt = (n: number | null, d = 2) => (n == null ? "—" : n.toFixed(d));
 const ver = (v: boolean) => (v ? ", verified" : " (unverified)");
 
+/** The peak rating worth calling out when current sits meaningfully below it. */
+function peakBehind(i: PlayerReadInput, f: PlayerFacts): number | null {
+  if (i.peak == null || f.primaryRating == null) return null;
+  return i.peak - f.primaryRating >= 0.15 ? i.peak : null;
+}
+
 type Clause = (f: PlayerFacts, i: PlayerReadInput) => string;
 
 const OPENING: Record<Trend, Clause[]> = {
@@ -178,9 +184,24 @@ const OPENING: Record<Trend, Clause[]> = {
     (f, i) => `${fmt(f.primaryRating)} doubles${ver(i.verified)}, trending up (${fmt(f.delta)}) and still rising.`,
   ],
   flat: [
-    (f, i) => `${fmt(f.primaryRating)} doubles${ver(i.verified)}, steady around the ${fmt(f.primaryRating, 1)} mark.`,
-    (f, i) => `Holding at ${fmt(f.primaryRating)} doubles${ver(i.verified)} — not much movement lately.`,
-    (f, i) => `${fmt(f.primaryRating)} doubles${ver(i.verified)}, flat for a while now.`,
+    (f, i) => {
+      const pk = peakBehind(i, f);
+      return pk != null
+        ? `${fmt(f.primaryRating)} doubles${ver(i.verified)}, leveled off — down from a ${fmt(pk)} peak.`
+        : `${fmt(f.primaryRating)} doubles${ver(i.verified)}, steady around the ${fmt(f.primaryRating, 1)} mark.`;
+    },
+    (f, i) => {
+      const pk = peakBehind(i, f);
+      return pk != null
+        ? `Holding at ${fmt(f.primaryRating)} doubles${ver(i.verified)} now, but off a ${fmt(pk)} high earlier in the year.`
+        : `Holding at ${fmt(f.primaryRating)} doubles${ver(i.verified)} — not much movement lately.`;
+    },
+    (f, i) => {
+      const pk = peakBehind(i, f);
+      return pk != null
+        ? `Plateaued at ${fmt(f.primaryRating)} doubles${ver(i.verified)}, a ${fmt(pk)} peak behind it.`
+        : `${fmt(f.primaryRating)} doubles${ver(i.verified)}, flat for a while now.`;
+    },
   ],
 };
 
