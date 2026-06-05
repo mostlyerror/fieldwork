@@ -211,7 +211,7 @@ export async function getTournamentEvents(
   const eventIds = events.map((e: TournamentEvent) => e.id);
   const { data: players, error: playersError } = await supabase
     .from("event_players")
-    .select("*, players!event_players_player_id_fkey(dupr_doubles, dupr_verified), partner:players!event_players_partner_id_fkey(dupr_doubles, dupr_verified)")
+    .select("*, players!event_players_player_id_fkey(dupr_doubles, dupr_verified, dupr_singles, dupr_singles_verified), partner:players!event_players_partner_id_fkey(dupr_doubles, dupr_verified, dupr_singles, dupr_singles_verified)")
     .in("event_id", eventIds)
     .order("dupr_rating", { ascending: false, nullsFirst: false });
 
@@ -219,12 +219,31 @@ export async function getTournamentEvents(
     console.error("Error fetching event players:", playersError);
   }
 
+  // A singles bracket must show the singles rating, not doubles. Map each
+  // event to its format so the live-rating fallback picks the right field.
+  const eventTypeById = new Map<string, string | null>(
+    events.map((e: TournamentEvent & { event_type?: string | null }) => [e.id, e.event_type ?? null]),
+  );
+
+  type JoinedRatings = {
+    dupr_doubles: number | null;
+    dupr_verified: boolean | null;
+    dupr_singles: number | null;
+    dupr_singles_verified: boolean | null;
+  } | null;
+
   // Group players by event, flattening the joined player data
   const playersByEvent = new Map<string, EventPlayer[]>();
   for (const raw of (players ?? [])) {
     const eventId = (raw as Record<string, unknown>).event_id as string;
-    const joined = (raw as Record<string, unknown>).players as { dupr_doubles: number | null; dupr_verified: boolean | null } | null;
-    const partnerJoined = (raw as Record<string, unknown>).partner as { dupr_doubles: number | null; dupr_verified: boolean | null } | null;
+    const isSingles = eventTypeById.get(eventId) === "singles";
+    const joined = (raw as Record<string, unknown>).players as JoinedRatings;
+    const partnerJoined = (raw as Record<string, unknown>).partner as JoinedRatings;
+    // Format-appropriate fallback rating from the players table.
+    const liveFallback = isSingles ? joined?.dupr_singles : joined?.dupr_doubles;
+    const liveVerifiedFallback = isSingles ? joined?.dupr_singles_verified : joined?.dupr_verified;
+    const partnerLiveFallback = isSingles ? partnerJoined?.dupr_singles : partnerJoined?.dupr_doubles;
+    const partnerLiveVerifiedFallback = isSingles ? partnerJoined?.dupr_singles_verified : partnerJoined?.dupr_verified;
     const p: EventPlayer = {
       id: raw.id as string,
       player_name: raw.player_name as string,
@@ -234,10 +253,10 @@ export async function getTournamentEvents(
       team_avg_dupr: raw.team_avg_dupr as number | null,
       player_id: raw.player_id as string | null,
       partner_id: raw.partner_id as string | null,
-      live_dupr: ((raw as Record<string, unknown>).enriched_dupr as number | null) ?? joined?.dupr_doubles ?? null,
-      live_dupr_verified: ((raw as Record<string, unknown>).enriched_dupr_verified as boolean | null) ?? joined?.dupr_verified ?? null,
-      partner_live_dupr: ((raw as Record<string, unknown>).partner_enriched_dupr as number | null) ?? partnerJoined?.dupr_doubles ?? null,
-      partner_live_dupr_verified: ((raw as Record<string, unknown>).partner_enriched_dupr_verified as boolean | null) ?? partnerJoined?.dupr_verified ?? null,
+      live_dupr: ((raw as Record<string, unknown>).enriched_dupr as number | null) ?? liveFallback ?? null,
+      live_dupr_verified: ((raw as Record<string, unknown>).enriched_dupr_verified as boolean | null) ?? liveVerifiedFallback ?? null,
+      partner_live_dupr: ((raw as Record<string, unknown>).partner_enriched_dupr as number | null) ?? partnerLiveFallback ?? null,
+      partner_live_dupr_verified: ((raw as Record<string, unknown>).partner_enriched_dupr_verified as boolean | null) ?? partnerLiveVerifiedFallback ?? null,
       placement: (raw as Record<string, unknown>).placement as number | null,
     };
     if (!playersByEvent.has(eventId)) {
