@@ -442,6 +442,13 @@ async function processPlayer(player: PlayerNeedingMatches, token: string): Promi
     return inserted;
   } catch (err) {
     console.error(`[match-history] Error processing "${player.name}":`, err);
+    // Mark attempted so a failing player isn't retried every hour by the
+    // new-player pass — it falls back to the slower full-scrape staleness retry.
+    try {
+      await supabase.from("players").update({ matches_last_checked: new Date().toISOString() }).eq("id", player.id);
+    } catch {
+      /* best-effort */
+    }
     return 0;
   }
 }
@@ -464,35 +471,43 @@ export async function fetchAllMatchHistory(token: string): Promise<{
   return { playersChecked: players.length, matchesInserted };
 }
 
-/** Brand-new players (have a verified dupr_id but were never fetched). */
-async function getNewPlayers(limit: number): Promise<PlayerNeedingMatches[]> {
-  const { data, error } = await supabase
-    .from("players")
-    .select("id, name, dupr_id")
-    .not("dupr_id", "is", null)
-    .eq("dupr_verified", true)
-    .is("matches_last_checked", null)
-    .order("created_at", { ascending: true })
-    .limit(limit);
+// TDs often enter DUPR results days after an event, so keep refreshing a
+// tournament's roster for this many days past its end date to catch them.
+const POST_EVENT_DAYS = 14;
+const FRESH_FLOOR_HOURS = 24; // don't re-pull a player within 24h (ratings move slowly)
+
+/**
+ * Players rostered in tournaments that are upcoming, active, or ended within
+ * the post-event window, verified with a dupr_id, and not fetched within 24h.
+ * Done server-side via RPC (the roster can be 1000+ players — too many for an
+ * IN-list URL). Refreshing by roster keeps a tournament's field intel complete.
+ */
+async function getRosterPlayersToRefresh(limit: number): Promise<PlayerNeedingMatches[]> {
+  const { data, error } = await supabase.rpc("get_roster_players_to_refresh", {
+    post_event_days: POST_EVENT_DAYS,
+    fresh_floor_hours: FRESH_FLOOR_HOURS,
+    lim: limit,
+  });
   if (error) {
-    console.error("[match-history] Error fetching new players:", error);
+    console.error("[match-history] roster refresh query failed:", error);
     return [];
   }
   return (data ?? []) as PlayerNeedingMatches[];
 }
 
 /**
- * Metered backfill for up to `limit` brand-new players (never fetched). Called
- * from the hourly urgent refresh so a freshly-added player lights up within
- * ~an hour — capped low + human-paced so we never burst DUPR.
+ * Metered, tournament-roster-driven history refresh. Called from the hourly
+ * urgent refresh: refreshes up to `limit` players rostered in current/recent
+ * tournaments who are new or >24h stale — so a tournament's field intel stays
+ * complete and current (incl. late-entered TD results) without bursting DUPR.
  */
-export async function fetchNewPlayerMatchHistory(
+export async function fetchTournamentRosterHistory(
   token: string,
   limit = 5,
 ): Promise<{ playersChecked: number; matchesInserted: number }> {
-  const players = await getNewPlayers(limit);
+  const players = await getRosterPlayersToRefresh(limit);
   if (players.length === 0) return { playersChecked: 0, matchesInserted: 0 };
-  console.log(`[match-history] New-player pass: ${players.length} player(s)`);
+  console.log(`[match-history] Roster refresh: ${players.length} player(s)`);
 
   let matchesInserted = 0;
   for (const player of players) {

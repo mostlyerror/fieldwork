@@ -12,15 +12,15 @@
  */
 
 import { runUrgentRefresh } from "./urgent-refresh.js";
-import { fetchNewPlayerMatchHistory } from "./utils/match-history.js";
+import { fetchTournamentRosterHistory } from "./utils/match-history.js";
 import { startRun, completeRun, failRun } from "./utils/logger.js";
 
-// Metered: at most this many brand-new players get their DUPR history pulled
-// per hourly run, so a freshly-added player lights up within ~an hour without
-// bursting the DUPR API. Best-effort — never fails the refresh.
-const NEW_PLAYER_CAP = 5;
+// Metered: at most this many tournament-rostered players get their DUPR history
+// refreshed per hourly run, so current/recent tournaments stay complete and
+// fresh without bursting the DUPR API. Best-effort — never fails the refresh.
+const ROSTER_REFRESH_CAP = 5;
 
-async function newPlayerHistoryPass(): Promise<void> {
+async function rosterHistoryPass(): Promise<void> {
   if (!process.env.DUPR_EMAIL || !process.env.DUPR_PASSWORD) return;
   try {
     const res = await fetch("https://api.dupr.gg/auth/v1.0/login/", {
@@ -31,12 +31,12 @@ async function newPlayerHistoryPass(): Promise<void> {
     if (!res.ok) return;
     const data = await res.json();
     if (data?.status !== "SUCCESS") return;
-    const r = await fetchNewPlayerMatchHistory(data.result.accessToken, NEW_PLAYER_CAP);
+    const r = await fetchTournamentRosterHistory(data.result.accessToken, ROSTER_REFRESH_CAP);
     if (r.playersChecked > 0) {
-      console.log(`[urgent-refresh] new-player history: ${r.playersChecked} player(s), ${r.matchesInserted} matches`);
+      console.log(`[urgent-refresh] roster history: ${r.playersChecked} player(s), ${r.matchesInserted} matches`);
     }
   } catch (err) {
-    console.error("[urgent-refresh] new-player history pass failed (non-fatal):", err);
+    console.error("[urgent-refresh] roster history pass failed (non-fatal):", err);
   }
 }
 
@@ -55,8 +55,8 @@ async function main() {
       },
       { silent: true },
     );
-    // Metered new-player history pass — gentle on DUPR, best-effort.
-    await newPlayerHistoryPass();
+    // Metered tournament-roster history pass — gentle on DUPR, best-effort.
+    await rosterHistoryPass();
     process.exit(0);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
