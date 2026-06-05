@@ -11,10 +11,20 @@ import {
 } from "@/lib/queries";
 import { IntelSectionHeader } from "@/components/intel-section-header";
 import { PlayerRatingChart } from "@/components/player-rating-chart";
+import { IdentityBand } from "@/components/player/identity-band";
+import { TheRead } from "@/components/player/the-read";
+import { RecordModule } from "@/components/player/record-module";
+import { PartnerChemistry } from "@/components/player/partner-chemistry";
+import { RecentMatches } from "@/components/player/recent-matches";
+import { buildPlayerRead } from "@/lib/player-read";
+import {
+  toPlayerReadInput,
+  deriveTrendLabel,
+  buildPartnerRows,
+} from "@/lib/player-read-input";
 import { BackButton } from "@/components/back-button";
 import { ServerHeader } from "@/components/server-header";
 import { getDefaultCity } from "@/lib/cities";
-import type { Match } from "@/lib/types";
 
 export const revalidate = 600;
 
@@ -32,15 +42,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .map((p) => p[0] ?? "")
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-}
-
 function formatDate(dateStr: string): string {
   return new Date(dateStr + "T00:00:00").toLocaleDateString("en-US", {
     month: "short",
@@ -49,73 +50,8 @@ function formatDate(dateStr: string): string {
   });
 }
 
-function winRate(wins: number, losses: number): string {
-  const total = wins + losses;
-  if (total === 0) return "0%";
-  return `${Math.round((wins / total) * 100)}%`;
-}
-
-function getMatchOpponents(match: Match, playerId: string): {
-  partner: string | null;
-  partnerId: string | null;
-  opp1: string;
-  opp1Id: string | null;
-  opp2: string | null;
-  opp2Id: string | null;
-} {
-  const onTeam1 =
-    match.team1_player1_id === playerId ||
-    match.team1_player2_id === playerId;
-
-  if (onTeam1) {
-    const isP1 = match.team1_player1_id === playerId;
-    return {
-      partner: (isP1 ? match.team1_player2_name : match.team1_player1_name) ?? null,
-      partnerId: (isP1 ? match.team1_player2_id : match.team1_player1_id) ?? null,
-      opp1: match.team2_player1_name,
-      opp1Id: match.team2_player1_id ?? null,
-      opp2: match.team2_player2_name ?? null,
-      opp2Id: match.team2_player2_id ?? null,
-    };
-  } else {
-    const isP1 = match.team2_player1_id === playerId;
-    return {
-      partner: (isP1 ? match.team2_player2_name : match.team2_player1_name) ?? null,
-      partnerId: (isP1 ? match.team2_player2_id : match.team2_player1_id) ?? null,
-      opp1: match.team1_player1_name,
-      opp1Id: match.team1_player1_id ?? null,
-      opp2: match.team1_player2_name ?? null,
-      opp2Id: match.team1_player2_id ?? null,
-    };
-  }
-}
-
-function getMatchWon(match: Match, playerId: string): boolean {
-  const onTeam1 =
-    match.team1_player1_id === playerId ||
-    match.team1_player2_id === playerId;
-  return onTeam1 ? match.team1_won : !match.team1_won;
-}
-
-function GameScores({ match }: { match: Match }) {
-  const games: { t1: number | null; t2: number | null }[] = [
-    { t1: match.game1_team1, t2: match.game1_team2 },
-    { t1: match.game2_team1, t2: match.game2_team2 },
-    { t1: match.game3_team1, t2: match.game3_team2 },
-  ].filter((g) => g.t1 != null && g.t2 != null);
-
-  if (games.length === 0) return null;
-
-  return (
-    <div className="flex gap-1.5 t-caption text-gray-500 font-mono">
-      {games.map((g, i) => (
-        <span key={i} className="whitespace-nowrap">
-          {g.t1}-{g.t2}
-        </span>
-      ))}
-    </div>
-  );
-}
+const isDoublesFormat = (fmt: string) => /doubles/i.test(fmt);
+const isSinglesFormat = (fmt: string) => /singles/i.test(fmt);
 
 export default async function PlayerPage({ params }: PageProps) {
   const { id } = await params;
@@ -132,10 +68,38 @@ export default async function PlayerPage({ params }: PageProps) {
   const records = computePlayerRecord(matches, id);
   const partners = computeFrequentPartners(matches, id);
 
-  const totalWins = records.reduce((s, r) => s + r.wins, 0);
-  const totalLosses = records.reduce((s, r) => s + r.losses, 0);
+  // Scouting read — the deterministic copy engine. ratingHistory is {date,rating};
+  // the adapter expects {event_date,rating}, so remap before feeding it in.
+  const readInput = toPlayerReadInput({
+    player,
+    matches,
+    ratingHistory: ratingHistory.map((p) => ({ event_date: p.date, rating: p.rating })),
+    partners,
+    records,
+    playerId: id,
+  });
+  const read = buildPlayerRead(readInput);
+
+  // Record splits for the RecordModule (overall = sum of format splits).
+  const doublesRecord = records
+    .filter((r) => isDoublesFormat(r.format))
+    .reduce((acc, r) => ({ wins: acc.wins + r.wins, losses: acc.losses + r.losses }), { wins: 0, losses: 0 });
+  const singlesRecord = records
+    .filter((r) => isSinglesFormat(r.format))
+    .reduce((acc, r) => ({ wins: acc.wins + r.wins, losses: acc.losses + r.losses }), { wins: 0, losses: 0 });
+  const overallRecord = records.reduce(
+    (acc, r) => ({ wins: acc.wins + r.wins, losses: acc.losses + r.losses }),
+    { wins: 0, losses: 0 },
+  );
+
+  const partnerRows = buildPartnerRows(partners);
+
   const hasMatches = matches.length > 0;
-  const recentMatches = matches.slice(0, 10);
+  const showChart = ratingHistory.length >= 2;
+  const ratingDelta = showChart
+    ? ratingHistory[ratingHistory.length - 1].rating -
+      ratingHistory[Math.max(0, ratingHistory.length - 1 - 10)].rating
+    : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -150,223 +114,61 @@ export default async function PlayerPage({ params }: PageProps) {
           className="mb-6 inline-flex min-h-[44px] items-center py-2 t-body text-gray-400 hover:text-emerald-700"
         />
 
-        {/* Player header card */}
-        <div className="rounded-2xl border border-gray-200/70 bg-white p-6 shadow-card sm:rounded-3xl">
-          <div>
-            <h1 className="t-h1 text-gray-900">
-              {player.name}
-            </h1>
-            {player.location && (
-              <p className="mt-1 t-body text-gray-500">{player.location}</p>
-            )}
-            {player.dupr_last_checked && (
-              <p className="mt-1 t-caption text-gray-400">
-                Updated{" "}
-                {new Date(player.dupr_last_checked).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </p>
-            )}
-          </div>
+        {/* Identity band — name, location, both ratings + form */}
+        <IdentityBand
+          name={player.name}
+          location={player.location}
+          duprDoubles={player.dupr_doubles}
+          duprSingles={player.dupr_singles}
+          doublesVerified={player.dupr_verified === true}
+          singlesVerified={player.dupr_singles_verified === true}
+          formLabel={read.formLabel}
+          lastUpdated={player.dupr_last_checked}
+        />
 
-          {/* Rating fact row — uniform, hairline-divided */}
-          <div className="mt-5 grid grid-cols-2 divide-x divide-gray-100 border-t border-gray-100 pt-4">
-            <div className="min-w-0 px-2.5 first:pl-0 last:pr-0">
-              <div className="t-label text-gray-400">Doubles</div>
-              {player.dupr_doubles != null ? (
-                <div className="mt-1 flex items-baseline gap-2">
-                  <span className="t-h3 tabular-nums text-emerald-800">
-                    {player.dupr_doubles.toFixed(2)}
-                  </span>
-                  {player.dupr_verified && (
-                    <span className="inline-block rounded-full bg-emerald-50 px-2 py-0.5 t-label text-emerald-700">
-                      Verified
-                    </span>
-                  )}
-                </div>
-              ) : (
-                <div className="mt-1 t-h3 tabular-nums text-gray-300">--</div>
-              )}
-            </div>
-            <div className="min-w-0 px-2.5 first:pl-0 last:pr-0">
-              <div className="t-label text-gray-400">Singles</div>
-              {player.dupr_singles != null ? (
-                <div className="mt-1 flex items-baseline gap-2">
-                  <span className="t-h3 tabular-nums text-emerald-800">
-                    {player.dupr_singles.toFixed(2)}
-                  </span>
-                  {player.dupr_verified && (
-                    <span className="inline-block rounded-full bg-emerald-50 px-2 py-0.5 t-label text-emerald-700">
-                      Verified
-                    </span>
-                  )}
-                </div>
-              ) : (
-                <div className="mt-1 t-h3 tabular-nums text-gray-300">--</div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Doubles rating trend over time (from DUPR match history) */}
-        {ratingHistory.length >= 2 && (
-          <section className="mt-6">
-            <PlayerRatingChart points={ratingHistory} />
-          </section>
-        )}
-
-        {/* Record breakdown — editorial fact row, hairline-divided */}
+        {/* The Read — deterministic scouting paragraph (degrades gracefully) */}
         {hasMatches && (
           <section className="mt-6">
-            <div className="rounded-2xl border border-gray-200/70 bg-white p-5 shadow-card sm:rounded-3xl sm:p-6">
-              <div className={`grid divide-x divide-gray-100 ${records.length >= 3 ? "grid-cols-4" : records.length === 2 ? "grid-cols-3" : "grid-cols-2"}`}>
-                {/* Overall */}
-                <div className="min-w-0 px-2.5 first:pl-0 last:pr-0">
-                  <div className="t-label text-gray-400">Overall</div>
-                  <div className="mt-1 t-h3 tabular-nums text-gray-900">
-                    {totalWins}W–{totalLosses}L
-                  </div>
-                  <div className="mt-0.5 t-caption text-gray-500">
-                    {winRate(totalWins, totalLosses)} win rate
-                  </div>
-                </div>
-
-                {/* Per format */}
-                {records.map((r) => (
-                  <div key={r.format} className="min-w-0 px-2.5 first:pl-0 last:pr-0">
-                    <div className="t-label text-gray-400">{r.format}</div>
-                    <div className="mt-1 t-h3 tabular-nums text-gray-900">
-                      {r.wins}W–{r.losses}L
-                    </div>
-                    <div className="mt-0.5 t-caption text-gray-500">
-                      {winRate(r.wins, r.losses)} win rate
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <TheRead read={read.read} />
           </section>
         )}
 
-        {/* Frequent Partners */}
-        {partners.length > 0 && (
-          <section className="mt-6 overflow-hidden rounded-2xl border border-gray-200/70 shadow-card sm:rounded-3xl">
-            <IntelSectionHeader title="Frequent Partners" />
-            <div className="divide-y divide-gray-50 bg-white">
-              {partners.map((p) => (
-                <div
-                  key={p.playerId ?? p.name}
-                  className="flex items-center gap-3 px-4 py-3"
-                >
-                  {/* Avatar */}
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-50 t-caption font-bold text-emerald-700">
-                    {initials(p.name)}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    {p.playerId ? (
-                      <Link
-                        href={`/players/${p.playerId}`}
-                        className="block truncate t-body font-semibold text-gray-900 hover:text-emerald-700"
-                      >
-                        {p.name}
-                      </Link>
-                    ) : (
-                      <span className="block truncate t-body font-semibold text-gray-900">
-                        {p.name}
-                      </span>
-                    )}
-                    <p className="t-caption text-gray-400">
-                      {p.matchCount} match{p.matchCount !== 1 ? "es" : ""}
-                    </p>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <span className="t-caption text-gray-600">
-                      {p.wins}W–{p.losses}L
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* Record — overall + doubles + singles splits */}
+        {hasMatches && (
+          <section className="mt-6">
+            <RecordModule
+              overall={overallRecord}
+              doubles={doublesRecord}
+              singles={singlesRecord}
+            />
+          </section>
+        )}
+
+        {/* Doubles rating trend over time (from DUPR match history) */}
+        {showChart && (
+          <section className="mt-6">
+            <PlayerRatingChart
+              points={ratingHistory}
+              current={ratingHistory[ratingHistory.length - 1].rating}
+              delta={ratingDelta}
+              peak={Math.max(...ratingHistory.map((p) => p.rating))}
+              low={Math.min(...ratingHistory.map((p) => p.rating))}
+              trendLabel={deriveTrendLabel(ratingDelta)}
+            />
+          </section>
+        )}
+
+        {/* Partner Chemistry */}
+        {partnerRows.length > 0 && (
+          <section className="mt-6">
+            <PartnerChemistry partners={partnerRows} />
           </section>
         )}
 
         {/* Recent Matches */}
-        {recentMatches.length > 0 && (
-          <section className="mt-6 overflow-hidden rounded-2xl border border-gray-200/70 shadow-card sm:rounded-3xl">
-            <IntelSectionHeader
-              title="Recent Matches"
-              badge={`${matches.length} match${matches.length !== 1 ? "es" : ""}`}
-            />
-            <div className="divide-y divide-gray-50 bg-white">
-              {recentMatches.map((match) => {
-                const won = getMatchWon(match, id);
-                const { partner, partnerId, opp1, opp1Id, opp2, opp2Id } = getMatchOpponents(match, id);
-                return (
-                  <div key={match.id} className="flex items-start gap-3 px-4 py-3">
-                    {/* W/L badge */}
-                    <div
-                      className={`mt-0.5 shrink-0 rounded px-1.5 py-0.5 t-caption font-bold ${
-                        won
-                          ? "bg-gray-100 text-gray-700"
-                          : "bg-gray-50 text-gray-400"
-                      }`}
-                    >
-                      {won ? "W" : "L"}
-                    </div>
-
-                    {/* Match details */}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className="t-caption text-gray-400">
-                            {formatDate(match.event_date)}
-                          </span>
-                          <span className="t-label font-medium text-gray-400 bg-gray-50 rounded px-1.5 py-0.5">
-                            {match.event_format}
-                          </span>
-                        </div>
-                        {match.league && (
-                          <span className="t-caption text-gray-400 truncate">
-                            {match.league}
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-0.5 flex flex-col gap-0.5 t-body text-gray-700 sm:flex-row sm:flex-wrap sm:gap-x-3 sm:gap-y-0.5">
-                        {partner && (
-                          <p className="truncate">
-                            <span className="text-gray-400">w/ </span>
-                            {partnerId ? (
-                              <Link href={`/players/${partnerId}`} className="hover:text-emerald-700 hover:underline">{partner}</Link>
-                            ) : partner}
-                          </p>
-                        )}
-                        <p className="truncate">
-                          <span className="text-gray-400">vs </span>
-                          {opp1Id ? (
-                            <Link href={`/players/${opp1Id}`} className="hover:text-emerald-700 hover:underline">{opp1}</Link>
-                          ) : opp1}
-                          {opp2 && (
-                            <>
-                              {" + "}
-                              {opp2Id ? (
-                                <Link href={`/players/${opp2Id}`} className="hover:text-emerald-700 hover:underline">{opp2}</Link>
-                              ) : opp2}
-                            </>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Scores */}
-                    <div className="shrink-0 text-right">
-                      <GameScores match={match} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+        {hasMatches && (
+          <section className="mt-6">
+            <RecentMatches matches={matches} playerId={id} totalCount={matches.length} />
           </section>
         )}
 

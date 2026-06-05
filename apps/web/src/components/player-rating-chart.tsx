@@ -1,23 +1,108 @@
-import type { RatingPoint } from "@/lib/queries";
+"use client";
+
+import type { RatingTrendProps } from "@/components/player/types";
 
 const f2 = (n: number) => n.toFixed(2);
 const f3 = (n: number) => n.toFixed(3);
+const signed3 = (n: number) => `${n >= 0 ? "+" : ""}${f3(n)}`;
 const shortDate = (s: string) =>
-  new Date(s + "T00:00:00").toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  new Date(s + "T00:00:00").toLocaleDateString("en-US", {
+    month: "short",
+    year: "numeric",
+  });
+
+/** Evenly downsample to at most `max` points, always keeping first + last. */
+function downsample<T>(points: T[], max: number): T[] {
+  if (points.length <= max) return points;
+  const out: T[] = [];
+  const step = (points.length - 1) / (max - 1);
+  for (let i = 0; i < max; i++) out.push(points[Math.round(i * step)]);
+  // Guard against rounding collisions dropping the true last point.
+  if (out[out.length - 1] !== points[points.length - 1]) {
+    out[out.length - 1] = points[points.length - 1];
+  }
+  return out;
+}
 
 /**
- * A player's DUPR doubles rating over time — an SVG line/area chart in the
- * design language. Renders nothing with fewer than 2 points.
+ * Monotone-cubic (Fritsch–Carlson) tangents → smooth SVG path that never
+ * overshoots the data. Returns an "M … C …" path string through (xs[i],ys[i]).
  */
-export function PlayerRatingChart({ points }: { points: RatingPoint[] }) {
-  if (points.length < 2) return null;
+function monotonePath(xs: number[], ys: number[]): string {
+  const n = xs.length;
+  if (n < 2) return "";
+  if (n === 2) return `M${xs[0]},${ys[0]} L${xs[1]},${ys[1]}`;
 
-  const ratings = points.map((p) => p.rating);
-  const min = Math.min(...ratings);
-  const max = Math.max(...ratings);
-  const latest = ratings[ratings.length - 1];
+  const dx: number[] = [];
+  const dy: number[] = [];
+  const slope: number[] = [];
+  for (let i = 0; i < n - 1; i++) {
+    dx[i] = xs[i + 1] - xs[i];
+    dy[i] = ys[i + 1] - ys[i];
+    slope[i] = dx[i] === 0 ? 0 : dy[i] / dx[i];
+  }
+
+  const m: number[] = new Array(n);
+  m[0] = slope[0];
+  m[n - 1] = slope[n - 2];
+  for (let i = 1; i < n - 1; i++) {
+    if (slope[i - 1] * slope[i] <= 0) {
+      m[i] = 0;
+    } else {
+      m[i] = (slope[i - 1] + slope[i]) / 2;
+    }
+  }
+  // Enforce monotonicity (prevent overshoot).
+  for (let i = 0; i < n - 1; i++) {
+    if (slope[i] === 0) {
+      m[i] = 0;
+      m[i + 1] = 0;
+    } else {
+      const a = m[i] / slope[i];
+      const b = m[i + 1] / slope[i];
+      const h = Math.hypot(a, b);
+      if (h > 3) {
+        const t = 3 / h;
+        m[i] = t * a * slope[i];
+        m[i + 1] = t * b * slope[i];
+      }
+    }
+  }
+
+  let d = `M${xs[0].toFixed(2)},${ys[0].toFixed(2)}`;
+  for (let i = 0; i < n - 1; i++) {
+    const c1x = xs[i] + dx[i] / 3;
+    const c1y = ys[i] + (m[i] * dx[i]) / 3;
+    const c2x = xs[i + 1] - dx[i] / 3;
+    const c2y = ys[i + 1] - (m[i + 1] * dx[i]) / 3;
+    d += ` C${c1x.toFixed(2)},${c1y.toFixed(2)} ${c2x.toFixed(2)},${c2y.toFixed(2)} ${xs[i + 1].toFixed(2)},${ys[i + 1].toFixed(2)}`;
+  }
+  return d;
+}
+
+/**
+ * A player's DUPR doubles rating over time — a smooth (monotone-cubic) SVG
+ * area+line chart in the warm design language. Renders nothing under 2 points.
+ */
+export function PlayerRatingChart({
+  points,
+  current,
+  delta,
+  peak,
+  low,
+  trendLabel,
+}: RatingTrendProps) {
+  const data = downsample(points, 44);
+  if (data.length < 2) return null;
+
+  const ratings = data.map((p) => p.rating);
+  const seriesMin = Math.min(...ratings);
+  const seriesMax = Math.max(...ratings);
+  const latest = current ?? ratings[ratings.length - 1];
   const first = ratings[0];
-  const change = latest - first;
+  const change = delta ?? latest - first;
+  const peakVal = peak ?? seriesMax;
+  const lowVal = low ?? seriesMin;
   const up = change >= 0;
 
   // geometry (viewBox units; scales to container width)
@@ -29,16 +114,24 @@ export function PlayerRatingChart({ points }: { points: RatingPoint[] }) {
   const padB = 26;
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
+  const baseY = padT + plotH;
 
-  const ylo = min - 0.08;
-  const yhi = max + 0.08;
+  const ylo = seriesMin - 0.08;
+  const yhi = seriesMax + 0.08;
   const span = Math.max(0.12, yhi - ylo);
-  const x = (i: number) => padL + (points.length === 1 ? 0 : (i / (points.length - 1)) * plotW);
+  const x = (i: number) =>
+    padL + (data.length === 1 ? 0 : (i / (data.length - 1)) * plotW);
   const y = (r: number) => padT + (1 - (r - ylo) / span) * plotH;
 
-  const line = points.map((p, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(p.rating).toFixed(1)}`).join(" ");
-  const area = `${line} L${x(points.length - 1).toFixed(1)},${(padT + plotH).toFixed(1)} L${x(0).toFixed(1)},${(padT + plotH).toFixed(1)} Z`;
-  const baseY = padT + plotH;
+  const xs = data.map((_, i) => x(i));
+  const ys = data.map((p) => y(p.rating));
+  const line = monotonePath(xs, ys);
+  const area = `${line} L${xs[xs.length - 1].toFixed(2)},${baseY.toFixed(2)} L${xs[0].toFixed(2)},${baseY.toFixed(2)} Z`;
+
+  // Peak / low marker positions (first index hitting the series extreme).
+  const peakIdx = ratings.indexOf(seriesMax);
+  const lowIdx = ratings.indexOf(seriesMin);
+  const lastIdx = data.length - 1;
 
   return (
     <div className="rounded-2xl border border-gray-200/70 bg-white p-5 shadow-card sm:rounded-3xl sm:p-6">
@@ -47,19 +140,30 @@ export function PlayerRatingChart({ points }: { points: RatingPoint[] }) {
           <div className="t-label text-gray-400">Doubles rating trend</div>
           <div className="mt-1 flex items-baseline gap-2">
             <span className="t-h1 tabular-nums text-emerald-800">{f3(latest)}</span>
-            <span className={`t-small font-bold tabular-nums ${up ? "text-emerald-600" : "text-red-500"}`}>
-              {up ? "+" : ""}{f3(change)}
+            <span
+              className={`t-small font-bold tabular-nums ${up ? "text-emerald-600" : "text-red-500"}`}
+            >
+              {signed3(change)}
             </span>
           </div>
-          <div className="mt-0.5 t-caption text-gray-400">over {points.length} rated matches</div>
+          <div className="mt-0.5 t-caption text-gray-400">{trendLabel}</div>
         </div>
         <div className="shrink-0 text-right t-caption text-gray-400">
-          <div>peak <b className="tabular-nums text-gray-700">{f2(max)}</b></div>
-          <div className="mt-0.5">low <b className="tabular-nums text-gray-700">{f2(min)}</b></div>
+          <div>
+            peak <b className="tabular-nums text-gray-700">{f2(peakVal)}</b>
+          </div>
+          <div className="mt-0.5">
+            low <b className="tabular-nums text-gray-700">{f2(lowVal)}</b>
+          </div>
         </div>
       </div>
 
-      <svg viewBox={`0 0 ${W} ${H}`} className="mt-3 block h-auto w-full" role="img" aria-label={`Doubles rating trend: ${f3(first)} to ${f3(latest)} over ${points.length} matches.`}>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="mt-3 block h-auto w-full"
+        role="img"
+        aria-label={`Doubles rating trend: ${f3(first)} to ${f3(latest)} over ${points.length} matches. ${trendLabel}.`}
+      >
         <defs>
           <linearGradient id="ratingFill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor="#1f9d57" stopOpacity="0.18" />
@@ -70,21 +174,52 @@ export function PlayerRatingChart({ points }: { points: RatingPoint[] }) {
         {/* baseline */}
         <line x1={padL} y1={baseY} x2={W - padR} y2={baseY} stroke="#EAEDE9" strokeWidth={1} />
 
-        {/* area + line */}
+        {/* area + smooth line */}
         <path d={area} fill="url(#ratingFill)" />
-        <path d={line} fill="none" stroke="#1f9d57" strokeWidth={2.2} strokeLinejoin="round" strokeLinecap="round" />
+        <path
+          d={line}
+          fill="none"
+          stroke="#1f9d57"
+          strokeWidth={2}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+
+        {/* peak / low markers (skip when they coincide with the latest point) */}
+        {peakIdx !== lastIdx && (
+          <circle cx={xs[peakIdx]} cy={ys[peakIdx]} r={2.6} fill="#1f9d57" fillOpacity={0.55} />
+        )}
+        {lowIdx !== lastIdx && lowIdx !== peakIdx && (
+          <circle cx={xs[lowIdx]} cy={ys[lowIdx]} r={2.6} fill="#9AA59E" />
+        )}
 
         {/* latest point */}
-        <circle cx={x(points.length - 1)} cy={y(latest)} r={4} fill="#065F46" />
-        <circle cx={x(points.length - 1)} cy={y(latest)} r={8} fill="none" stroke="#065F46" strokeOpacity={0.3} strokeWidth={1.4} />
+        <circle cx={xs[lastIdx]} cy={ys[lastIdx]} r={4} fill="#065F46" />
+        <circle
+          cx={xs[lastIdx]}
+          cy={ys[lastIdx]}
+          r={8}
+          fill="none"
+          stroke="#065F46"
+          strokeOpacity={0.3}
+          strokeWidth={1.4}
+        />
 
         {/* y labels */}
-        <text x={padL} y={y(max) - 5} fontSize={10.5} fontWeight={600} fill="#9AA59E" style={{ fontVariantNumeric: "tabular-nums" }}>{f2(max)}</text>
-        <text x={padL} y={y(min) + 13} fontSize={10.5} fontWeight={600} fill="#9AA59E" style={{ fontVariantNumeric: "tabular-nums" }}>{f2(min)}</text>
+        <text x={padL} y={y(seriesMax) - 5} fontSize={10.5} fontWeight={600} fill="#9AA59E" style={{ fontVariantNumeric: "tabular-nums" }}>
+          {f2(seriesMax)}
+        </text>
+        <text x={padL} y={y(seriesMin) + 13} fontSize={10.5} fontWeight={600} fill="#9AA59E" style={{ fontVariantNumeric: "tabular-nums" }}>
+          {f2(seriesMin)}
+        </text>
 
         {/* x date labels */}
-        <text x={padL} y={H - 7} fontSize={10.5} fontWeight={600} fill="#9AA59E">{shortDate(points[0].date)}</text>
-        <text x={W - padR} y={H - 7} textAnchor="end" fontSize={10.5} fontWeight={600} fill="#9AA59E">{shortDate(points[points.length - 1].date)}</text>
+        <text x={padL} y={H - 7} fontSize={10.5} fontWeight={600} fill="#9AA59E">
+          {shortDate(data[0].date)}
+        </text>
+        <text x={W - padR} y={H - 7} textAnchor="end" fontSize={10.5} fontWeight={600} fill="#9AA59E">
+          {shortDate(data[data.length - 1].date)}
+        </text>
       </svg>
     </div>
   );

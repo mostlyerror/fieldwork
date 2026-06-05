@@ -100,6 +100,7 @@ export interface Player {
   dupr_doubles: number | null;
   dupr_singles: number | null;
   dupr_verified: boolean | null;
+  dupr_singles_verified: boolean | null;
   dupr_last_checked: string | null;
   user_id: string | null;
   created_at: string;
