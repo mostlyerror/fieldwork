@@ -68,6 +68,13 @@ async function rosterHistoryPass(): Promise<void> {
   }
   console.log("[urgent-refresh] roster history: starting DUPR login...");
   try {
+    // TEMP DIAGNOSTIC — what IP does DUPR actually see from CI?
+    try {
+      const ipr = await duprFetch("http://ip-api.com/json?fields=query,country,proxy,hosting", {});
+      console.log("[diag] egress:", (await ipr.text()).slice(0, 200));
+    } catch (e) {
+      console.log("[diag] egress check threw:", e instanceof Error ? e.message : e, "| cause:", (e as { cause?: { message?: string } })?.cause?.message);
+    }
     const res = await duprFetch("https://api.dupr.gg/auth/v1.0/login/", {
       method: "POST",
       headers: {
