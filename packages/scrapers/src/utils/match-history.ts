@@ -1,4 +1,5 @@
 import { supabase } from "./supabase.js";
+import { duprFetch } from "./dupr-fetch.js";
 
 const DUPR_API_BASE = "https://api.dupr.gg";
 const BATCH_SIZE = 30;
@@ -139,7 +140,7 @@ async function getNumericId(
   token: string,
   attempt = 0
 ): Promise<number | null> {
-  const res = await fetch(`${DUPR_API_BASE}/player/v1.0/search`, {
+  const res = await duprFetch(`${DUPR_API_BASE}/player/v1.0/search`, {
     method: "POST",
     headers: apiHeaders(token),
     body: JSON.stringify({
@@ -184,7 +185,7 @@ async function fetchMatchPage(
   offset: number,
   attempt = 0
 ): Promise<{ hits: DuprMatchHit[]; total: number }> {
-  const res = await fetch(`${DUPR_API_BASE}/player/v1.0/${numericId}/history`, {
+  const res = await duprFetch(`${DUPR_API_BASE}/player/v1.0/${numericId}/history`, {
     method: "POST",
     headers: apiHeaders(token),
     body: JSON.stringify({

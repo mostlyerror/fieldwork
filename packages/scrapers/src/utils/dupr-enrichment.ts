@@ -1,4 +1,5 @@
 import { supabase } from "./supabase.js";
+import { duprFetch } from "./dupr-fetch.js";
 
 const DUPR_API_BASE = "https://api.dupr.gg";
 const BATCH_SIZE = 50;
@@ -75,7 +76,7 @@ async function authenticate(): Promise<DuprAuthResult | null> {
   // Brief pause before login — simulate page load
   await sleep(randBetween(1000, 3000));
 
-  const res = await fetch(`${DUPR_API_BASE}/auth/v1.0/login/`, {
+  const res = await duprFetch(`${DUPR_API_BASE}/auth/v1.0/login/`, {
     method: "POST",
     headers: apiHeaders(),
     body: JSON.stringify({ email, password }),
@@ -106,7 +107,7 @@ async function searchPlayer(
   token: string,
   attempt = 0
 ): Promise<DuprPlayerResult[]> {
-  const res = await fetch(`${DUPR_API_BASE}/player/v1.0/search`, {
+  const res = await duprFetch(`${DUPR_API_BASE}/player/v1.0/search`, {
     method: "POST",
     headers: apiHeaders(token),
     body: JSON.stringify({

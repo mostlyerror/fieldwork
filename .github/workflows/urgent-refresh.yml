@@ -30,3 +30,5 @@ jobs:
           GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
           DUPR_EMAIL: ${{ secrets.DUPR_EMAIL }}
           DUPR_PASSWORD: ${{ secrets.DUPR_PASSWORD }}
+          # Residential proxy — DUPR blocks GitHub's datacenter IPs (400/FAILURE).
+          DUPR_PROXY_URL: ${{ secrets.DUPR_PROXY_URL }}

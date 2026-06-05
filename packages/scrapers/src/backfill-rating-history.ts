@@ -8,6 +8,7 @@
  * Requires DUPR_EMAIL, DUPR_PASSWORD, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY.
  */
 import { supabase } from "./utils/supabase.js";
+import { duprFetch } from "./utils/dupr-fetch.js";
 
 const API = "https://api.dupr.gg";
 const PAGE = 25; // DUPR caps history limit at 25
@@ -27,7 +28,7 @@ function headers(token?: string): Record<string, string> {
 interface Player { id: string; name: string; dupr_id: string }
 
 async function login(): Promise<string | null> {
-  const r = await fetch(`${API}/auth/v1.0/login/`, {
+  const r = await duprFetch(`${API}/auth/v1.0/login/`, {
     method: "POST",
     headers: headers(),
     body: JSON.stringify({ email: process.env.DUPR_EMAIL, password: process.env.DUPR_PASSWORD }),
@@ -37,7 +38,7 @@ async function login(): Promise<string | null> {
 }
 
 async function numericId(duprId: string, token: string): Promise<number | null> {
-  const r = await fetch(`${API}/player/v1.0/search`, {
+  const r = await duprFetch(`${API}/player/v1.0/search`, {
     method: "POST",
     headers: headers(token),
     body: JSON.stringify({ query: duprId, limit: 5, offset: 0, includeUnclaimedPlayers: true, filter: {} }),
@@ -65,7 +66,7 @@ async function history(nid: number, token: string): Promise<Hit[]> {
   const all: Hit[] = [];
   let offset = 0, total = Infinity;
   while (offset < Math.min(total, MAX)) {
-    const r = await fetch(`${API}/player/v1.0/${nid}/history`, {
+    const r = await duprFetch(`${API}/player/v1.0/${nid}/history`, {
       method: "POST",
       headers: headers(token),
       body: JSON.stringify({ filters: {}, sort: { order: "DESC", parameter: "MATCH_DATE" }, limit: PAGE, offset }),

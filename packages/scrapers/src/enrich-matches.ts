@@ -1,4 +1,5 @@
 import { fetchAllMatchHistory } from "./utils/match-history.js";
+import { duprFetch } from "./utils/dupr-fetch.js";
 
 const DUPR_API_BASE = "https://api.dupr.gg";
 
@@ -11,7 +12,7 @@ async function authenticate(): Promise<string | null> {
     return null;
   }
 
-  const res = await fetch(`${DUPR_API_BASE}/auth/v1.0/login/`, {
+  const res = await duprFetch(`${DUPR_API_BASE}/auth/v1.0/login/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),

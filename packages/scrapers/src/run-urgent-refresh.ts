@@ -17,6 +17,7 @@ import {
   type PlayerHistorySummary,
 } from "./utils/match-history.js";
 import { sendDiscordAlert } from "./utils/discord.js";
+import { duprFetch } from "./utils/dupr-fetch.js";
 import { startRun, completeRun, failRun } from "./utils/logger.js";
 
 // Metered: at most this many tournament-rostered players get their DUPR history
@@ -67,7 +68,7 @@ async function rosterHistoryPass(): Promise<void> {
   }
   console.log("[urgent-refresh] roster history: starting DUPR login...");
   try {
-    const res = await fetch("https://api.dupr.gg/auth/v1.0/login/", {
+    const res = await duprFetch("https://api.dupr.gg/auth/v1.0/login/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

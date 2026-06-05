@@ -8,6 +8,7 @@
  * Requires DUPR_EMAIL, DUPR_PASSWORD, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY.
  */
 import { supabase } from "./utils/supabase.js";
+import { duprFetch } from "./utils/dupr-fetch.js";
 
 const API = "https://api.dupr.gg";
 const PAGE = 25; // DUPR caps history limit at 25
@@ -38,12 +39,12 @@ async function main() {
   if (!me) { console.error(`No player with dupr_id ${duprId}`); process.exit(1); }
   console.log(`Player: ${me.name} (${me.id})`);
 
-  const lr = await fetch(`${API}/auth/v1.0/login/`, { method: "POST", headers: headers(), body: JSON.stringify({ email: process.env.DUPR_EMAIL, password: process.env.DUPR_PASSWORD }) });
+  const lr = await duprFetch(`${API}/auth/v1.0/login/`, { method: "POST", headers: headers(), body: JSON.stringify({ email: process.env.DUPR_EMAIL, password: process.env.DUPR_PASSWORD }) });
   const ld = await lr.json();
   if (ld?.status !== "SUCCESS") { console.error("login failed"); process.exit(1); }
   const tok = ld.result.accessToken;
 
-  const sr = await fetch(`${API}/player/v1.0/search`, { method: "POST", headers: headers(tok), body: JSON.stringify({ query: duprId, limit: 5, offset: 0, includeUnclaimedPlayers: true, filter: {} }) });
+  const sr = await duprFetch(`${API}/player/v1.0/search`, { method: "POST", headers: headers(tok), body: JSON.stringify({ query: duprId, limit: 5, offset: 0, includeUnclaimedPlayers: true, filter: {} }) });
   const sd = await sr.json();
   const nid = ((sd.result?.hits ?? []).find((h: { duprId?: string }) => h.duprId === duprId) ?? sd.result?.hits?.[0])?.id;
   if (!nid) { console.error("no numeric id"); process.exit(1); }
@@ -53,7 +54,7 @@ async function main() {
   const hits: Hit[] = [];
   let offset = 0, total = Infinity;
   while (offset < Math.min(total, MAX)) {
-    const r = await fetch(`${API}/player/v1.0/${nid}/history`, { method: "POST", headers: headers(tok), body: JSON.stringify({ filters: {}, sort: { order: "DESC", parameter: "MATCH_DATE" }, limit: PAGE, offset }) });
+    const r = await duprFetch(`${API}/player/v1.0/${nid}/history`, { method: "POST", headers: headers(tok), body: JSON.stringify({ filters: {}, sort: { order: "DESC", parameter: "MATCH_DATE" }, limit: PAGE, offset }) });
     if (!r.ok) break;
     const d = await r.json();
     const h: Hit[] = d?.result?.hits ?? [];

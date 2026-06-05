@@ -13,6 +13,7 @@ import { sendDiscordAlert } from "./utils/discord.js";
 import { scrapeDuprIds } from "./utils/scrape-dupr-ids.js";
 import { enrichDuprRatings } from "./utils/dupr-enrichment.js";
 import { fetchAllMatchHistory } from "./utils/match-history.js";
+import { duprFetch } from "./utils/dupr-fetch.js";
 import { fetchLiveMatches } from "./utils/live-matches.js";
 import { writePlacements } from "./utils/placements.js";
 import { snapshotEnrichedDupr } from "./utils/snapshot-dupr.js";
@@ -277,7 +278,7 @@ async function main() {
         }
       }
       // Capture the token that enrichDuprRatings used internally — re-authenticate for match history
-      const authRes = await fetch("https://api.dupr.gg/auth/v1.0/login/", {
+      const authRes = await duprFetch("https://api.dupr.gg/auth/v1.0/login/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
