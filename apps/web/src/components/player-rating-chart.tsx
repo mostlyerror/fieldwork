@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { RatingTrendProps } from "@/components/player/types";
 
 const f2 = (n: number) => n.toFixed(2);
@@ -10,6 +11,13 @@ const shortDate = (s: string) =>
     month: "short",
     year: "numeric",
   });
+const fullDate = (s: string) =>
+  new Date(s + "T00:00:00").toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+const dayMs = (s: string) => +new Date(s + "T00:00:00");
 
 /** Evenly downsample to at most `max` points, always keeping first + last. */
 function downsample<T>(points: T[], max: number): T[] {
@@ -91,7 +99,9 @@ export function PlayerRatingChart({
   peak,
   low,
   trendLabel,
+  events = [],
 }: RatingTrendProps) {
+  const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const data = downsample(points, 44);
   if (data.length < 2) return null;
 
@@ -132,6 +142,36 @@ export function PlayerRatingChart({
   const peakIdx = ratings.indexOf(seriesMax);
   const lowIdx = ratings.indexOf(seriesMin);
   const lastIdx = data.length - 1;
+
+  // Tournament markers — snap each event to the nearest rating point by date
+  // (the x-axis is index-spaced, so we reuse xs/ys), within range, deduped to
+  // one marker per point. delta = the rating move into that point.
+  const dataTimes = data.map((d) => dayMs(d.date));
+  const markerMap = new Map<number, string[]>();
+  for (const e of events) {
+    const t = dayMs(e.date);
+    if (t < dataTimes[0] || t > dataTimes[lastIdx]) continue;
+    let idx = 0;
+    let best = Infinity;
+    for (let i = 0; i < dataTimes.length; i++) {
+      const diff = Math.abs(dataTimes[i] - t);
+      if (diff < best) { best = diff; idx = i; }
+    }
+    if (idx <= 0) continue; // need a prior point to compute a delta
+    if (!markerMap.has(idx)) markerMap.set(idx, []);
+    markerMap.get(idx)!.push(e.label);
+  }
+  const markers = Array.from(markerMap.entries())
+    .map(([idx, labels]) => ({
+      idx,
+      x: xs[idx],
+      y: ys[idx],
+      delta: ratings[idx] - ratings[idx - 1],
+      labels,
+      date: data[idx].date,
+    }))
+    .sort((a, b) => a.idx - b.idx);
+  const active = markers.find((m) => m.idx === activeIdx) ?? null;
 
   return (
     <div className="rounded-2xl border border-gray-200/70 bg-white p-5 shadow-card sm:rounded-3xl sm:p-6">
@@ -193,6 +233,34 @@ export function PlayerRatingChart({
           <circle cx={xs[lowIdx]} cy={ys[lowIdx]} r={2.6} fill="#9AA59E" />
         )}
 
+        {/* tournament markers — snapped to the nearest rating point */}
+        {markers.map((mk) => {
+          const isActive = mk.idx === activeIdx;
+          return (
+            <g
+              key={mk.idx}
+              style={{ cursor: "pointer" }}
+              onClick={() => setActiveIdx(isActive ? null : mk.idx)}
+              onMouseEnter={() => setActiveIdx(mk.idx)}
+            >
+              {isActive && (
+                <line x1={mk.x} y1={mk.y} x2={mk.x} y2={baseY} stroke="#E0A93B" strokeWidth={1} strokeDasharray="2 2" />
+              )}
+              <circle
+                cx={mk.x}
+                cy={mk.y}
+                r={isActive ? 4.5 : 3.2}
+                fill={isActive ? "#B7791F" : "#E0A93B"}
+                stroke="#fff"
+                strokeWidth={1.4}
+              />
+              {/* generous transparent hit target for tap */}
+              <circle cx={mk.x} cy={mk.y} r={11} fill="transparent" />
+              <title>{mk.labels.join(", ")}</title>
+            </g>
+          );
+        })}
+
         {/* latest point */}
         <circle cx={xs[lastIdx]} cy={ys[lastIdx]} r={4} fill="#065F46" />
         <circle
@@ -221,6 +289,30 @@ export function PlayerRatingChart({
           {shortDate(data[data.length - 1].date)}
         </text>
       </svg>
+
+      {/* tournament marker caption — reserved height so the chart doesn't jump */}
+      {markers.length > 0 && (
+        <div className="mt-2 flex min-h-[20px] items-center gap-2 t-caption">
+          {active ? (
+            <>
+              <span className="h-2 w-2 shrink-0 rounded-full bg-amber-400" aria-hidden />
+              <span className="min-w-0 truncate font-semibold text-gray-700">
+                {active.labels[0]}
+                {active.labels.length > 1 ? ` +${active.labels.length - 1} more` : ""}
+              </span>
+              <span className="shrink-0 text-gray-400">{fullDate(active.date)}</span>
+              <span className={`shrink-0 font-bold tabular-nums ${active.delta >= 0 ? "text-emerald-600" : "text-red-500"}`}>
+                {signed3(active.delta)}
+              </span>
+            </>
+          ) : (
+            <span className="text-gray-400">
+              <span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-amber-400 align-middle" aria-hidden />
+              Tap a tournament marker to see the rating change
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

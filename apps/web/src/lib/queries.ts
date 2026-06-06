@@ -649,6 +649,44 @@ export interface PlayerUpcomingTournament {
   listedDupr: number | null;
 }
 
+export interface PlayerPastTournament {
+  tournamentId: string;
+  name: string;
+  date: string; // date_end ?? date_start (YYYY-MM-DD) — used to mark the rating timeline
+}
+
+/** Distinct PAST tournaments a player competed in, for rating-timeline markers. */
+export async function getPlayerPastTournaments(
+  playerId: string,
+): Promise<PlayerPastTournament[]> {
+  const today = new Date().toISOString().split("T")[0];
+
+  const { data, error } = await supabase
+    .from("event_players")
+    .select(`
+      tournament_events!inner (
+        tournaments!inner ( id, name, date_start, date_end )
+      )
+    `)
+    .eq("player_id", playerId)
+    .lt("tournament_events.tournaments.date_end", today);
+
+  if (error || !data) return [];
+
+  // One row per registered event; dedupe to one marker per tournament.
+  const seen = new Map<string, PlayerPastTournament>();
+  for (const row of data as Record<string, unknown>[]) {
+    const event = row.tournament_events as Record<string, unknown> | null;
+    const t = event?.tournaments as Record<string, unknown> | null;
+    if (!t) continue;
+    const id = t.id as string;
+    const date = (t.date_end as string) ?? (t.date_start as string);
+    if (!id || !date || date >= today) continue;
+    if (!seen.has(id)) seen.set(id, { tournamentId: id, name: t.name as string, date });
+  }
+  return Array.from(seen.values()).sort((a, b) => a.date.localeCompare(b.date));
+}
+
 export async function getPlayerUpcomingTournaments(
   playerId: string,
 ): Promise<PlayerUpcomingTournament[]> {

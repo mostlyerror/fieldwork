@@ -5,6 +5,7 @@ import {
   getPlayer,
   getPlayerMatches,
   getPlayerUpcomingTournaments,
+  getPlayerPastTournaments,
   getPlayerRatingHistory,
   getOpponentRatings,
   computePlayerRecord,
@@ -61,13 +62,14 @@ const isSinglesFormat = (fmt: string) => /singles/i.test(fmt);
 
 export default async function PlayerPage({ params }: PageProps) {
   const { id } = await params;
-  const [player, matches, upcoming, ratingHistory] = await Promise.all([
+  const [player, matches, upcoming, pastTournaments, ratingHistory] = await Promise.all([
     getPlayer(id),
     // Lifetime matches so Record / Partner Chemistry / the READ's format splits
     // are career figures. Form (last ~10) and the recent-matches list slice from
     // the front of this set, so they stay "recent".
     getPlayerMatches(id, 300),
     getPlayerUpcomingTournaments(id),
+    getPlayerPastTournaments(id),
     getPlayerRatingHistory(id),
   ]);
 
@@ -187,6 +189,7 @@ export default async function PlayerPage({ params }: PageProps) {
               peak={Math.max(...ratingHistory.map((p) => p.rating))}
               low={Math.min(...ratingHistory.map((p) => p.rating))}
               trendLabel={deriveTrendLabel(ratingDelta)}
+              events={pastTournaments.map((t) => ({ date: t.date, label: t.name }))}
             />
           </section>
         )}

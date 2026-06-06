@@ -32,6 +32,8 @@ export interface RatingTrendProps {
   peak: number | null;
   low: number | null;
   trendLabel: string;
+  /** Tournament markers to overlay on the timeline (snapped to nearest point). */
+  events?: { date: string; label: string }[];
 }
 
 export interface PartnerRow {
