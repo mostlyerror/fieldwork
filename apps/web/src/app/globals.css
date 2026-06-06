@@ -36,6 +36,24 @@
   }
 }
 
+/* Always-visible thin scrollbar — overlay scrollbars (macOS) hide by default,
+   which makes internal-scroll regions read as static. */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+.scroll-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+.scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 @layer base {
   html {
     font-size: 18px;

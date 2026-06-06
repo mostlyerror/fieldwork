@@ -12,6 +12,7 @@ import { FieldStrengthBadge } from "./field-strength-badge";
 import { effectiveAvgDupr, avgDuprPair } from "@/lib/dupr-utils";
 import { registrantLabel } from "@/lib/field-intel";
 import { AvgDuprCell } from "./avg-dupr-cell";
+import { ScrollFade } from "./scroll-fade";
 
 /** Per-bracket start, shown faithfully from the source label (already venue-local).
  *  "Jun 7 2026 8:30 AM" -> "Jun 7 · 8:30 AM"; "Jun 13 2026 Morning" -> "Jun 13 · Morning". */
@@ -101,7 +102,8 @@ export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
       {/* Desktop: master-detail with grouped events */}
       <div className="hidden lg:grid lg:grid-cols-[340px_1fr]" style={{ height: "clamp(400px, 70vh, 800px)" }}>
         {/* Left panel: grouped event list */}
-        <div className="overflow-y-auto border-r border-gray-200 bg-white">
+        <div className="min-h-0 border-r border-gray-200">
+          <ScrollFade className="bg-white">
           {Array.from(grouped.entries()).map(([category, categoryEvents]) => (
             <div key={category}>
               <div className="sticky top-0 z-10 border-b border-gray-100 bg-gray-50 px-4 py-2">
@@ -162,10 +164,11 @@ export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
               })}
             </div>
           ))}
+          </ScrollFade>
         </div>
 
         {/* Right panel: selected event details */}
-        <div className="overflow-y-auto bg-white p-6">
+        <ScrollFade className="bg-white p-6">
           <h3 className="t-h2 text-gray-900">
             {cleanEventName(selectedEvent)}
           </h3>
@@ -215,7 +218,7 @@ export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
               No player data available for this event.
             </p>
           )}
-        </div>
+        </ScrollFade>
       </div>
     </div>
   );
