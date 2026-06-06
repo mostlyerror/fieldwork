@@ -54,6 +54,29 @@
   background: transparent;
 }
 
+/* Result-card in-place editor — contentEditable fields styled to read as the
+   card's own text, with a padded halo on hover/focus (box-shadow spread, so no
+   layout shift) and a ghost placeholder when empty. */
+.rc-editable {
+  outline: none;
+  min-width: 10px;
+  border-radius: 7px;
+  caret-color: #6ee7b7;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+.rc-editable:hover {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+}
+.rc-editable:focus {
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 0 0 4px rgba(110, 231, 183, 0.5);
+}
+.rc-editable:empty::before {
+  content: attr(data-placeholder);
+  opacity: 0.4;
+}
+
 @layer base {
   html {
     font-size: 18px;

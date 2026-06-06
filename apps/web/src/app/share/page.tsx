@@ -37,8 +37,8 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
         <p className="t-label mb-2 text-emerald-700">Share your win</p>
         <h1 className="t-h1 text-foreground">Make a result card</h1>
         <p className="mt-3 text-foreground/70">
-          Drop in your podium photo, set the result, and post it to your story. Everything is editable — fill it in
-          right after you win, even before the official results are posted.
+          Tap the card to add your podium photo, then tap any text right on the card to edit it. Fill it in the
+          moment you win — even before the official results post — and share straight to your story.
         </p>
       </header>
       <ResultComposer initial={cleaned} />
