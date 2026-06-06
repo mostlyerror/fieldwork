@@ -5,9 +5,9 @@
  *
  * Keeps the derivation logic in one place so the page stays declarative.
  */
-import type { Match, Player, PlayerRecord, FrequentPartner } from "@/lib/types";
+import type { Match, Player, PlayerRecord, FrequentPartner, FrequentOpponent } from "@/lib/types";
 import type { PlayerReadInput, PartnerStat } from "@/lib/player-read";
-import type { PartnerRow } from "@/components/player/types";
+import type { PartnerRow, OpponentRow } from "@/components/player/types";
 
 type RatingPointLike = { event_date: string; rating: number };
 
@@ -136,4 +136,26 @@ export function buildPartnerRows(partners: FrequentPartner[]): PartnerRow[] {
       verdict: partnerVerdict(winRate, matches),
     };
   });
+}
+
+/** Head-to-head verdict from the subject player's record vs an opponent. */
+function h2hVerdict(wins: number, losses: number): string {
+  const n = wins + losses;
+  if (wins === losses) return "Even";
+  const wr = wins / n;
+  if (n >= 3 && wr >= 0.7) return "Owns the matchup";
+  if (n >= 3 && wr <= 0.3) return "Nemesis"; // the opponent owns them
+  return wins > losses ? "Leads" : "Trails";
+}
+
+/** Build HeadToHeadProps.opponents (OpponentRow[]) from frequent opponents. */
+export function buildOpponentRows(opponents: FrequentOpponent[]): OpponentRow[] {
+  return opponents.map((o) => ({
+    name: o.name,
+    playerId: o.playerId,
+    wins: o.wins,
+    losses: o.losses,
+    matches: o.matchCount,
+    verdict: h2hVerdict(o.wins, o.losses),
+  }));
 }

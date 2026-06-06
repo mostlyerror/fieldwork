@@ -9,6 +9,7 @@ import {
   getOpponentRatings,
   computePlayerRecord,
   computeFrequentPartners,
+  computeFrequentOpponents,
 } from "@/lib/queries";
 import { deriveMatchSignals, computeBadges } from "@/lib/badges";
 import { BadgeShelf } from "@/components/player/badge-shelf";
@@ -18,12 +19,14 @@ import { IdentityBand } from "@/components/player/identity-band";
 import { TheRead } from "@/components/player/the-read";
 import { RecordModule } from "@/components/player/record-module";
 import { PartnerChemistry } from "@/components/player/partner-chemistry";
+import { HeadToHead } from "@/components/player/head-to-head";
 import { RecentMatches } from "@/components/player/recent-matches";
 import { buildPlayerRead } from "@/lib/player-read";
 import {
   toPlayerReadInput,
   deriveTrendLabel,
   buildPartnerRows,
+  buildOpponentRows,
 } from "@/lib/player-read-input";
 import { BackButton } from "@/components/back-button";
 import { ServerHeader } from "@/components/server-header";
@@ -99,6 +102,7 @@ export default async function PlayerPage({ params }: PageProps) {
   );
 
   const partnerRows = buildPartnerRows(partners);
+  const opponentRows = buildOpponentRows(computeFrequentOpponents(matches, id));
 
   // Badges — same fits/facts that power The Read, plus a pass over raw game
   // scores (Pickle / Comeback / Clutch) and opponent ratings (Giant Slayer).
@@ -191,6 +195,13 @@ export default async function PlayerPage({ params }: PageProps) {
         {partnerRows.length > 0 && (
           <section className="mt-6">
             <PartnerChemistry partners={partnerRows} />
+          </section>
+        )}
+
+        {/* Head-to-Head — most-faced opponents */}
+        {opponentRows.length > 0 && (
+          <section className="mt-6">
+            <HeadToHead opponents={opponentRows} />
           </section>
         )}
 

@@ -48,6 +48,19 @@ export interface PartnerChemistryProps {
   partners: PartnerRow[];
 }
 
+export interface OpponentRow {
+  name: string;
+  playerId: string | null;
+  wins: number; // subject player's wins vs this opponent
+  losses: number;
+  matches: number; // meetings
+  verdict: string; // "Owns the matchup" | "Leads" | "Even" | "Trails" | "Nemesis"
+}
+
+export interface HeadToHeadProps {
+  opponents: OpponentRow[];
+}
+
 export interface RecentMatchesProps {
   matches: Match[];
   playerId: string;

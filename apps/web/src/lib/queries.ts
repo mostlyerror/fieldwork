@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import type { Tournament, TournamentSource, TournamentEvent, TournamentMatch, EventPlayer, Player, Match, PlayerRecord, FrequentPartner, ResultCardData, Venue } from "./types";
+import type { Tournament, TournamentSource, TournamentEvent, TournamentMatch, EventPlayer, Player, Match, PlayerRecord, FrequentPartner, FrequentOpponent, ResultCardData, Venue } from "./types";
 import { getCityBySlug, getDefaultCity } from "./cities";
 import { cleanEventName } from "./event-name";
 
@@ -582,6 +582,63 @@ export function computeFrequentPartners(
     }))
     .sort((a, b) => b.matchCount - a.matchCount)
     .slice(0, 3);
+}
+
+/**
+ * Most-faced OPPONENTS (head-to-head). Mirrors computeFrequentPartners but
+ * tallies the opposing team — in doubles each match has up to two opponents, so
+ * a "meeting" is counted per individual opponent faced. wins/losses are from the
+ * subject player's perspective. Filtered to repeat opponents (≥2 meetings) since
+ * a single match isn't a rivalry, and capped to the few most-faced.
+ */
+export function computeFrequentOpponents(
+  matches: Match[],
+  playerId: string,
+): FrequentOpponent[] {
+  const oppMap = new Map<
+    string,
+    { playerId: string | null; name: string; wins: number; losses: number }
+  >();
+
+  for (const match of matches) {
+    const onTeam1 =
+      match.team1_player1_id === playerId ||
+      match.team1_player2_id === playerId;
+    const won = onTeam1 ? match.team1_won : !match.team1_won;
+
+    const opponents = onTeam1
+      ? [
+          { id: match.team2_player1_id, name: match.team2_player1_name },
+          { id: match.team2_player2_id, name: match.team2_player2_name },
+        ]
+      : [
+          { id: match.team1_player1_id, name: match.team1_player1_name },
+          { id: match.team1_player2_id, name: match.team1_player2_name },
+        ];
+
+    for (const opp of opponents) {
+      if (!opp.name) continue;
+      const key = opp.id ?? opp.name;
+      if (!oppMap.has(key)) {
+        oppMap.set(key, { playerId: opp.id ?? null, name: opp.name, wins: 0, losses: 0 });
+      }
+      const rec = oppMap.get(key)!;
+      if (won) rec.wins++;
+      else rec.losses++;
+    }
+  }
+
+  return Array.from(oppMap.values())
+    .map((v) => ({
+      playerId: v.playerId,
+      name: v.name,
+      matchCount: v.wins + v.losses,
+      wins: v.wins,
+      losses: v.losses,
+    }))
+    .filter((o) => o.matchCount >= 2)
+    .sort((a, b) => b.matchCount - a.matchCount)
+    .slice(0, 5);
 }
 
 export interface PlayerUpcomingTournament {

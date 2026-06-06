@@ -145,6 +145,14 @@ export interface FrequentPartner {
   losses: number;
 }
 
+export interface FrequentOpponent {
+  playerId: string | null;
+  name: string;
+  matchCount: number; // meetings (matches faced)
+  wins: number; // from the subject player's perspective
+  losses: number;
+}
+
 export interface TournamentMatch {
   id: string;
   match_uuid: string;
