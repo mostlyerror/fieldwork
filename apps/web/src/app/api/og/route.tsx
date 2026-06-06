@@ -43,6 +43,7 @@ interface TournamentRow {
   entry_fee: number | null;
   registration_close_date: string | null;
   logo_url: string | null;
+  venue_photo_url: string | null;
 }
 
 interface Intel {
@@ -105,7 +106,7 @@ async function fetchData(id: string, needStrip: boolean): Promise<CardData | nul
 
   const { data: tournament } = await supabase
     .from("tournaments")
-    .select("name, date_start, date_end, location_name, entry_fee, registration_close_date, logo_url")
+    .select("name, date_start, date_end, location_name, entry_fee, registration_close_date, logo_url, venue_photo_url")
     .eq("id", id)
     .maybeSingle();
 
@@ -219,6 +220,47 @@ function Style_radar({ d }: { d: CardData }) {
 }
 
 // 11. SPOTLIGHT — dark, high-contrast; stands out against white feed chrome
+// Photo-hero: the venue photo full-bleed with a dark scrim and the same
+// headline + stat treatment. Used by default whenever a venue photo exists —
+// a real court photo stops the scroll in Facebook groups far better than the
+// dark generated card.
+function Style_photo({ d }: { d: CardData }) {
+  return (
+    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "52px 60px", fontFamily: "Jakarta", color: "#FFFDF7", position: "relative" }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={d.t.venue_photo_url!} width={1200} height={630} alt="" style={{ position: "absolute", top: 0, left: 0, width: "1200px", height: "630px", objectFit: "cover" }} />
+      <div style={{ position: "absolute", top: 0, left: 0, width: "1200px", height: "630px", display: "flex", background: "linear-gradient(180deg, rgba(4,18,13,0.62) 0%, rgba(4,18,13,0.32) 38%, rgba(3,12,9,0.82) 76%, rgba(2,8,6,0.95) 100%)" }} />
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <img src={logoMark(36)} width={36} height={36} alt="" />
+          <div style={{ display: "flex", fontSize: "20px", fontWeight: 800, color: "#FFFDF7", letterSpacing: "5px" }}>PICKLERADAR</div>
+        </div>
+        {d.urgency && <div style={{ display: "flex", fontSize: "15px", fontWeight: 800, color: d.urgency.includes("CLOSED") ? "#e5e7eb" : "#fecaca", background: d.urgency.includes("CLOSED") ? "rgba(0,0,0,0.45)" : "rgba(220,38,38,0.7)", padding: "8px 16px", borderRadius: "999px", letterSpacing: "1px" }}>{d.urgency.toUpperCase()}</div>}
+      </div>
+      {/* Hero */}
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <div style={{ display: "flex", width: "64px", height: "6px", background: "#d4af37", borderRadius: "3px", marginBottom: "22px" }} />
+        <div style={{ display: "flex", fontSize: headlineSize(d.t.name), fontWeight: 800, color: "#FFFDF7", lineHeight: 0.98, letterSpacing: "-2px", maxWidth: "1040px" }}>{d.t.name}</div>
+        <div style={{ display: "flex", alignItems: "center", marginTop: "22px", gap: "14px" }}>
+          <div style={{ display: "flex", fontSize: "24px", color: "#fbe08a", fontWeight: 700 }}>{d.dateRange}</div>
+          <div style={{ display: "flex", fontSize: "24px", color: "#9ca3af" }}>·</div>
+          <div style={{ display: "flex", fontSize: "24px", color: "#e5e7eb", fontWeight: 600 }}>{d.t.location_name}</div>
+        </div>
+      </div>
+      {/* Stats */}
+      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", gap: "44px" }}>
+          {d.intel.total_registered > 0 && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "12px", color: "#cbd5d1", letterSpacing: "3px", fontWeight: 700 }}>REGISTERED</div><div style={{ display: "flex", fontSize: "40px", fontWeight: 800, color: "#FFFDF7", lineHeight: 1.0 }}>{d.intel.total_registered}</div></div>}
+          {d.intel.event_count > 0 && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "12px", color: "#cbd5d1", letterSpacing: "3px", fontWeight: 700 }}>EVENTS</div><div style={{ display: "flex", fontSize: "40px", fontWeight: 800, color: "#FFFDF7", lineHeight: 1.0 }}>{d.intel.event_count}</div></div>}
+          {d.intel.avg_dupr != null && <div style={{ display: "flex", flexDirection: "column" }}><div style={{ display: "flex", fontSize: "12px", color: "#cbd5d1", letterSpacing: "3px", fontWeight: 700 }}>AVG RATING</div><div style={{ display: "flex", fontSize: "40px", fontWeight: 800, color: "#fbe08a", lineHeight: 1.0 }}>{d.intel.avg_dupr.toFixed(2)}</div></div>}
+        </div>
+        <div style={{ display: "flex", fontSize: "18px", fontWeight: 700, color: "#9af5c8" }}>pickleradar.app</div>
+      </div>
+    </div>
+  );
+}
+
 function Style_spotlight({ d }: { d: CardData }) {
   const badge = contextBadge(d);
   return (
@@ -382,21 +424,26 @@ function Style_radar_dark({ d }: { d: CardData }) {
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const id = searchParams.get("id");
-  const style = searchParams.get("style") || "spotlight";
+  const explicitStyle = searchParams.get("style");
 
   if (!id) {
     return new Response("Missing id", { status: 400 });
   }
 
-  const needStrip = style === "signature" || style === "radar-dark";
+  const needStrip = explicitStyle === "signature" || explicitStyle === "radar-dark";
   const d = await fetchData(id, needStrip);
   if (!d) return new Response("Not found", { status: 404 });
+
+  // Default to the photo-hero card when we have a venue photo; fall back to the
+  // dark branded card otherwise. An explicit ?style= always wins.
+  const style = explicitStyle || (d.t.venue_photo_url ? "photo" : "spotlight");
 
   const map: Record<string, React.ReactElement> = {
     radar: <Style_radar d={d} />,
     spotlight: <Style_spotlight d={d} />,
     signature: <Style_signature d={d} />,
     "radar-dark": <Style_radar_dark d={d} />,
+    photo: <Style_photo d={d} />,
   };
 
   const [semiBold, bold, extraBold] = await Promise.all([fontSemiBold, fontBold, fontExtraBold]);
