@@ -286,7 +286,7 @@ function partnerVerdict(f: PlayerFacts): string | null {
   if (bp.winRate >= 75) return "Elite duo";
   if (bp.winRate >= 55) return "Reliable pairing";
   if (bp.winRate >= 40) return "Still gelling";
-  return "Snakebit together";
+  return "Out of sync";
 }
 
 function formLabel(f: PlayerFacts, fits: PlayerFits): string {

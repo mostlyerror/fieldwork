@@ -33,7 +33,7 @@ function verdictTone(verdict: string): {
       dot: "bg-emerald-500",
     };
   }
-  if (v.includes("snakebit")) {
+  if (v.includes("out of sync")) {
     return {
       className: "bg-red-50 text-red-600",
       dot: "bg-red-400",

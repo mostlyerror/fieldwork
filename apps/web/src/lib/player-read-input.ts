@@ -118,7 +118,7 @@ function partnerVerdict(winRate: number, matches: number): string | null {
   if (winRate >= 75) return "Elite duo";
   if (winRate >= 55) return "Reliable pairing";
   if (winRate >= 40) return "Still gelling";
-  return "Snakebit together";
+  return "Out of sync";
 }
 
 /** Build PartnerChemistryProps.partners (PartnerRow[]) from frequent partners. */
