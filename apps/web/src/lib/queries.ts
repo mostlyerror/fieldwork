@@ -580,8 +580,9 @@ export function computeFrequentPartners(
       wins: v.wins,
       losses: v.losses,
     }))
+    .filter((p) => p.matchCount >= 2) // a one-off pairing isn't "chemistry"
     .sort((a, b) => b.matchCount - a.matchCount)
-    .slice(0, 3);
+    .slice(0, 5); // mirror Head-to-Head (top 5)
 }
 
 /**
