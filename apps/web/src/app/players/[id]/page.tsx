@@ -112,6 +112,10 @@ export default async function PlayerPage({ params }: PageProps) {
   const badges = computeBadges({ fits: read.fits, facts: read.facts, signals, atPeak });
 
   const hasMatches = matches.length > 0;
+  // Consent floor: the interpretive scouting paragraph ("The Read") is gated
+  // behind a claimed profile. We won't publish an editorial read on a player who
+  // never opted in; factual data (ratings, record, matches) stays public.
+  const isClaimed = player.user_id != null;
   const showChart = ratingHistory.length >= 2;
   const ratingDelta = showChart
     ? ratingHistory[ratingHistory.length - 1].rating -
@@ -143,8 +147,9 @@ export default async function PlayerPage({ params }: PageProps) {
           lastUpdated={player.dupr_last_checked}
         />
 
-        {/* The Read — deterministic scouting paragraph (degrades gracefully) */}
-        {hasMatches && (
+        {/* The Read — interpretive scouting paragraph. Consent floor: only shown
+            on claimed profiles (the player opted in); hidden for unclaimed players. */}
+        {isClaimed && hasMatches && (
           <section className="mt-6">
             <TheRead read={read.read} />
           </section>
