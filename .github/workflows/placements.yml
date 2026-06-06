@@ -1,0 +1,33 @@
+name: Placements
+
+on:
+  schedule:
+    # Hourly. writePlacements only touches active tournaments past their end date
+    # that don't already have placements, and name-matches PBB's posted medal
+    # teams onto our roster — so it's cheap and idempotent (early-exits when
+    # there's nothing new). Hourly means a podium lights up within ~1h of PBB
+    # posting results: tournament page podium, /results card, and Discord drop.
+    - cron: "15 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: placements
+  cancel-in-progress: false
+
+jobs:
+  placements:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Write placements
+        run: npx tsx packages/scrapers/src/run-placements.ts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
