@@ -23,6 +23,7 @@ import {
 } from "./utils/intelligence.js";
 import type { ScrapedPlayer } from "./types.js";
 import { parsePbbEventDate } from "./utils/event-time.js";
+import { getDuprCoverage, formatCoverage } from "./utils/dupr-coverage.js";
 
 const PBB_API = "https://pickleballtournaments.com/tournaments/api";
 
@@ -354,9 +355,11 @@ export async function runUrgentRefresh(): Promise<UrgentRefreshResult> {
   }
 
   if (result.eventsUpdated > 0 || result.errors > 0) {
+    const coverage = await getDuprCoverage().catch(() => null);
+    const coverageLine = coverage ? `\n📊 DUPR coverage: ${formatCoverage(coverage)}` : "";
     await sendDiscordAlert({
       title: "♻️ Urgent refresh",
-      description: `${result.eventsUpdated} events updated · +${result.playersAdded} −${result.playersRemoved} players · ${result.errors} errors`,
+      description: `${result.eventsUpdated} events updated · +${result.playersAdded} −${result.playersRemoved} players · ${result.errors} errors${coverageLine}`,
     });
   }
 

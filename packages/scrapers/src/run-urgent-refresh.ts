@@ -17,6 +17,7 @@ import {
   type PlayerHistorySummary,
 } from "./utils/match-history.js";
 import { sendDiscordAlert } from "./utils/discord.js";
+import { getDuprCoverage, formatCoverage } from "./utils/dupr-coverage.js";
 import { duprFetch } from "./utils/dupr-fetch.js";
 import { startRun, completeRun, failRun } from "./utils/logger.js";
 
@@ -52,9 +53,12 @@ function formatPlayerLine(p: PlayerHistorySummary): string {
 async function postPlayerHistory(players: PlayerHistorySummary[]): Promise<void> {
   if (players.length === 0) return;
   try {
+    const coverage = await getDuprCoverage().catch(() => null);
+    const lines = players.map(formatPlayerLine).join("\n");
+    const coverageLine = coverage ? `\n\nDUPR coverage: ${formatCoverage(coverage)}` : "";
     await sendDiscordAlert({
       title: `📊 Player history refreshed (${players.length})`,
-      description: players.map(formatPlayerLine).join("\n"),
+      description: `${lines}${coverageLine}`,
     });
   } catch (err) {
     console.error("[urgent-refresh] player history alert failed (non-fatal):", err);
