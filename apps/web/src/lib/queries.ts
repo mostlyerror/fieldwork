@@ -453,6 +453,44 @@ export async function getPlayerMatches(
   return (data ?? []) as Match[];
 }
 
+/**
+ * Current DUPR ratings for everyone this player has faced — used by the Giant
+ * Slayer badge. One query keyed off the opponent ids found across their matches.
+ * Current (not at-the-time) ratings are a fine approximation for "you beat a
+ * team rated well above you."
+ */
+export async function getOpponentRatings(
+  matches: Match[],
+  playerId: string,
+): Promise<Map<string, number>> {
+  const ids = new Set<string>();
+  for (const m of matches) {
+    const onTeam1 = m.team1_player1_id === playerId || m.team1_player2_id === playerId;
+    const opps = onTeam1
+      ? [m.team2_player1_id, m.team2_player2_id]
+      : [m.team1_player1_id, m.team1_player2_id];
+    for (const o of opps) if (o) ids.add(o);
+  }
+  if (ids.size === 0) return new Map();
+
+  const { data, error } = await supabase
+    .from("players")
+    .select("id, dupr_doubles, dupr_singles")
+    .in("id", Array.from(ids));
+
+  if (error) {
+    console.error("Error fetching opponent ratings:", error);
+    return new Map();
+  }
+
+  const map = new Map<string, number>();
+  for (const p of data ?? []) {
+    const r = (p.dupr_doubles ?? p.dupr_singles) as number | null;
+    if (r != null) map.set(p.id as string, r);
+  }
+  return map;
+}
+
 export function computePlayerRecord(
   matches: Match[],
   playerId: string,

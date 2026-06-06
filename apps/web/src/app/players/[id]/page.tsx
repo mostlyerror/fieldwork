@@ -6,9 +6,12 @@ import {
   getPlayerMatches,
   getPlayerUpcomingTournaments,
   getPlayerRatingHistory,
+  getOpponentRatings,
   computePlayerRecord,
   computeFrequentPartners,
 } from "@/lib/queries";
+import { deriveMatchSignals, computeBadges } from "@/lib/badges";
+import { BadgeShelf } from "@/components/player/badge-shelf";
 import { IntelSectionHeader } from "@/components/intel-section-header";
 import { PlayerRatingChart } from "@/components/player-rating-chart";
 import { IdentityBand } from "@/components/player/identity-band";
@@ -97,6 +100,17 @@ export default async function PlayerPage({ params }: PageProps) {
 
   const partnerRows = buildPartnerRows(partners);
 
+  // Badges — same fits/facts that power The Read, plus a pass over raw game
+  // scores (Pickle / Comeback / Clutch) and opponent ratings (Giant Slayer).
+  const playerRating = player.dupr_doubles ?? player.dupr_singles;
+  const opponentRatings = await getOpponentRatings(matches, id);
+  const signals = deriveMatchSignals(matches, id, opponentRatings, playerRating);
+  const atPeak =
+    ratingHistory.length >= 5 &&
+    ratingHistory[ratingHistory.length - 1].rating >=
+      Math.max(...ratingHistory.map((p) => p.rating)) - 0.001;
+  const badges = computeBadges({ fits: read.fits, facts: read.facts, signals, atPeak });
+
   const hasMatches = matches.length > 0;
   const showChart = ratingHistory.length >= 2;
   const ratingDelta = showChart
@@ -133,6 +147,13 @@ export default async function PlayerPage({ params }: PageProps) {
         {hasMatches && (
           <section className="mt-6">
             <TheRead read={read.read} />
+          </section>
+        )}
+
+        {/* Badges — earned scouting tells, rarity-tinted */}
+        {badges.length > 0 && (
+          <section className="mt-6">
+            <BadgeShelf badges={badges} />
           </section>
         )}
 
