@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getTournament, getTournamentSources, getTournamentsByCity, getTournamentEvents, getTournamentMatches, getVenueTournaments } from "@/lib/queries";
 import { getCityBySlug, getDefaultCity } from "@/lib/cities";
-import { TournamentDetail } from "@/components/tournament-detail";
+import { TournamentChrome, TournamentHero, TournamentOverview } from "@/components/tournament-detail";
 import { EventBreakdown } from "@/components/event-breakdown";
 import { LiveBracket } from "@/components/live-bracket";
 import { TournamentPodium } from "@/components/tournament-podium";
@@ -146,26 +146,55 @@ export default async function TournamentPage({ params }: PageProps) {
       )}
       <ServerHeader city={city} />
 
-      <main className="mx-auto max-w-4xl px-3 sm:px-5 py-10">
+      <main className="mx-auto max-w-4xl px-3 py-10 sm:px-5 lg:max-w-7xl">
         <Link
           href={`/${citySlug}`}
           className="mb-8 inline-flex items-center t-body text-gray-400 hover:text-emerald-700"
         >
           &larr; Back to tournaments
         </Link>
-        <TournamentDetail
-          tournament={tournament}
-          sources={sources}
-          events={events}
-          citySlug={citySlug}
-        />
 
-        {events.length > 0 && (
-          <section id="field-intelligence" className="mt-6 scroll-mt-20">
-            <EventBreakdown events={events} />
-          </section>
-        )}
+        {/* Draft banner + on-scroll sticky action bar. The sticky bar is
+            position:fixed so it spans the viewport regardless of this
+            container; the draft banner renders here in normal flow (its
+            original position, just after the back link). */}
+        <TournamentChrome tournament={tournament} sources={sources} events={events} />
 
+        {/* Briefing block. Mobile (< lg): plain stack — Hero, then the Overview
+            card overlapping it, then Field Intelligence below (identical to
+            before). Desktop (lg+): a two-column grid where the Overview becomes
+            a sticky left rail spanning both rows, the Hero is the right-column
+            banner, and Field Intelligence sits beneath the hero. DOM order stays
+            Hero → Overview → Field-Intelligence so the mobile stack is unchanged;
+            explicit grid placement reshuffles only on lg+. */}
+        <div className="lg:grid lg:grid-cols-[360px_minmax(0,1fr)] lg:items-start lg:gap-x-8">
+          <div className="lg:col-start-2 lg:row-start-1">
+            <TournamentHero tournament={tournament} sources={sources} events={events} />
+          </div>
+
+          <div className="lg:col-start-1 lg:row-start-1 lg:row-span-2 lg:self-start lg:sticky lg:top-6">
+            <TournamentOverview
+              tournament={tournament}
+              sources={sources}
+              events={events}
+              citySlug={citySlug}
+            />
+          </div>
+
+          {events.length > 0 && (
+            <section
+              id="field-intelligence"
+              className="mt-6 scroll-mt-20 lg:col-start-2 lg:row-start-2 lg:mt-8"
+            >
+              <EventBreakdown events={events} />
+            </section>
+          )}
+        </div>
+
+        {/* Everything below the briefing block stays at the original reading
+            width (max-w-4xl) and centered, identical on mobile and desktop —
+            only the briefing block above goes wide on lg. */}
+        <div className="lg:mx-auto lg:max-w-4xl">
         {matches.length > 0 && (
           <section className="mt-6">
             <LiveBracket matches={matches} events={events} />
@@ -220,6 +249,7 @@ export default async function TournamentPage({ params }: PageProps) {
             )}
           </div>
         )}
+        </div>
       </main>
 
       {/* Pre-footer CTA */}
