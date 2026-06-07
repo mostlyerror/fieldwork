@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { City } from "@/lib/cities";
 import { LogoMark } from "./logo-mark";
+import { OmniSearch } from "./omni-search";
 
 export function Header({
   city,
@@ -23,8 +24,9 @@ export function Header({
           PickleRadar
         </Link>
 
-        <div className="flex items-center gap-6">
-          <span className="hidden sm:inline t-body text-gray-400">
+        <div className="flex items-center gap-4 sm:gap-5">
+          <OmniSearch citySlug={city?.slug ?? "houston"} />
+          <span className="hidden t-body text-gray-400 md:inline">
             {cityName}
           </span>
           <Link

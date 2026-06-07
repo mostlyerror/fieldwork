@@ -688,6 +688,60 @@ export async function getPlayerPastTournaments(
   return Array.from(seen.values()).sort((a, b) => a.date.localeCompare(b.date));
 }
 
+export interface OmniResults {
+  players: { id: string; name: string; location: string | null; doubles: number | null }[];
+  tournaments: { id: string; name: string; dateStart: string; venue: string | null }[];
+  venues: { slug: string; name: string; address: string | null }[];
+}
+
+/** Omni search across players, tournaments, and venues by name (substring). */
+export async function searchOmni(q: string): Promise<OmniResults> {
+  const term = q.trim();
+  if (term.length < 2) return { players: [], tournaments: [], venues: [] };
+  const like = `%${term}%`;
+
+  const [players, tournaments, venues] = await Promise.all([
+    supabase
+      .from("players")
+      .select("id, name, location, dupr_doubles")
+      .ilike("name", like)
+      .order("dupr_doubles", { ascending: false, nullsFirst: false })
+      .limit(8),
+    supabase
+      .from("tournaments")
+      .select("id, name, date_start, location_name")
+      .ilike("name", like)
+      .eq("status", "active")
+      .order("date_start", { ascending: true })
+      .limit(5),
+    supabase
+      .from("venues")
+      .select("slug, name, formatted_address")
+      .ilike("name", like)
+      .limit(5),
+  ]);
+
+  return {
+    players: (players.data ?? []).map((p) => ({
+      id: p.id as string,
+      name: p.name as string,
+      location: (p.location as string | null) ?? null,
+      doubles: (p.dupr_doubles as number | null) ?? null,
+    })),
+    tournaments: (tournaments.data ?? []).map((t) => ({
+      id: t.id as string,
+      name: t.name as string,
+      dateStart: t.date_start as string,
+      venue: (t.location_name as string | null) ?? null,
+    })),
+    venues: (venues.data ?? []).map((v) => ({
+      slug: v.slug as string,
+      name: v.name as string,
+      address: (v.formatted_address as string | null) ?? null,
+    })),
+  };
+}
+
 export async function getPlayerUpcomingTournaments(
   playerId: string,
 ): Promise<PlayerUpcomingTournament[]> {
