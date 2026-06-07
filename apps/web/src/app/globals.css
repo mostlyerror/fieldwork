@@ -77,6 +77,73 @@
   opacity: 0.4;
 }
 
+/* Badge stickers — glossy die-cut achievement stickers (player profile rail).
+   Per-sticker rotation via --rot; staggered pop-in; gloss highlight; legendary
+   gets a moving holographic sheen; a jiggle on tap. */
+@keyframes rc-pop {
+  0%   { opacity: 0; transform: scale(0.55) rotate(calc(var(--rot, 0deg) * 2)); }
+  70%  { opacity: 1; transform: scale(1.06) rotate(calc(var(--rot, 0deg) * 0.85)); }
+  100% { opacity: 1; transform: scale(1) rotate(var(--rot, 0deg)); }
+}
+@keyframes rc-sheen {
+  0%       { transform: translateX(-130%) rotate(-18deg); }
+  60%, 100% { transform: translateX(240%) rotate(-18deg); }
+}
+@keyframes rc-jiggle {
+  0%   { transform: rotate(0); }
+  20%  { transform: rotate(-9deg) scale(1.06); }
+  40%  { transform: rotate(7deg) scale(1.04); }
+  60%  { transform: rotate(-5deg) scale(1.03); }
+  80%  { transform: rotate(3deg); }
+  100% { transform: rotate(0) scale(1); }
+}
+.rc-sticker {
+  animation: rc-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.rc-die {
+  position: relative;
+  overflow: hidden;
+  border: 3px solid #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 18px -8px rgba(6, 40, 30, 0.38), 0 2px 4px -2px rgba(6, 40, 30, 0.2);
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.rc-die::before {
+  content: "";
+  position: absolute;
+  top: -42%;
+  left: -28%;
+  width: 78%;
+  height: 130%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0));
+  transform: rotate(-18deg);
+  pointer-events: none;
+}
+.rc-die-legendary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 32%, rgba(255, 255, 255, 0.7) 50%, transparent 68%);
+  animation: rc-sheen 3.6s ease-in-out infinite;
+  pointer-events: none;
+}
+.rc-sticker:hover .rc-die,
+.rc-sticker:focus-visible .rc-die {
+  transform: translateY(-3px) rotate(-3deg) scale(1.05);
+}
+.rc-sticker:active .rc-die {
+  transform: translateY(-1px) scale(0.97);
+}
+.rc-sticker.rc-jiggle .rc-die {
+  animation: rc-jiggle 0.5s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rc-sticker { animation: none; }
+  .rc-die-legendary::after,
+  .rc-sticker.rc-jiggle .rc-die { animation: none; }
+  .rc-die-legendary::after { display: none; }
+}
+
 @layer base {
   html {
     font-size: 18px;
