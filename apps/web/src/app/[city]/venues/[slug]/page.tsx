@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { getVenueBySlug, getVenueTournaments } from "@/lib/queries";
 import { getCityBySlug } from "@/lib/cities";
 import { TournamentCard } from "@/components/tournament-card";
+import { FavoriteButton } from "@/components/favorite-button";
 import { ServerHeader } from "@/components/server-header";
 import { Footer } from "@/components/footer";
 import { BackLink } from "@/components/back-link";
@@ -91,10 +92,23 @@ export default async function VenuePage({ params }: PageProps) {
           fallbackLabel={`Back to ${city.name}`}
           className="mb-8 inline-flex items-center t-body text-gray-400 hover:text-emerald-700"
         />
-        <header className="mb-6">
-          <h1 className="t-h1 text-gray-900">{venue.name}</h1>
-          {venue.formatted_address && <p className="mt-1 text-gray-500">{venue.formatted_address}</p>}
-          <p className="mt-2 t-body text-gray-600">{cadence}</p>
+        <header className="mb-6 flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="t-h1 text-gray-900">{venue.name}</h1>
+            {venue.formatted_address && <p className="mt-1 text-gray-500">{venue.formatted_address}</p>}
+            <p className="mt-2 t-body text-gray-600">{cadence}</p>
+          </div>
+          <FavoriteButton
+            compact
+            item={{
+              kind: "venue",
+              id: slug,
+              href: `/${citySlug}/venues/${slug}`,
+              title: venue.name,
+              subtitle: venue.formatted_address ?? null,
+              meta: null,
+            }}
+          />
         </header>
 
         {venue.latitude != null && venue.longitude != null && (

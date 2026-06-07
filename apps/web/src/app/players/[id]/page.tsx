@@ -161,10 +161,14 @@ export default async function PlayerPage({ params }: PageProps) {
             />
 
             <FavoriteButton
-              id={id}
-              name={player.name}
-              doubles={player.dupr_doubles}
-              location={player.location}
+              item={{
+                kind: "player",
+                id,
+                href: `/players/${id}`,
+                title: player.name,
+                subtitle: player.location,
+                meta: player.dupr_doubles != null ? player.dupr_doubles.toFixed(2) : null,
+              }}
             />
 
             {badges.length > 0 && <BadgeShelf badges={badges} variant="bare" />}

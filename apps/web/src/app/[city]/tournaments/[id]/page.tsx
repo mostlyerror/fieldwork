@@ -8,6 +8,7 @@ import { EventBreakdown } from "@/components/event-breakdown";
 import { LiveBracket } from "@/components/live-bracket";
 import { TournamentPodium } from "@/components/tournament-podium";
 import { Footer } from "@/components/footer";
+import { FavoriteButton } from "@/components/favorite-button";
 import { ReportIssue } from "@/components/report-issue";
 import { ServerHeader } from "@/components/server-header";
 import { formatDateRange, distanceMiles } from "@/lib/format";
@@ -147,12 +148,25 @@ export default async function TournamentPage({ params }: PageProps) {
       <ServerHeader city={city} />
 
       <main className="mx-auto max-w-4xl px-3 py-10 sm:px-5 lg:max-w-7xl">
-        <Link
-          href={`/${citySlug}`}
-          className="mb-8 inline-flex items-center t-body text-gray-400 hover:text-emerald-700"
-        >
-          &larr; Back to tournaments
-        </Link>
+        <div className="mb-8 flex items-center justify-between gap-3">
+          <Link
+            href={`/${citySlug}`}
+            className="inline-flex items-center t-body text-gray-400 hover:text-emerald-700"
+          >
+            &larr; Back to tournaments
+          </Link>
+          <FavoriteButton
+            compact
+            item={{
+              kind: "tournament",
+              id,
+              href: `/${citySlug}/tournaments/${id}`,
+              title: tournament.name,
+              subtitle: `${formatDateRange(tournament.date_start, tournament.date_end)}${tournament.location_name ? " · " + tournament.location_name : ""}`,
+              meta: null,
+            }}
+          />
+        </div>
 
         {/* Draft banner + on-scroll sticky action bar. The sticky bar is
             position:fixed so it spans the viewport regardless of this
