@@ -15,6 +15,7 @@ import {
 import { deriveMatchSignals, computeBadgeBoard } from "@/lib/badges";
 import { BadgeShelf } from "@/components/player/badge-shelf";
 import { FavoriteButton } from "@/components/favorite-button";
+import { GatedReveal } from "@/components/gated-reveal";
 import { IntelSectionHeader } from "@/components/intel-section-header";
 import { PlayerRatingChart } from "@/components/player-rating-chart";
 import { IdentityBand } from "@/components/player/identity-band";
@@ -171,7 +172,11 @@ export default async function PlayerPage({ params }: PageProps) {
               }}
             />
 
-            {badges.length > 0 && <BadgeShelf badges={badges} variant="bare" />}
+            {badges.length > 0 && (
+              <GatedReveal title="See the badges" blurb="The full collectible board.">
+                <BadgeShelf badges={badges} variant="bare" />
+              </GatedReveal>
+            )}
           </div>
 
           {/* Right column — the activity. space-y keeps uniform gaps; mt-6 sets
@@ -186,30 +191,35 @@ export default async function PlayerPage({ params }: PageProps) {
               <RecordModule overall={overallRecord} doubles={doublesRecord} singles={singlesRecord} />
             )}
 
-            {/* Doubles rating trend (with tournament markers) */}
-            {showChart && (
-              <PlayerRatingChart
-                points={ratingHistory}
-                current={ratingHistory[ratingHistory.length - 1].rating}
-                delta={ratingDelta}
-                peak={Math.max(...ratingHistory.map((p) => p.rating))}
-                low={Math.min(...ratingHistory.map((p) => p.rating))}
-                trendLabel={deriveTrendLabel(ratingDelta)}
-                events={pastTournaments.map((t) => ({ date: t.date, label: t.name }))}
-              />
-            )}
+            {/* Deep stats — soft give-to-get gate: blurred behind a sign-up CTA
+                for signed-out viewers; content stays in the DOM (SEO + caching). */}
+            {(showChart || partnerRows.length > 0 || opponentRows.length > 0 || hasMatches) && (
+              <GatedReveal>
+                <div className="space-y-6">
+                  {showChart && (
+                    <PlayerRatingChart
+                      points={ratingHistory}
+                      current={ratingHistory[ratingHistory.length - 1].rating}
+                      delta={ratingDelta}
+                      peak={Math.max(...ratingHistory.map((p) => p.rating))}
+                      low={Math.min(...ratingHistory.map((p) => p.rating))}
+                      trendLabel={deriveTrendLabel(ratingDelta)}
+                      events={pastTournaments.map((t) => ({ date: t.date, label: t.name }))}
+                    />
+                  )}
 
-            {/* Partner Chemistry + Head-to-Head — side by side on desktop */}
-            {(partnerRows.length > 0 || opponentRows.length > 0) && (
-              <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-                {partnerRows.length > 0 && <PartnerChemistry partners={partnerRows} />}
-                {opponentRows.length > 0 && <HeadToHead opponents={opponentRows} />}
-              </div>
-            )}
+                  {(partnerRows.length > 0 || opponentRows.length > 0) && (
+                    <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+                      {partnerRows.length > 0 && <PartnerChemistry partners={partnerRows} />}
+                      {opponentRows.length > 0 && <HeadToHead opponents={opponentRows} />}
+                    </div>
+                  )}
 
-            {/* Recent Matches */}
-            {hasMatches && (
-              <RecentMatches matches={matches} playerId={id} totalCount={matches.length} />
+                  {hasMatches && (
+                    <RecentMatches matches={matches} playerId={id} totalCount={matches.length} />
+                  )}
+                </div>
+              </GatedReveal>
             )}
 
             {/* Upcoming Tournaments */}
