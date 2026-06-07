@@ -102,6 +102,7 @@ export function PlayerRatingChart({
   events = [],
 }: RatingTrendProps) {
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
   const data = downsample(points, 44);
   if (data.length < 2) return null;
 
@@ -114,6 +115,14 @@ export function PlayerRatingChart({
   const peakVal = peak ?? seriesMax;
   const lowVal = low ?? seriesMin;
   const up = change >= 0;
+
+  // Extra readouts: full range and "swing" (avg absolute move between matches).
+  const range = peakVal - lowVal;
+  const vol =
+    points.length > 1
+      ? points.slice(1).reduce((s, p, i) => s + Math.abs(p.rating - points[i].rating), 0) /
+        (points.length - 1)
+      : 0;
 
   // geometry (viewBox units; scales to container width)
   const W = 600;
@@ -173,6 +182,15 @@ export function PlayerRatingChart({
     .sort((a, b) => a.idx - b.idx);
   const active = markers.find((m) => m.idx === activeIdx) ?? null;
 
+  // Crosshair scrub: map a pointer x to the nearest rating point.
+  const onScrub = (e: React.PointerEvent<SVGSVGElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    if (rect.width === 0) return;
+    const px = ((e.clientX - rect.left) / rect.width) * W;
+    const frac = (px - padL) / plotW;
+    setHoverIdx(Math.max(0, Math.min(data.length - 1, Math.round(frac * (data.length - 1)))));
+  };
+
   return (
     <div className="rounded-2xl border border-gray-200/70 bg-white p-5 shadow-card sm:rounded-3xl sm:p-6">
       <div className="flex items-end justify-between gap-4">
@@ -188,13 +206,11 @@ export function PlayerRatingChart({
           </div>
           <div className="mt-0.5 t-caption text-gray-400">{trendLabel}</div>
         </div>
-        <div className="shrink-0 text-right t-caption text-gray-400">
-          <div>
-            peak <b className="tabular-nums text-gray-700">{f2(peakVal)}</b>
-          </div>
-          <div className="mt-0.5">
-            low <b className="tabular-nums text-gray-700">{f2(lowVal)}</b>
-          </div>
+        <div className="grid shrink-0 grid-cols-2 gap-x-4 gap-y-0.5 text-right t-caption text-gray-400">
+          <div>peak <b className="tabular-nums text-gray-700">{f2(peakVal)}</b></div>
+          <div>range <b className="tabular-nums text-gray-700">{f2(range)}</b></div>
+          <div>low <b className="tabular-nums text-gray-700">{f2(lowVal)}</b></div>
+          <div>swing <b className="tabular-nums text-gray-700">±{f2(vol)}</b></div>
         </div>
       </div>
 
@@ -203,6 +219,10 @@ export function PlayerRatingChart({
         className="mt-3 block h-auto w-full"
         role="img"
         aria-label={`Doubles rating trend: ${f3(first)} to ${f3(latest)} over ${points.length} matches. ${trendLabel}.`}
+        onPointerMove={onScrub}
+        onPointerDown={onScrub}
+        onPointerLeave={() => setHoverIdx(null)}
+        style={{ touchAction: "pan-y" }}
       >
         <defs>
           <linearGradient id="ratingFill" x1="0" y1="0" x2="0" y2="1">
@@ -241,7 +261,6 @@ export function PlayerRatingChart({
               key={mk.idx}
               style={{ cursor: "pointer" }}
               onClick={() => setActiveIdx(isActive ? null : mk.idx)}
-              onMouseEnter={() => setActiveIdx(mk.idx)}
             >
               {isActive && (
                 <line x1={mk.x} y1={mk.y} x2={mk.x} y2={baseY} stroke="#E0A93B" strokeWidth={1} strokeDasharray="2 2" />
@@ -272,6 +291,26 @@ export function PlayerRatingChart({
           strokeOpacity={0.3}
           strokeWidth={1.4}
         />
+
+        {/* crosshair scrub — follows the pointer along the line */}
+        {hoverIdx != null && hoverIdx !== lastIdx && (
+          <g pointerEvents="none">
+            <line x1={xs[hoverIdx]} y1={padT} x2={xs[hoverIdx]} y2={baseY} stroke="#1f9d57" strokeOpacity={0.3} strokeWidth={1} strokeDasharray="3 3" />
+            <circle cx={xs[hoverIdx]} cy={ys[hoverIdx]} r={4} fill="#fff" stroke="#065F46" strokeWidth={2} />
+            {(() => {
+              const bw = 86, bh = 32;
+              const bx = Math.max(padL, Math.min(W - padR - bw, xs[hoverIdx] - bw / 2));
+              const by = Math.max(2, ys[hoverIdx] - bh - 9);
+              return (
+                <g transform={`translate(${bx},${by})`}>
+                  <rect width={bw} height={bh} rx={7} fill="#0b1f17" />
+                  <text x={bw / 2} y={14} textAnchor="middle" fontSize={13} fontWeight={700} fill="#fff" style={{ fontVariantNumeric: "tabular-nums" }}>{f3(ratings[hoverIdx])}</text>
+                  <text x={bw / 2} y={26} textAnchor="middle" fontSize={9} fontWeight={600} fill="#9af5c8">{fullDate(data[hoverIdx].date)}</text>
+                </g>
+              );
+            })()}
+          </g>
+        )}
 
         {/* y labels */}
         <text x={padL} y={y(seriesMax) - 5} fontSize={10.5} fontWeight={600} fill="#9AA59E" style={{ fontVariantNumeric: "tabular-nums" }}>
@@ -308,7 +347,7 @@ export function PlayerRatingChart({
           ) : (
             <span className="text-gray-400">
               <span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-amber-400 align-middle" aria-hidden />
-              Tap a tournament marker to see the rating change
+              Drag across the line to scrub · tap a marker for the tournament
             </span>
           )}
         </div>
