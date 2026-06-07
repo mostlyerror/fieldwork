@@ -582,7 +582,7 @@ export function computeFrequentPartners(
     }))
     .filter((p) => p.matchCount >= 2) // a one-off pairing isn't "chemistry"
     .sort((a, b) => b.matchCount - a.matchCount)
-    .slice(0, 5); // mirror Head-to-Head (top 5)
+    .slice(0, 12); // keep a deep list; the UI shows top 5 with a "show all" expander
 }
 
 /**

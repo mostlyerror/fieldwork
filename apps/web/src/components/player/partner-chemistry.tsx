@@ -1,6 +1,11 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { IntelSectionHeader } from "@/components/intel-section-header";
 import type { PartnerChemistryProps, PartnerRow } from "@/components/player/types";
+
+const DEFAULT_VISIBLE = 5;
 
 /** Two-letter initials for the avatar circle. */
 function initials(name: string): string {
@@ -111,22 +116,51 @@ function PartnerChemistryRow({ partner }: { partner: PartnerRow }) {
 }
 
 export function PartnerChemistry({ partners }: PartnerChemistryProps) {
+  const [expanded, setExpanded] = useState(false);
   if (partners.length === 0) return null;
 
   // Sort by matches played, most-played first. Copy first — never mutate props.
   const sorted = [...partners].sort((a, b) => b.matches - a.matches);
+  const hasMore = sorted.length > DEFAULT_VISIBLE;
+  const visible = expanded ? sorted : sorted.slice(0, DEFAULT_VISIBLE);
 
   return (
     <section className="overflow-hidden rounded-2xl border border-gray-200/70 shadow-card sm:rounded-3xl">
-      <IntelSectionHeader title="Partner Chemistry" />
+      <IntelSectionHeader
+        title="Partner Chemistry"
+        badge={`${sorted.length} partner${sorted.length !== 1 ? "s" : ""}`}
+      />
       <div className="divide-y divide-gray-100 bg-white">
-        {sorted.map((partner) => (
+        {visible.map((partner) => (
           <PartnerChemistryRow
             key={partner.playerId ?? partner.name}
             partner={partner}
           />
         ))}
       </div>
+
+      {hasMore && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+          className="flex min-h-[44px] w-full items-center justify-center gap-1.5 border-t border-gray-100 bg-white px-4 py-3 t-caption font-semibold text-emerald-700 transition hover:bg-emerald-50"
+        >
+          {expanded ? "Show less" : `Show all (${sorted.length})`}
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.25}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            className={`h-3.5 w-3.5 transition-transform ${expanded ? "rotate-180" : ""}`}
+          >
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
+      )}
     </section>
   );
 }
