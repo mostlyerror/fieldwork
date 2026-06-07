@@ -22,53 +22,87 @@ const RARITY: Record<Rarity, { chip: string; icon: string; dot: string; label: s
   },
 };
 
-export function BadgeShelf({ badges }: { badges: Badge[] }) {
+export function BadgeShelf({
+  badges,
+  variant = "card",
+}: {
+  badges: Badge[];
+  variant?: "card" | "bare";
+}) {
   const [open, setOpen] = useState<string | null>(badges[0]?.id ?? null);
   if (badges.length === 0) return null;
 
   const active = badges.find((b) => b.id === open) ?? null;
 
+  const chips = (
+    <div className="flex flex-wrap gap-2">
+      {badges.map((b) => {
+        const r = RARITY[b.rarity];
+        const isOpen = b.id === open;
+        return (
+          <button
+            key={b.id}
+            type="button"
+            onClick={() => setOpen(isOpen ? null : b.id)}
+            aria-pressed={isOpen}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 t-small font-bold transition active:scale-[0.97] ${r.chip} ${
+              isOpen ? "ring-2 ring-emerald-600/40" : ""
+            }`}
+          >
+            <span className={r.icon}>
+              <BadgeGlyph icon={b.icon} />
+            </span>
+            {b.name}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const detail =
+    active &&
+    (variant === "bare" ? (
+      <p className="mt-3 flex items-start gap-2 px-0.5 t-small text-gray-500">
+        <span className={`mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full ${RARITY[active.rarity].dot}`} />
+        <span>
+          <span className="font-semibold text-gray-700">{active.name}</span> — {active.tagline}
+        </span>
+      </p>
+    ) : (
+      <div className="mt-3 flex items-start gap-2.5 rounded-xl bg-gray-50 px-3.5 py-3">
+        <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${RARITY[active.rarity].dot}`} />
+        <div className="min-w-0">
+          <p className="t-body font-semibold text-gray-900">
+            {active.name}
+            <span className="ml-2 t-caption font-bold uppercase tracking-wide text-gray-400">
+              {RARITY[active.rarity].label}
+            </span>
+          </p>
+          <p className="t-small text-gray-500">{active.tagline}</p>
+        </div>
+      </div>
+    ));
+
+  // Bare: float the chips directly in the rail — no card, no section header.
+  if (variant === "bare") {
+    return (
+      <div>
+        <div className="mb-2.5 flex items-baseline justify-between px-0.5">
+          <span className="t-label text-gray-400">Badges</span>
+          <span className="t-caption tabular-nums text-gray-400">{badges.length}</span>
+        </div>
+        {chips}
+        {detail}
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200/70 shadow-card sm:rounded-3xl">
       <IntelSectionHeader title="Badges" badge={`${badges.length}`} />
       <div className="bg-white p-4">
-        <div className="flex flex-wrap gap-2">
-          {badges.map((b) => {
-            const r = RARITY[b.rarity];
-            const isOpen = b.id === open;
-            return (
-              <button
-                key={b.id}
-                type="button"
-                onClick={() => setOpen(isOpen ? null : b.id)}
-                aria-pressed={isOpen}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 t-small font-bold transition active:scale-[0.97] ${r.chip} ${
-                  isOpen ? "ring-2 ring-emerald-600/40" : ""
-                }`}
-              >
-                <span className={r.icon}>
-                  <BadgeGlyph icon={b.icon} />
-                </span>
-                {b.name}
-              </button>
-            );
-          })}
-        </div>
-
-        {active && (
-          <div className="mt-3 flex items-start gap-2.5 rounded-xl bg-gray-50 px-3.5 py-3">
-            <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${RARITY[active.rarity].dot}`} />
-            <div className="min-w-0">
-              <p className="t-body font-semibold text-gray-900">
-                {active.name}
-                <span className="ml-2 t-caption font-bold uppercase tracking-wide text-gray-400">
-                  {RARITY[active.rarity].label}
-                </span>
-              </p>
-              <p className="t-small text-gray-500">{active.tagline}</p>
-            </div>
-          </div>
-        )}
+        {chips}
+        {detail}
       </div>
     </div>
   );

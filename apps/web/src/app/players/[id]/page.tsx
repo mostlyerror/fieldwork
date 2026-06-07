@@ -145,8 +145,9 @@ export default async function PlayerPage({ params }: PageProps) {
             stack in the original order (identity first, then everything in
             sequence) — the grid only engages at lg, so mobile is unchanged. */}
         <div className="lg:grid lg:grid-cols-[340px_minmax(0,1fr)] lg:items-start lg:gap-6">
-          {/* Left rail — who this player is (sticky on desktop) */}
-          <div className="lg:sticky lg:top-6">
+          {/* Left rail — who this player is (sticky on desktop): identity card
+              + badges floated bare beneath it (no card container). */}
+          <div className="space-y-5 lg:sticky lg:top-6">
             <IdentityBand
               name={player.name}
               location={player.location}
@@ -157,6 +158,8 @@ export default async function PlayerPage({ params }: PageProps) {
               formLabel={read.formLabel}
               lastUpdated={player.dupr_last_checked}
             />
+
+            {badges.length > 0 && <BadgeShelf badges={badges} variant="bare" />}
           </div>
 
           {/* Right column — the activity. space-y keeps uniform gaps; mt-6 sets
@@ -165,9 +168,6 @@ export default async function PlayerPage({ params }: PageProps) {
             {/* The Read — interpretive scouting paragraph. Consent floor: only
                 shown on claimed profiles; hidden for unclaimed players. */}
             {isClaimed && hasMatches && <TheRead read={read.read} />}
-
-            {/* Badges — earned scouting tells, rarity-tinted */}
-            {badges.length > 0 && <BadgeShelf badges={badges} />}
 
             {/* Record — overall + doubles + singles splits */}
             {hasMatches && (
