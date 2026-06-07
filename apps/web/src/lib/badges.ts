@@ -192,3 +192,45 @@ export function computeBadges({ fits, facts, signals, atPeak }: BadgeInput): Bad
 
   return out.sort((a, b) => RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity]);
 }
+
+/* ── Collectible board (locked + progress) ───────────────────────────────────
+   The curated set of badges a player can collect. Earned ones come from
+   computeBadges; the rest render as locked "collect me" stickers. We exclude the
+   neutral/negative descriptive tells (Cooling Off, Coin Flip, Doubles/Singles
+   Specialist) — you don't aspire to *unlock* those. */
+export interface CatalogBadge {
+  id: string;
+  name: string;
+  rarity: Rarity;
+  icon: BadgeIcon;
+  hint: string; // how to unlock — shown when the badge is locked
+}
+
+export const BADGE_CATALOG: CatalogBadge[] = [
+  { id: "the-pickle", name: "The Pickle", rarity: "legendary", icon: "pickle", hint: "Win a game 11-0 — pickle someone" },
+  { id: "at-their-peak", name: "At Their Peak", rarity: "legendary", icon: "peak", hint: "Sit at a fresh career-high rating" },
+  { id: "giant-slayer", name: "Giant Slayer", rarity: "rare", icon: "slayer", hint: "Beat a team rated 0.5+ above you" },
+  { id: "hot-hand", name: "Hot Hand", rarity: "rare", icon: "flame", hint: "Win 5 matches in a row" },
+  { id: "money-partner", name: "Money Partner", rarity: "rare", icon: "link", hint: "Win 70%+ with a regular partner" },
+  { id: "comeback-kid", name: "Comeback Kid", rarity: "rare", icon: "comeback", hint: "Win a match after dropping game 1" },
+  { id: "switch-hitter", name: "Switch-Hitter", rarity: "rare", icon: "swap", hint: "Stay sharp in both singles and doubles" },
+  { id: "on-the-climb", name: "On the Climb", rarity: "uncommon", icon: "trending-up", hint: "Trend up toward a fresh peak" },
+  { id: "clutch", name: "Clutch", rarity: "uncommon", icon: "target", hint: "Win a deciding third game" },
+  { id: "battle-tested", name: "Battle-Tested", rarity: "common", icon: "shield", hint: "Log 100+ matches" },
+];
+
+export interface BoardBadge extends Badge {
+  earned: boolean;
+}
+
+/** The full collectible board — every catalog badge with its earned status.
+ *  Earned badges carry their live tagline; locked ones carry the unlock hint. */
+export function computeBadgeBoard(input: BadgeInput): BoardBadge[] {
+  const byId = new Map(computeBadges(input).map((b) => [b.id, b]));
+  return BADGE_CATALOG.map((c) => {
+    const earned = byId.get(c.id);
+    return earned
+      ? { ...earned, earned: true }
+      : { id: c.id, name: c.name, rarity: c.rarity, icon: c.icon, tagline: c.hint, earned: false };
+  });
+}

@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import type { Badge, BadgeIcon, Rarity } from "@/lib/badges";
+import type { BadgeIcon, BoardBadge, Rarity } from "@/lib/badges";
 import { IntelSectionHeader } from "@/components/intel-section-header";
 
 /**
- * The badge shelf. The "bare" variant (used in the profile rail) renders earned
- * badges as glossy die-cut STICKERS — rarity-colored dies with a white die-cut
- * border, a gloss highlight, a slight playful rotation, a holographic sheen on
- * legendaries, and a jiggle on tap that reveals the "why". The "card" variant
- * keeps the legacy pills.
+ * The badge board. The "bare" variant (profile rail) renders the full
+ * collectible board as glossy white-border vinyl STICKERS — earned ones in their
+ * rarity color (legendary shimmers), locked ones greyed with a padlock — under a
+ * progress header ("X / Y"). Tapping a sticker pops a little tooltip with the
+ * "why" (or the unlock hint). The "card" variant keeps the legacy earned pills.
  */
 
 const RARITY: Record<Rarity, { chip: string; icon: string; dot: string; label: string }> = {
@@ -24,27 +24,26 @@ const RARITY: Record<Rarity, { chip: string; icon: string; dot: string; label: s
   },
 };
 
-// Saturated sticker-die fills by rarity (the glyph reads white on top).
 const STICKER_BG: Record<Rarity, string> = {
   common: "linear-gradient(155deg,#6b7280,#475569)",
   uncommon: "linear-gradient(155deg,#10b981,#059669)",
   rare: "linear-gradient(155deg,#f0b429,#cf940d)",
   legendary: "linear-gradient(150deg,#0f9d68 0%,#1f9d57 42%,#d4af37 100%)",
 };
-const ROT = [-5, 4, -3, 5, -4, 3, -2, 4, -3];
+const LOCKED_BG = "linear-gradient(155deg,#eceae3,#d8d5cc)";
+const ROT = [-7, 5, -4, 7, -5, 4, -3, 6, -6, 5];
 
 export function BadgeShelf({
   badges,
   variant = "card",
 }: {
-  badges: Badge[];
+  badges: BoardBadge[];
   variant?: "card" | "bare";
 }) {
-  const [open, setOpen] = useState<string | null>(badges[0]?.id ?? null);
+  // Default-open the first earned badge so the board doesn't start blank.
+  const [open, setOpen] = useState<string | null>(badges.find((b) => b.earned)?.id ?? null);
   const [jiggle, setJiggle] = useState<string | null>(null);
   if (badges.length === 0) return null;
-
-  const active = badges.find((b) => b.id === open) ?? null;
 
   function tap(id: string) {
     setOpen((cur) => (cur === id ? null : id));
@@ -52,78 +51,93 @@ export function BadgeShelf({
     window.setTimeout(() => setJiggle((j) => (j === id ? null : j)), 520);
   }
 
-  const detail =
-    active &&
-    (variant === "bare" ? (
-      <p className="mt-3.5 flex items-start gap-2 px-0.5 t-small text-gray-500">
-        <span className={`mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full ${RARITY[active.rarity].dot}`} />
-        <span>
-          <span className="font-semibold text-gray-700">{active.name}</span> — {active.tagline}
-        </span>
-      </p>
-    ) : (
-      <div className="mt-3 flex items-start gap-2.5 rounded-xl bg-gray-50 px-3.5 py-3">
-        <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${RARITY[active.rarity].dot}`} />
-        <div className="min-w-0">
-          <p className="t-body font-semibold text-gray-900">
-            {active.name}
-            <span className="ml-2 t-caption font-bold uppercase tracking-wide text-gray-400">
-              {RARITY[active.rarity].label}
-            </span>
-          </p>
-          <p className="t-small text-gray-500">{active.tagline}</p>
-        </div>
-      </div>
-    ));
-
-  // Bare: glossy die-cut sticker grid floated in the rail.
+  // ── Bare: vinyl sticker board with locked + progress ──
   if (variant === "bare") {
+    const earnedCount = badges.filter((b) => b.earned).length;
+    const pct = Math.round((earnedCount / badges.length) * 100);
     return (
       <div>
-        <div className="mb-3 flex items-baseline justify-between px-0.5">
-          <span className="t-label text-gray-400">Badges</span>
-          <span className="t-caption tabular-nums text-gray-400">{badges.length}</span>
+        <div className="mb-3 px-0.5">
+          <div className="flex items-baseline justify-between">
+            <span className="t-label text-gray-400">Badges</span>
+            <span className="t-caption font-bold tabular-nums text-gray-500">
+              {earnedCount}
+              <span className="text-gray-300"> / {badges.length}</span>
+            </span>
+          </div>
+          <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-gray-100">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-amber-400 transition-[width] duration-700"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
         </div>
+
         <div className="grid grid-cols-3 gap-x-1 gap-y-4">
           {badges.map((b, i) => {
             const isOpen = b.id === open;
             return (
-              <button
-                key={b.id}
-                type="button"
-                onClick={() => tap(b.id)}
-                aria-pressed={isOpen}
-                title={b.name}
-                className={`rc-sticker flex flex-col items-center gap-1.5 bg-transparent ${jiggle === b.id ? "rc-jiggle" : ""}`}
-                style={{ "--rot": `${ROT[i % ROT.length]}deg`, animationDelay: `${i * 55}ms` } as React.CSSProperties}
-              >
-                <span
-                  className={`rc-die flex h-[58px] w-[58px] items-center justify-center ${b.rarity === "legendary" ? "rc-die-legendary" : ""} ${isOpen ? "ring-2 ring-emerald-600/60 ring-offset-2 ring-offset-[#FFFDF7]" : ""}`}
-                  style={{ background: STICKER_BG[b.rarity] }}
+              <div key={b.id} className="relative flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => tap(b.id)}
+                  aria-pressed={isOpen}
+                  title={b.name}
+                  className={`rc-sticker flex flex-col items-center gap-1.5 bg-transparent ${jiggle === b.id ? "rc-jiggle" : ""}`}
+                  style={{ "--rot": `${ROT[i % ROT.length]}deg`, animationDelay: `${i * 50}ms` } as React.CSSProperties}
                 >
-                  <span className="relative z-[1] text-white">
-                    <BadgeGlyph icon={b.icon} className="h-6 w-6" />
+                  <span
+                    className={`rc-die relative flex h-[56px] w-[56px] items-center justify-center ${
+                      b.earned && b.rarity === "legendary" ? "rc-die-legendary" : ""
+                    } ${b.earned ? "" : "rc-die-locked"} ${isOpen ? "ring-2 ring-emerald-600/60 ring-offset-2 ring-offset-[#FFFDF7]" : ""}`}
+                    style={{ background: b.earned ? STICKER_BG[b.rarity] : LOCKED_BG }}
+                  >
+                    <span className="relative z-[1]" style={{ color: b.earned ? "#fff" : "#a8a29e" }}>
+                      <BadgeGlyph icon={b.icon} className="h-6 w-6" />
+                    </span>
+                    {!b.earned && (
+                      <span className="absolute -bottom-0.5 -right-0.5 z-[2] flex h-[18px] w-[18px] items-center justify-center rounded-full bg-white text-gray-500 shadow-[0_1px_3px_rgba(0,0,0,0.18)]">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} className="h-2.5 w-2.5">
+                          <rect x="5" y="11" width="14" height="9" rx="2" />
+                          <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                        </svg>
+                      </span>
+                    )}
                   </span>
-                </span>
-                <span className="line-clamp-2 px-0.5 text-center t-caption font-bold leading-tight text-gray-700">
-                  {b.name}
-                </span>
-              </button>
+                  <span
+                    className={`line-clamp-2 px-0.5 text-center t-caption font-bold leading-tight ${b.earned ? "text-gray-700" : "text-gray-400"}`}
+                  >
+                    {b.name}
+                  </span>
+                </button>
+
+                {isOpen && (
+                  <div className="absolute left-1/2 top-full z-30 mt-1 w-max max-w-[150px] -translate-x-1/2 rounded-xl bg-[#0b1f17] px-2.5 py-1.5 text-center shadow-[0_10px_24px_-10px_rgba(0,0,0,0.6)]">
+                    <span className="absolute -top-1 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45 rounded-[2px] bg-[#0b1f17]" aria-hidden />
+                    <p className="t-caption font-bold leading-tight text-white">{b.name}</p>
+                    <p className="mt-0.5 text-[10.5px] font-medium leading-snug text-emerald-100/80">
+                      {b.earned ? b.tagline : `Locked · ${b.tagline}`}
+                    </p>
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
-        {detail}
       </div>
     );
   }
 
-  // Card variant — legacy pills.
+  // ── Card: legacy earned pills ──
+  const earned = badges.filter((b) => b.earned);
+  if (earned.length === 0) return null;
+  const active = earned.find((b) => b.id === open) ?? null;
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200/70 shadow-card sm:rounded-3xl">
-      <IntelSectionHeader title="Badges" badge={`${badges.length}`} />
+      <IntelSectionHeader title="Badges" badge={`${earned.length}`} />
       <div className="bg-white p-4">
         <div className="flex flex-wrap gap-2">
-          {badges.map((b) => {
+          {earned.map((b) => {
             const r = RARITY[b.rarity];
             const isOpen = b.id === open;
             return (
@@ -142,7 +156,20 @@ export function BadgeShelf({
             );
           })}
         </div>
-        {detail}
+        {active && (
+          <div className="mt-3 flex items-start gap-2.5 rounded-xl bg-gray-50 px-3.5 py-3">
+            <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${RARITY[active.rarity].dot}`} />
+            <div className="min-w-0">
+              <p className="t-body font-semibold text-gray-900">
+                {active.name}
+                <span className="ml-2 t-caption font-bold uppercase tracking-wide text-gray-400">
+                  {RARITY[active.rarity].label}
+                </span>
+              </p>
+              <p className="t-small text-gray-500">{active.tagline}</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

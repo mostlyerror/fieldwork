@@ -12,7 +12,7 @@ import {
   computeFrequentPartners,
   computeFrequentOpponents,
 } from "@/lib/queries";
-import { deriveMatchSignals, computeBadges } from "@/lib/badges";
+import { deriveMatchSignals, computeBadgeBoard } from "@/lib/badges";
 import { BadgeShelf } from "@/components/player/badge-shelf";
 import { IntelSectionHeader } from "@/components/intel-section-header";
 import { PlayerRatingChart } from "@/components/player-rating-chart";
@@ -115,7 +115,7 @@ export default async function PlayerPage({ params }: PageProps) {
     ratingHistory.length >= 5 &&
     ratingHistory[ratingHistory.length - 1].rating >=
       Math.max(...ratingHistory.map((p) => p.rating)) - 0.001;
-  const badges = computeBadges({ fits: read.fits, facts: read.facts, signals, atPeak });
+  const badges = computeBadgeBoard({ fits: read.fits, facts: read.facts, signals, atPeak });
 
   const hasMatches = matches.length > 0;
   // Consent floor: the interpretive scouting paragraph ("The Read") is gated
