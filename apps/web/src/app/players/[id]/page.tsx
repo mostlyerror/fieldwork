@@ -14,6 +14,7 @@ import {
 } from "@/lib/queries";
 import { deriveMatchSignals, computeBadgeBoard } from "@/lib/badges";
 import { BadgeShelf } from "@/components/player/badge-shelf";
+import { FavoriteButton } from "@/components/favorite-button";
 import { IntelSectionHeader } from "@/components/intel-section-header";
 import { PlayerRatingChart } from "@/components/player-rating-chart";
 import { IdentityBand } from "@/components/player/identity-band";
@@ -157,6 +158,13 @@ export default async function PlayerPage({ params }: PageProps) {
               singlesVerified={player.dupr_singles_verified === true}
               formLabel={read.formLabel}
               lastUpdated={player.dupr_last_checked}
+            />
+
+            <FavoriteButton
+              id={id}
+              name={player.name}
+              doubles={player.dupr_doubles}
+              location={player.location}
             />
 
             {badges.length > 0 && <BadgeShelf badges={badges} variant="bare" />}
