@@ -49,15 +49,20 @@ function formatPlayerLine(p: PlayerHistorySummary): string {
   return `• ${p.name}  ${rating}(${matches})`;
 }
 
-/** Best-effort: post the refreshed player history (name, rating, matches) to Discord. */
+/** Best-effort: post the refreshed player history (name, rating, matches) to
+ *  Discord — but ONLY for players who actually gained matches this run. The
+ *  hourly metered pass mostly re-checks players with no new DUPR matches, and
+ *  posting those (+0, no change) is just noise. Stay silent unless something
+ *  actually moved. */
 async function postPlayerHistory(players: PlayerHistorySummary[]): Promise<void> {
-  if (players.length === 0) return;
+  const changed = players.filter((p) => p.matchesAdded > 0);
+  if (changed.length === 0) return;
   try {
     const coverage = await getDuprCoverage().catch(() => null);
-    const lines = players.map(formatPlayerLine).join("\n");
+    const lines = changed.map(formatPlayerLine).join("\n");
     const coverageLine = coverage ? `\n\nDUPR coverage: ${formatCoverage(coverage)}` : "";
     await sendDiscordAlert({
-      title: `📊 Player history refreshed (${players.length})`,
+      title: `📊 Player history — ${changed.length} updated`,
       description: `${lines}${coverageLine}`,
     });
   } catch (err) {
