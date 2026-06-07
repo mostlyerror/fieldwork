@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { track } from "@/lib/analytics";
 
 /**
  * Soft give-to-get gate: the children stay in the DOM (SEO sees them), but are
@@ -15,12 +16,15 @@ export function GatedReveal({
   children,
   title = "See the full scouting report",
   blurb = "Rating trend, head-to-head & partner chemistry.",
+  surface = "deep_stats",
 }: {
   children: React.ReactNode;
   title?: string;
   blurb?: string;
+  surface?: string;
 }) {
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  const trackedView = useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -36,6 +40,14 @@ export function GatedReveal({
       sub.subscription.unsubscribe();
     };
   }, []);
+
+  // Fire once when a signed-out viewer actually sees the gate.
+  useEffect(() => {
+    if (signedIn === false && !trackedView.current) {
+      trackedView.current = true;
+      track("profile_gate_viewed", { surface });
+    }
+  }, [signedIn, surface]);
 
   const obscured = signedIn !== true; // blur until confirmed signed-in
   const showCta = signedIn === false; // CTA only once confirmed signed-out
@@ -61,11 +73,16 @@ export function GatedReveal({
             <p className="mt-1 t-small text-gray-500">{blurb}</p>
             <Link
               href="/signup"
+              onClick={() => track("profile_gate_signup_clicked", { surface, via: "signup" })}
               className="mt-3.5 inline-flex rounded-xl bg-emerald-700 px-5 py-2.5 t-small font-bold text-white transition active:scale-[0.98] hover:bg-emerald-800"
             >
               Sign up free
             </Link>
-            <Link href="/login" className="mt-2 block t-caption text-gray-400 hover:text-gray-600">
+            <Link
+              href="/login"
+              onClick={() => track("profile_gate_signup_clicked", { surface, via: "login" })}
+              className="mt-2 block t-caption text-gray-400 hover:text-gray-600"
+            >
               or log in
             </Link>
           </div>

@@ -173,7 +173,7 @@ export default async function PlayerPage({ params }: PageProps) {
             />
 
             {badges.length > 0 && (
-              <GatedReveal title="See the badges" blurb="The full collectible board.">
+              <GatedReveal surface="badges" title="See the badges" blurb="The full collectible board.">
                 <BadgeShelf badges={badges} variant="bare" />
               </GatedReveal>
             )}
