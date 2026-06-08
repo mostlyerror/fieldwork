@@ -190,16 +190,16 @@ export default async function PlayerPage({ params }: PageProps) {
                 shown on claimed profiles; hidden for unclaimed players. */}
             {isClaimed && hasMatches && <TheRead read={read.read} />}
 
-            {/* Record — overall + doubles + singles splits */}
-            {hasMatches && (
-              <RecordModule overall={overallRecord} doubles={doublesRecord} singles={singlesRecord} />
-            )}
-
             {/* Deep stats — soft give-to-get gate: blurred behind a sign-up CTA
-                for signed-out viewers; content stays in the DOM (SEO + caching). */}
-            {(showChart || partnerRows.length > 0 || opponentRows.length > 0 || hasMatches) && (
+                for signed-out viewers; content stays in the DOM (SEO + caching).
+                Record lives inside the gate too, so it blurs with the rest. */}
+            {(hasMatches || showChart || partnerRows.length > 0 || opponentRows.length > 0) && (
               <GatedReveal>
                 <div className="space-y-6">
+                  {hasMatches && (
+                    <RecordModule overall={overallRecord} doubles={doublesRecord} singles={singlesRecord} />
+                  )}
+
                   {showChart && (
                     <PlayerRatingChart
                       points={ratingHistory}
