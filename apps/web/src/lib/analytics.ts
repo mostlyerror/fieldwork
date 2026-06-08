@@ -16,6 +16,8 @@ type EventName =
   | "claim_flow_candidate_picked"
   | "claim_flow_confirmation_sent"
   | "claim_flow_confirmed"
+  | "signup_completed"
+  | "claim_cta_clicked"
   | "profile_gate_viewed"
   | "profile_gate_signup_clicked"
   | "tournament_viewed"

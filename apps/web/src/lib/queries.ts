@@ -348,6 +348,24 @@ async function attachIntelligenceAggregates(
   });
 }
 
+/**
+ * Whether a player has been genuinely claimed. The claim flow writes the link
+ * onto email_subscribers (player_id + link_status="linked"), NOT players.user_id —
+ * so this is the source of truth for "claimed", gating The Read.
+ */
+export async function isPlayerClaimed(playerId: string): Promise<boolean> {
+  try {
+    const { count } = await supabase
+      .from("email_subscribers")
+      .select("id", { count: "exact", head: true })
+      .eq("player_id", playerId)
+      .eq("link_status", "linked");
+    return (count ?? 0) > 0;
+  } catch {
+    return false;
+  }
+}
+
 export async function getPlayer(id: string): Promise<Player | null> {
   const { data, error } = await supabase
     .from("players")

@@ -11,10 +11,12 @@ import {
   computePlayerRecord,
   computeFrequentPartners,
   computeFrequentOpponents,
+  isPlayerClaimed,
 } from "@/lib/queries";
 import { deriveMatchSignals, computeBadgeBoard } from "@/lib/badges";
 import { BadgeShelf } from "@/components/player/badge-shelf";
 import { FavoriteButton } from "@/components/favorite-button";
+import { ClaimCta } from "@/components/claim-cta";
 import { GatedReveal } from "@/components/gated-reveal";
 import { IntelSectionHeader } from "@/components/intel-section-header";
 import { PlayerRatingChart } from "@/components/player-rating-chart";
@@ -123,7 +125,7 @@ export default async function PlayerPage({ params }: PageProps) {
   // Consent floor: the interpretive scouting paragraph ("The Read") is gated
   // behind a claimed profile. We won't publish an editorial read on a player who
   // never opted in; factual data (ratings, record, matches) stays public.
-  const isClaimed = player.user_id != null;
+  const isClaimed = await isPlayerClaimed(id);
   const showChart = ratingHistory.length >= 2;
   const ratingDelta = showChart
     ? ratingHistory[ratingHistory.length - 1].rating -
@@ -171,6 +173,8 @@ export default async function PlayerPage({ params }: PageProps) {
                 meta: player.dupr_doubles != null ? player.dupr_doubles.toFixed(2) : null,
               }}
             />
+
+            {!isClaimed && <ClaimCta playerId={id} playerName={player.name} />}
 
             {badges.length > 0 && (
               <GatedReveal surface="badges" title="See the badges" blurb="The full collectible board.">

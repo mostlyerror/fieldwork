@@ -2,6 +2,17 @@
 
 import { useState } from "react";
 import { signup } from "./actions";
+import { track } from "@/lib/analytics";
+
+function isNextRedirect(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "digest" in err &&
+    typeof (err as { digest?: unknown }).digest === "string" &&
+    (err as { digest: string }).digest.startsWith("NEXT_REDIRECT")
+  );
+}
 
 export function SignupForm({ redirect }: { redirect?: string }) {
   const [error, setError] = useState<string | null>(null);
@@ -10,10 +21,19 @@ export function SignupForm({ redirect }: { redirect?: string }) {
   async function handleSubmit(formData: FormData) {
     setPending(true);
     setError(null);
-    const result = await signup(formData);
-    if (result?.error) {
-      setError(result.error);
-      setPending(false);
+    try {
+      const result = await signup(formData);
+      if (result?.error) {
+        setError(result.error);
+        setPending(false);
+      }
+    } catch (err) {
+      // A successful signup ends in a server-side redirect(), which surfaces
+      // here as a thrown NEXT_REDIRECT. That's our "account just created" signal.
+      if (isNextRedirect(err)) {
+        track("signup_completed", { method: "password" });
+      }
+      throw err;
     }
   }
 
