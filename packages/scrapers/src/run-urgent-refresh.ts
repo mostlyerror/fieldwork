@@ -13,12 +13,12 @@
 
 import { runUrgentRefresh } from "./urgent-refresh.js";
 import {
-  fetchTournamentRosterHistory,
+  pullQueuedPlayers,
   type PlayerHistorySummary,
 } from "./utils/match-history.js";
 import { sendDiscordAlert } from "./utils/discord.js";
 import { getDuprCoverage, formatCoverage } from "./utils/dupr-coverage.js";
-import { duprFetch } from "./utils/dupr-fetch.js";
+import { getDuprToken } from "./utils/dupr-client.js";
 import { startRun, completeRun, failRun } from "./utils/logger.js";
 
 // Metered: at most this many tournament-rostered players get their DUPR history
@@ -86,35 +86,10 @@ async function rosterHistoryPass(): Promise<void> {
   }
   console.log("[urgent-refresh] roster history: starting DUPR login...");
   try {
-    const res = await duprFetch("https://api.dupr.gg/auth/v1.0/login/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // DUPR's edge returns 400/FAILURE to bare datacenter requests; a
-        // browser-like header set gets the login past it from CI IPs.
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-        Accept: "application/json, text/plain, */*",
-        "Accept-Language": "en-US,en;q=0.9",
-        Origin: "https://dashboard.dupr.com",
-        Referer: "https://dashboard.dupr.com/",
-      },
-      body: JSON.stringify({ email: process.env.DUPR_EMAIL, password: process.env.DUPR_PASSWORD }),
-    });
-    const data = await res.json().catch(() => null);
-    if (!res.ok || data?.status !== "SUCCESS" || !data?.result?.accessToken) {
-      // DUPR login works from CI directly; a failure here is a real problem —
-      // most often a stale DUPR_EMAIL/DUPR_PASSWORD secret (DUPR returns
-      // 400/FAILURE for bad creds). Surface it so it doesn't silently rot.
-      const detail = `HTTP ${res.status}, status=${data?.status ?? "?"}`;
-      console.error(`[urgent-refresh] roster history: DUPR login failed (${detail})`);
-      await sendDiscordAlert({
-        title: "⚠️ DUPR login failed — player history not refreshed",
-        description: `DUPR returned ${detail}. Usually a stale DUPR_EMAIL/DUPR_PASSWORD secret. No player data pulled this run.`,
-      }).catch(() => {});
-      return;
-    }
-    const r = await fetchTournamentRosterHistory(data.result.accessToken, ROSTER_REFRESH_CAP);
+    // Login, headers, pacing, retries, and the global daily budget all live in
+    // dupr-client.ts. A failed login is alerted to Discord by the client.
+    if (!(await getDuprToken())) return;
+    const r = await pullQueuedPlayers(ROSTER_REFRESH_CAP);
     console.log(`[urgent-refresh] roster history: ${r.playersChecked} player(s) due, ${r.matchesInserted} matches`);
     if (r.playersChecked > 0) {
       await postPlayerHistory(r.players);

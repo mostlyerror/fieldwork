@@ -12,8 +12,8 @@ on:
         type: string
 
 concurrency:
-  # Same DUPR lane as urgent-refresh/enrich — never hit DUPR from two jobs at once.
-  group: urgent-refresh
+  # Same DUPR lane as scrape/urgent-refresh/enrich — never hit DUPR from two jobs at once.
+  group: dupr
   cancel-in-progress: false
 
 jobs:

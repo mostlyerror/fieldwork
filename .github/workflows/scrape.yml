@@ -5,6 +5,13 @@ on:
     - cron: "0 14,2 * * *" # 2x/day: 9am + 9pm Central
   workflow_dispatch: # Manual trigger
 
+# Serialize with every other DUPR-touching job (urgent-refresh, enrich-matches,
+# pull-player). Two interleaved request streams through the one residential
+# proxy identity is exactly the non-human pattern that gets us blocked.
+concurrency:
+  group: dupr
+  cancel-in-progress: false
+
 jobs:
   scrape:
     runs-on: ubuntu-latest

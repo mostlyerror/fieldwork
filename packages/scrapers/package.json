@@ -12,7 +12,8 @@
     "snapshot": "tsx src/utils/capture-snapshot.ts",
     "health-check": "tsx src/health-check.ts",
     "enrich:dupr": "tsx src/enrich-dupr.ts",
-    "enrich:matches": "tsx src/enrich-matches.ts"
+    "enrich:matches": "tsx src/enrich-matches.ts",
+    "probe:dupr-profile": "tsx --env-file=../../apps/web/.env.local scripts/probe-profile-endpoint.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",

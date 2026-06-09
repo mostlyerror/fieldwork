@@ -1,19 +1,17 @@
 name: Enrich Matches
 
-# Comprehensive DUPR match-history pass. The hourly Urgent Refresh only covers
-# players rostered in current/recent tournaments (5/run); this picks up every
-# verified player on a staleness cadence, so stamped-but-empty players get
-# re-attempted instead of being stranded forever. Metered + proxied like the
-# roster pass, so same footprint, just broader reach.
+# Twice-daily drain of the shared DUPR pull queue with a bigger cap (30) than
+# the hourly urgent-refresh pass (12) — same queue, same roster-first priority,
+# so stamped-but-empty players get re-attempted instead of being stranded.
 on:
   schedule:
     - cron: "0 7,19 * * *" # twice daily (~1 AM / 1 PM CT). Tune cadence as the roster grows.
   workflow_dispatch:
 
 concurrency:
-  # Same lane as urgent-refresh.yml: both hit DUPR through the one proxy/account,
-  # so never let them run at the same time (rate-limit / block risk).
-  group: urgent-refresh
+  # One lane for every DUPR-touching job: all of them hit DUPR through the one
+  # proxy/account, so never let two run at the same time (rate-limit / block risk).
+  group: dupr
   cancel-in-progress: false
 
 jobs:

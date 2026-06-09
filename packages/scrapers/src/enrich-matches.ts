@@ -1,57 +1,33 @@
-import { fetchAllMatchHistory } from "./utils/match-history.js";
-import { duprFetch } from "./utils/dupr-fetch.js";
+/**
+ * Twice-daily DUPR pull — drains the shared pull queue (roster-priority, then
+ * staleness) with a bigger cap than the hourly pass. Auth, pacing, retries,
+ * and the global daily budget all live in utils/dupr-client.ts.
+ */
+import { pullQueuedPlayers } from "./utils/match-history.js";
+import { getDuprToken } from "./utils/dupr-client.js";
 
-const DUPR_API_BASE = "https://api.dupr.gg";
-
-async function authenticate(): Promise<string | null> {
-  const email = process.env.DUPR_EMAIL;
-  const password = process.env.DUPR_PASSWORD;
-
-  if (!email || !password) {
-    console.error("[enrich-matches] Missing DUPR_EMAIL or DUPR_PASSWORD env vars");
-    return null;
-  }
-
-  const res = await duprFetch(`${DUPR_API_BASE}/auth/v1.0/login/`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
-
-  if (!res.ok) {
-    console.error(`[enrich-matches] Auth failed: ${res.status} ${res.statusText}`);
-    return null;
-  }
-
-  const data = await res.json();
-  if (data.status !== "SUCCESS") {
-    console.error("[enrich-matches] Auth response not SUCCESS:", data);
-    return null;
-  }
-
-  return data.result.accessToken as string;
-}
+const BATCH_SIZE = 30;
 
 async function main() {
   console.log("Match History Enrichment — standalone run");
   console.log("=".repeat(40));
 
-  const token = await authenticate();
-  if (!token) {
+  if (!(await getDuprToken())) {
     console.error("Authentication failed. Exiting.");
     process.exit(1);
   }
-
   console.log("[enrich-matches] Authenticated with DUPR");
 
-  const result = await fetchAllMatchHistory(token);
+  const result = await pullQueuedPlayers(BATCH_SIZE);
 
   console.log("\nSummary:");
   console.log(`  Players checked:    ${result.playersChecked}`);
   console.log(`  Matches upserted:   ${result.matchesInserted}`);
 }
 
-main().catch((err) => {
-  console.error("Fatal:", err);
-  process.exit(1);
-});
+main()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error("Fatal:", err);
+    process.exit(1);
+  });

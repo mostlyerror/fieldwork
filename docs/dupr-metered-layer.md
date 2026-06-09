@@ -1,5 +1,9 @@
 # Metered DUPR Access Layer — Design
 
+> **Status: implemented** (all four steps, one pass). The chokepoint is
+> `packages/scrapers/src/utils/dupr-client.ts`; queue + budget are migrations
+> 032–034; all DUPR workflows share the `dupr` concurrency group.
+
 Goal: always-as-fresh-as-possible player data **without** getting cut off from DUPR.
 DUPR access is existential (it blocks datacenter IPs already; we route through a
 residential proxy). Today every caller re-implements auth/pacing/retry and nothing

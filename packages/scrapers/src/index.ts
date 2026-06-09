@@ -12,8 +12,6 @@ import { scrape as scrapePickleballDen } from "./sources/pickleballden.js";
 import { sendDiscordAlert } from "./utils/discord.js";
 import { scrapeDuprIds } from "./utils/scrape-dupr-ids.js";
 import { enrichDuprRatings } from "./utils/dupr-enrichment.js";
-import { fetchAllMatchHistory } from "./utils/match-history.js";
-import { duprFetch } from "./utils/dupr-fetch.js";
 import { fetchLiveMatches } from "./utils/live-matches.js";
 import { writePlacements } from "./utils/placements.js";
 import { snapshotEnrichedDupr } from "./utils/snapshot-dupr.js";
@@ -253,8 +251,9 @@ async function main() {
     console.error("[dupr-ids] DUPR ID scrape failed:", err);
   }
 
-  // DUPR enrichment: fetch live ratings for stale players
-  let duprAccessToken: string | null = null;
+  // DUPR discovery/enrichment: name-match players the pull queue can't reach.
+  // (Match-history pulls moved to the shared queue — hourly urgent-refresh +
+  // twice-daily enrich-matches drain it; scrape no longer double-dips DUPR.)
   if (process.env.DUPR_EMAIL && process.env.DUPR_PASSWORD) {
     try {
       const enrichResult = await enrichDuprRatings();
@@ -277,47 +276,8 @@ async function main() {
           console.log(`[dupr-enrich] Snapshotted ${snapshotted} event_players with enriched ratings`);
         }
       }
-      // Capture the token that enrichDuprRatings used internally — re-authenticate for match history
-      const authRes = await duprFetch("https://api.dupr.gg/auth/v1.0/login/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: process.env.DUPR_EMAIL,
-          password: process.env.DUPR_PASSWORD,
-        }),
-      });
-      if (authRes.ok) {
-        const authData = await authRes.json();
-        if (authData.status === "SUCCESS") {
-          duprAccessToken = authData.result.accessToken;
-        }
-      }
     } catch (err) {
       console.error("[dupr-enrich] Enrichment step failed:", err);
-    }
-  }
-
-  // Match history: fetch and store recent matches for verified DUPR players
-  if (duprAccessToken) {
-    try {
-      const matchResult = await fetchAllMatchHistory(duprAccessToken);
-      posthog?.capture({
-        distinctId: SCRAPER_ID,
-        event: "match_history_updated",
-        properties: {
-          players_checked: matchResult.playersChecked,
-          matches_inserted: matchResult.matchesInserted,
-        },
-      });
-      if (matchResult.matchesInserted > 0) {
-        await sendDiscordAlert({
-          title: "🏓 Match History Updated",
-          description: `Checked ${matchResult.playersChecked} players, upserted ${matchResult.matchesInserted} matches`,
-          color: 0x3b82f6,
-        });
-      }
-    } catch (err) {
-      console.error("[match-history] Match history step failed:", err);
     }
   }
 
