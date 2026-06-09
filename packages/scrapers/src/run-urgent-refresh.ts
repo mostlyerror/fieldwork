@@ -60,6 +60,12 @@ function formatPlayerLine(p: PlayerHistorySummary): string {
 async function postPlayerHistory(players: PlayerHistorySummary[]): Promise<void> {
   const changed = players.filter((p) => p.matchesAdded > 0);
   if (changed.length === 0) return;
+  // Manual/backfill runs (workflow_dispatch) can drain many players in quick
+  // succession — don't flood Discord. Only the scheduled hourly pass alerts.
+  if (process.env.GITHUB_EVENT_NAME === "workflow_dispatch") {
+    console.log(`[urgent-refresh] ${changed.length} updated (silent — manual run)`);
+    return;
+  }
   try {
     const coverage = await getDuprCoverage().catch(() => null);
     const lines = changed.map(formatPlayerLine).join("\n");
