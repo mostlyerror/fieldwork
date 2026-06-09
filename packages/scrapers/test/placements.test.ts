@@ -1,5 +1,25 @@
 import { describe, it, expect } from "vitest";
-import { parseMedalNames } from "../src/utils/placements.js";
+import { parseMedalNames, nameMatch } from "../src/utils/placements.js";
+
+describe("nameMatch", () => {
+  it("matches identical names case/space-insensitively", () => {
+    expect(nameMatch("Chris Dixon", "chris  dixon")).toBe(true);
+  });
+  it("matches a full surname against the roster's truncated initial", () => {
+    // PBB medal API returns "Hue Wong"; the public roster stores "Hue W".
+    expect(nameMatch("Hue Wong", "Hue W")).toBe(true);
+    expect(nameMatch("Teejay A", "Teejay Alvarez")).toBe(true);
+  });
+  it("does not match when first names differ", () => {
+    expect(nameMatch("Hue Wong", "Sue W")).toBe(false);
+  });
+  it("does not match when the surname initial differs", () => {
+    expect(nameMatch("Hue Wong", "Hue T")).toBe(false);
+  });
+  it("does not match unrelated single names", () => {
+    expect(nameMatch("Madonna", "Cher")).toBe(false);
+  });
+});
 
 describe("parseMedalNames", () => {
   it("parses doubles team from HTML br tag", () => {

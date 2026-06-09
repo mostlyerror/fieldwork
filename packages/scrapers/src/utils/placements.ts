@@ -8,8 +8,24 @@ export function parseMedalNames(html: string): string[] {
   return trimmed.split(/<br\s*\/?>/i).map((n) => n.trim()).filter(Boolean);
 }
 
-function nameMatch(a: string, b: string): boolean {
-  return a.trim().toLowerCase() === b.trim().toLowerCase();
+export function nameMatch(a: string, b: string): boolean {
+  const na = a.trim().toLowerCase().replace(/\s+/g, " ");
+  const nb = b.trim().toLowerCase().replace(/\s+/g, " ");
+  if (na === nb) return true;
+
+  // PBB's public roster often truncates the surname to an initial ("Hue W")
+  // while the medal API returns the full name ("Hue Wong"). Treat these as a
+  // match only when the first names are identical AND one surname is the
+  // other's leading initial — tight enough to avoid false pairings.
+  const pa = na.split(" ");
+  const pb = nb.split(" ");
+  if (pa.length < 2 || pb.length < 2) return false;
+  if (pa[0] !== pb[0]) return false;
+  const lastA = pa[pa.length - 1];
+  const lastB = pb[pb.length - 1];
+  if (lastA.length === 1 && lastB.startsWith(lastA)) return true;
+  if (lastB.length === 1 && lastA.startsWith(lastB)) return true;
+  return false;
 }
 
 interface PbbEvent {
@@ -21,15 +37,24 @@ interface PbbEvent {
   bronzeMedalTeam: string;
 }
 
+// Keep re-checking a tournament for this many days after it ends. Medals post
+// piecemeal on PBB — bronze lags gold/silver, and different events finish at
+// different times — so a one-and-done pass misses late results.
+const RECHECK_WINDOW_DAYS = 21;
+
 export async function writePlacements(): Promise<number> {
   const { supabase } = await import("./supabase.js");
   const today = new Date().toISOString().split("T")[0];
+  const cutoff = new Date(Date.now() - RECHECK_WINDOW_DAYS * 86_400_000)
+    .toISOString()
+    .split("T")[0];
 
   const { data: tournaments } = await supabase
     .from("tournaments")
     .select("id, name, source_url")
     .eq("status", "active")
-    .lte("date_end", today);
+    .lte("date_end", today)
+    .gte("date_end", cutoff);
 
   if (!tournaments || tournaments.length === 0) return 0;
 
@@ -49,17 +74,11 @@ export async function writePlacements(): Promise<number> {
 
     if (!ourEvents || ourEvents.length === 0) continue;
 
-    // Check if any event already has placements
-    const eventIds = ourEvents.map((e) => e.id);
-    const { data: existingPlacements } = await supabase
-      .from("event_players")
-      .select("id")
-      .in("event_id", eventIds)
-      .not("placement", "is", null)
-      .limit(1);
-
-    if (existingPlacements && existingPlacements.length > 0) continue;
-
+    // NOTE: we intentionally do NOT skip tournaments that already have some
+    // placements. The per-medal guard below (only act when a player has no
+    // placement yet) makes re-runs idempotent, so late-posted medals — bronze,
+    // or a whole event that finished after the first pass — get backfilled
+    // without re-writing or re-announcing existing medalists.
     const res = await fetch(`${PBB_API}/tourneyEvents?slug=${slug}`);
     if (!res.ok) continue;
 
@@ -87,7 +106,7 @@ export async function writePlacements(): Promise<number> {
 
       const { data: players } = await supabase
         .from("event_players")
-        .select("id, player_id, player_name, partner_name")
+        .select("id, player_id, player_name, partner_name, placement")
         .eq("event_id", eventId);
 
       if (!players) continue;
@@ -116,6 +135,9 @@ export async function writePlacements(): Promise<number> {
         });
 
         if (matched) {
+          // Idempotency: a player who already has a placement was written on a
+          // prior run — don't overwrite it or re-emit a Result Drop for them.
+          if (matched.placement != null) continue;
           const { error } = await supabase
             .from("event_players")
             .update({ placement: medal.placement })
