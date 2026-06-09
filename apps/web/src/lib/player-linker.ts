@@ -6,8 +6,7 @@
  * This utility (and the player_id / link_status / linked_at / wants_smart_alerts
  * columns on email_subscribers, added in migration 020) exists to support the
  * "claim your player profile" flow that personalization features will sit on top of
- * (smart tournament alerts, "who else is going", watchlists, rivalry tracker,
- * post-tournament recap emails).
+ * ("who else is going", watchlists, rivalry tracker, post-tournament recap emails).
  *
  * We initially used these helpers to auto-link subscribers at signup based on a
  * fuzzy name match, but pulled that out — heuristic identity is too fragile

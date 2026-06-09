@@ -5,7 +5,7 @@ import { FindClient } from "./find-client";
 
 export const metadata: Metadata = {
   title: "Claim your profile — PickleRadar",
-  description: "Find your player profile to get personalized tournament alerts.",
+  description: "Find your player profile to unlock your scouting report.",
 };
 
 type PageProps = { searchParams: Promise<{ email?: string }> };

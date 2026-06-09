@@ -78,7 +78,7 @@ export function FindClient({ initialEmail }: { initialEmail: string }) {
           placeholder="you@email.com"
           className="mt-2 w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-base focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
         />
-        <p className="mt-1 t-caption text-gray-400">We&apos;ll link this to your profile and send your tournament alerts here.</p>
+        <p className="mt-1 t-caption text-gray-400">We&apos;ll link this to your profile and send your weekly Houston tournament digest here.</p>
       </div>
 
       {/* Search */}

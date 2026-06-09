@@ -50,12 +50,8 @@ async function confirmClaim(token: string): Promise<
       link_status: "linked",
       linked_at: now,
       // Clicking the email link is the real consent moment: (re)activate the
-      // subscription here (a previously-unsubscribed person opting back in) and
-      // opt them into smart alerts. getLinkedSubscribers() filters on status
-      // 'active' + wants_smart_alerts, so without both the success screen's
-      // "you'll get personalized alerts" promise silently never fires.
+      // subscription here (a previously-unsubscribed person opting back in).
       status: "active",
-      wants_smart_alerts: true,
     })
     .eq("id", claim.subscriber_id);
   if (subErr) return { status: "error" };
@@ -97,7 +93,7 @@ export default async function ClaimPage({ params }: PageProps) {
             </div>
             <h1 className="mt-6 t-h1 text-gray-900 animate-fade-up">You&apos;re linked.</h1>
             <p className="mt-2 t-body text-gray-500 animate-fade-up stagger-1">
-              {result.playerName ? `Welcome, ${result.playerName}.` : "Profile claimed."} You&apos;ll start getting personalized alerts for tournaments that match you.
+              {result.playerName ? `Welcome, ${result.playerName}.` : "Profile claimed."} Your scouting report is unlocked, and you&apos;re on the weekly Houston tournament digest.
             </p>
             <Link
               href={`/${city.slug}`}

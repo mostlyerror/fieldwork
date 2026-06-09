@@ -239,8 +239,8 @@ function buildWelcomeEmailHtml(
     </div>
   </div>
   <div style="background:#fff;border-radius:16px;padding:20px 24px;border:1px solid #e5e7eb;margin-top:16px;text-align:center">
-    <p style="margin:0 0 8px;font-size:15px;font-weight:700;color:#1a1a1a">Want personalized alerts?</p>
-    <p style="margin:0 0 16px;color:#6b7280;font-size:14px">Claim your player profile to get tournaments that match your skill level — and a heads-up when partners you&rsquo;ve played with register.</p>
+    <p style="margin:0 0 8px;font-size:15px;font-weight:700;color:#1a1a1a">Are you a player?</p>
+    <p style="margin:0 0 16px;color:#6b7280;font-size:14px">Claim your player profile to unlock your scouting report — your record, rating trend, partner chemistry, and head-to-heads.</p>
     <a href="${findUrl}" style="display:inline-block;background:#065f46;color:#fff;padding:10px 22px;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px">Claim your profile →</a>
   </div>
   <div style="text-align:center;padding:24px 0;font-size:12px;color:#999">
