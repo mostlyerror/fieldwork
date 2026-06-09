@@ -25,6 +25,7 @@ describe("mapSearchTextResponse", () => {
       latitude: 29.7641,
       longitude: -95.4203,
       types: ["establishment", "point_of_interest"],
+      photoName: null,
     });
   });
   it("defaults types to [] when absent", () => {
