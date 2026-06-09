@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import { DevIndicator } from "@/components/dev-indicator";
 import { RecoveryRedirect } from "@/components/recovery-redirect";
 import { PostHogProvider } from "@/components/posthog-provider";
@@ -37,6 +38,10 @@ export default function RootLayout({
         <Analytics />
         <DevIndicator />
       </body>
+      {/* Inert until NEXT_PUBLIC_GA_ID (a GA4 "G-XXXX" Measurement ID) is set. */}
+      {process.env.NEXT_PUBLIC_GA_ID && (
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+      )}
     </html>
   );
 }
