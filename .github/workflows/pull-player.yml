@@ -1,0 +1,38 @@
+name: Pull Player Matches
+
+# On-demand: force-refresh one player's DUPR match history, bypassing the
+# staleness/roster queue. For "I just played, pull me now" without draining the
+# whole queue. Silent (no Discord).
+on:
+  workflow_dispatch:
+    inputs:
+      player_id:
+        description: "players.id UUID to pull"
+        required: true
+        type: string
+
+concurrency:
+  # Same DUPR lane as urgent-refresh/enrich — never hit DUPR from two jobs at once.
+  group: urgent-refresh
+  cancel-in-progress: false
+
+jobs:
+  pull:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Pull one player's match history
+        run: npx tsx packages/scrapers/src/pull-player.ts
+        env:
+          PLAYER_ID: ${{ inputs.player_id }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DUPR_EMAIL: ${{ secrets.DUPR_EMAIL }}
+          DUPR_PASSWORD: ${{ secrets.DUPR_PASSWORD }}
+          DUPR_PROXY_URL: ${{ secrets.DUPR_PROXY_URL }}

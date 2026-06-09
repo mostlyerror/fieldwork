@@ -590,3 +590,26 @@ export async function fetchTournamentRosterHistory(
   }
   return { playersChecked: players.length, matchesInserted, players: summaries };
 }
+
+/**
+ * Force-refresh a single player's match history by our player UUID, ignoring the
+ * staleness/roster gating. Backs the on-demand "pull this player now" path (and a
+ * future "refresh me" button). Returns null if the player is missing a dupr_id.
+ */
+export async function fetchPlayerMatchHistory(
+  token: string,
+  playerId: string,
+): Promise<{ matchesInserted: number; summary: PlayerHistorySummary } | null> {
+  const { data, error } = await supabase
+    .from("players")
+    .select("id, name, dupr_id")
+    .eq("id", playerId)
+    .not("dupr_id", "is", null)
+    .maybeSingle();
+  if (error || !data) {
+    console.error(`[match-history] player ${playerId} not found or has no dupr_id`);
+    return null;
+  }
+  const { inserted, summary } = await processPlayer(data as PlayerNeedingMatches, token);
+  return { matchesInserted: inserted, summary };
+}
