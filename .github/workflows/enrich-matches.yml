@@ -19,7 +19,7 @@ concurrency:
 jobs:
   enrich:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 25 # 30 players × human-paced DUPR delays (2–18s each) runs long; don't truncate
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
