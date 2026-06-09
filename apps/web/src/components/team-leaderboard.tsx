@@ -14,6 +14,7 @@ function Check({ className }: { className?: string }) {
 
 const RATING_COLOR: Record<RatingStatus, string> = {
   verified: "text-emerald-700",
+  live: "text-gray-900", // real DUPR rating, verification unknown — show it plainly
   provisional: "text-amber-600",
   self: "text-gray-500",
   none: "text-gray-300",
@@ -125,9 +126,6 @@ export function TeamLeaderboard({ event }: { event: TournamentEvent }) {
         <span className="flex items-center gap-1">
           <Check className="h-2.5 w-2.5 text-emerald-700" />
           <span className="font-semibold text-emerald-700">Verified</span> DUPR
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="font-semibold text-amber-600">Provisional</span>
         </span>
         <span className="flex items-center gap-1">
           <span className="font-semibold text-gray-500">Self-rated</span>

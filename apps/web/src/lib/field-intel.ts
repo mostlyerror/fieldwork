@@ -16,7 +16,7 @@ import type { TournamentEvent, EventPlayer } from "./types";
 const EPS = 0.05;
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
-export type RatingStatus = "verified" | "provisional" | "self" | "none";
+export type RatingStatus = "verified" | "live" | "provisional" | "self" | "none";
 
 export interface Person {
   name: string;
@@ -38,7 +38,11 @@ function makePerson(
   const isVerified = verified === true && live != null;
   let status: RatingStatus;
   if (isVerified) status = "verified";
-  else if (live != null) status = "provisional";
+  // A real DUPR-sourced rating with no verification signal. We do NOT call this
+  // "provisional" — DUPR's search API doesn't return per-format verified/
+  // provisional status, so absence of the flag means "unknown", not "provisional".
+  // (Singles ratings have no verified flag at all today — see task #31.)
+  else if (live != null) status = "live";
   else if (listed != null) status = "self";
   else status = "none";
   return { name, id, listed, live, verified: isVerified, status, rating: live ?? listed };
