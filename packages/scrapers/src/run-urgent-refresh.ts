@@ -24,7 +24,10 @@ import { startRun, completeRun, failRun } from "./utils/logger.js";
 // Metered: at most this many tournament-rostered players get their DUPR history
 // refreshed per hourly run, so current/recent tournaments stay complete and
 // fresh without bursting the DUPR API. Best-effort — never fails the refresh.
-const ROSTER_REFRESH_CAP = 5;
+// 12/hr (was 5) so a busy tournament weekend's roster drains in hours, not days;
+// the run still finishes well under the workflow timeout. Priority ordering
+// (migration 031) ensures the 12 are the players who most need a pull.
+const ROSTER_REFRESH_CAP = 12;
 
 /** Format one player line, e.g. "• Ben Poon  3.38 → 3.40  (+0.02, +5 matches)". */
 function formatPlayerLine(p: PlayerHistorySummary): string {
