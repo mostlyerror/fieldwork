@@ -49,9 +49,12 @@ async function confirmClaim(token: string): Promise<
       player_id: claim.player_id,
       link_status: "linked",
       linked_at: now,
-      // Opt them into smart alerts — the success screen promises personalized
-      // tournament alerts, and getLinkedSubscribers() filters on this flag, so
-      // without it the promise silently never fires.
+      // Clicking the email link is the real consent moment: (re)activate the
+      // subscription here (a previously-unsubscribed person opting back in) and
+      // opt them into smart alerts. getLinkedSubscribers() filters on status
+      // 'active' + wants_smart_alerts, so without both the success screen's
+      // "you'll get personalized alerts" promise silently never fires.
+      status: "active",
       wants_smart_alerts: true,
     })
     .eq("id", claim.subscriber_id);

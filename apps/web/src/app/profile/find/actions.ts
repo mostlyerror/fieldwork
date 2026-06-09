@@ -164,11 +164,14 @@ async function getOrCreateSubscriber(
     .maybeSingle();
 
   if (existing) {
-    const update: Record<string, unknown> = {};
-    if (existing.status !== "active") update.status = "active";
-    if (!existing.name && seedName) update.name = seedName;
-    if (Object.keys(update).length > 0) {
-      await supabase.from("email_subscribers").update(update).eq("id", existing.id);
+    // Don't reactivate an unsubscribed person on mere request — that would
+    // override an explicit opt-out before they've consented. Reactivation
+    // happens in confirmClaim, when they actually click the email link.
+    if (!existing.name && seedName) {
+      await supabase
+        .from("email_subscribers")
+        .update({ name: seedName })
+        .eq("id", existing.id);
     }
     return { id: existing.id as string };
   }
