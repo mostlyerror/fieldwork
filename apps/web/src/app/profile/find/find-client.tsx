@@ -8,7 +8,6 @@ type SendState =
   | { status: "idle" }
   | { status: "sending" }
   | { status: "sent" }
-  | { status: "no_subscriber" }
   | { status: "already_claimed_by_another" }
   | { status: "error"; message: string };
 
@@ -69,7 +68,7 @@ export function FindClient({ initialEmail }: { initialEmail: string }) {
       {/* Email */}
       <div>
         <label htmlFor="email" className="block t-label tracking-widest text-gray-500">
-          Subscriber email
+          Your email
         </label>
         <input
           id="email"
@@ -79,7 +78,7 @@ export function FindClient({ initialEmail }: { initialEmail: string }) {
           placeholder="you@email.com"
           className="mt-2 w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-base focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-100"
         />
-        <p className="mt-1 t-caption text-gray-400">Must match the email you subscribed with.</p>
+        <p className="mt-1 t-caption text-gray-400">We&apos;ll link this to your profile and send your tournament alerts here.</p>
       </div>
 
       {/* Search */}
@@ -174,11 +173,6 @@ export function FindClient({ initialEmail }: { initialEmail: string }) {
           >
             {send.status === "sending" ? "Sending..." : "Send confirmation email"}
           </button>
-          {send.status === "no_subscriber" && (
-            <p className="mt-2 t-caption text-red-600">
-              We don&apos;t have an active subscription for that email. Subscribe first, then come back.
-            </p>
-          )}
           {send.status === "already_claimed_by_another" && (
             <p className="mt-2 t-caption text-red-600">
               That player is already claimed by someone else. If that&apos;s wrong, email us.

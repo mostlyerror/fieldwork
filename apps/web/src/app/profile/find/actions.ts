@@ -32,7 +32,6 @@ export async function searchPlayers(query: string): Promise<PlayerCandidate[]> {
 
 type ClaimResult =
   | { status: "sent" }
-  | { status: "no_subscriber" }
   | { status: "already_claimed_by_another" }
   | { status: "error"; message: string };
 
@@ -50,14 +49,26 @@ export async function requestClaim(
 
   const supabase = getSupabaseAdmin();
 
-  const { data: subscriber } = await supabase
-    .from("email_subscribers")
-    .select("id, name")
-    .eq("email", normalizedEmail)
-    .eq("status", "active")
-    .maybeSingle();
+  // Fetch the player up front — we need it for the confirmation email, and to
+  // seed the subscriber's name when we create one below.
+  const { data: player } = await supabase
+    .from("players")
+    .select("name, location, dupr_doubles")
+    .eq("id", playerId)
+    .single();
 
-  if (!subscriber) return { status: "no_subscriber" };
+  // Get-or-create the subscriber. Claiming a profile IS the opt-in: a cold
+  // visitor who isn't on the newsletter shouldn't dead-end. We capture the
+  // email here (give-to-get) and the email-confirmation step is the real
+  // double-opt-in that links the player + turns alerts on.
+  const subscriber = await getOrCreateSubscriber(
+    supabase,
+    normalizedEmail,
+    (player?.name as string | undefined) ?? null,
+  );
+  if (!subscriber) {
+    return { status: "error", message: "Couldn't start the claim. Try again." };
+  }
 
   // Check if another active subscriber already claimed this player
   const { data: otherClaim } = await supabase
@@ -83,12 +94,6 @@ export async function requestClaim(
 
   const appUrl = process.env.APP_URL ?? "https://pickleradar.app";
   try {
-    const { data: player } = await supabase
-      .from("players")
-      .select("name, location, dupr_doubles")
-      .eq("id", playerId)
-      .single();
-
     const confirmUrl = `${appUrl}/profile/claim/${token}`;
     const playerLine = player
       ? `${player.name}${player.location ? ` · ${player.location}` : ""}${player.dupr_doubles != null ? ` · ${Number(player.dupr_doubles).toFixed(2)}` : ""}`
@@ -140,6 +145,45 @@ export async function requestClaim(
   });
 
   return { status: "sent" };
+}
+
+/**
+ * Find an existing subscriber by email, or create one. Reactivates a previously
+ * unsubscribed row so a claim re-opts them in. Returns null only on a real DB
+ * error. `seedName` backfills the name (from the claimed player) when missing.
+ */
+async function getOrCreateSubscriber(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  email: string,
+  seedName: string | null,
+): Promise<{ id: string } | null> {
+  const { data: existing } = await supabase
+    .from("email_subscribers")
+    .select("id, name, status")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (existing) {
+    const update: Record<string, unknown> = {};
+    if (existing.status !== "active") update.status = "active";
+    if (!existing.name && seedName) update.name = seedName;
+    if (Object.keys(update).length > 0) {
+      await supabase.from("email_subscribers").update(update).eq("id", existing.id);
+    }
+    return { id: existing.id as string };
+  }
+
+  const { data: created, error } = await supabase
+    .from("email_subscribers")
+    .insert({ email, name: seedName })
+    .select("id")
+    .single();
+
+  if (error || !created) {
+    console.error("Failed to create subscriber for claim:", error);
+    return null;
+  }
+  return { id: created.id as string };
 }
 
 function escapeHtml(s: string): string {

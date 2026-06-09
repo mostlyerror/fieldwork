@@ -49,6 +49,10 @@ async function confirmClaim(token: string): Promise<
       player_id: claim.player_id,
       link_status: "linked",
       linked_at: now,
+      // Opt them into smart alerts — the success screen promises personalized
+      // tournament alerts, and getLinkedSubscribers() filters on this flag, so
+      // without it the promise silently never fires.
+      wants_smart_alerts: true,
     })
     .eq("id", claim.subscriber_id);
   if (subErr) return { status: "error" };
