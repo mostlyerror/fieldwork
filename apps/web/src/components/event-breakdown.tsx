@@ -92,10 +92,10 @@ export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
     <div className="overflow-hidden rounded-2xl border border-gray-200/70 shadow-card sm:rounded-3xl">
       <IntelSectionHeader title="Field Intelligence" badge={badgeText} />
 
-      {/* Mobile: stacked expandable cards */}
+      {/* Mobile: stacked expandable cards (a lone bracket starts expanded) */}
       <div className="lg:hidden">
         {orderedEvents.map((event) => (
-          <EventCard key={event.id} event={event} />
+          <EventCard key={event.id} event={event} defaultExpanded={orderedEvents.length === 1} />
         ))}
       </div>
 

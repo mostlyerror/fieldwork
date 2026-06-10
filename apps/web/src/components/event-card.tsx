@@ -28,9 +28,17 @@ function RateTransition({ listed, live }: { listed: number | null; live: number 
   );
 }
 
-export function EventCard({ event }: { event: TournamentEvent }) {
+export function EventCard({
+  event,
+  defaultExpanded = false,
+}: {
+  event: TournamentEvent;
+  /** Single-bracket tournaments expand it by default — with nothing to compare
+   *  against, a collapsed lone card just hides the field intel. */
+  defaultExpanded?: boolean;
+}) {
   const hasPlayers = (event.players?.length ?? 0) > 0;
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(defaultExpanded && hasPlayers);
   const intel = eventIntel(event);
 
   // The over-cap signal is carried by the strip's red squares now, so flags are
