@@ -87,6 +87,9 @@ export function TeamLeaderboard({ event }: { event: TournamentEvent }) {
 
   const scoreLabel = lb.isDoubles ? "Team" : "Rating";
   const groupNoun = lb.isDoubles ? "teams" : "players";
+  const hasProvisional = [...lb.ranked, ...lb.awaiting].some((t) =>
+    t.members.some((m) => m.status === "provisional"),
+  );
 
   return (
     <div className="mt-4 border-t border-gray-100 pt-3.5">
@@ -127,6 +130,11 @@ export function TeamLeaderboard({ event }: { event: TournamentEvent }) {
           <Check className="h-2.5 w-2.5 text-emerald-700" />
           <span className="font-semibold text-emerald-700">Verified</span> DUPR
         </span>
+        {hasProvisional && (
+          <span className="flex items-center gap-1">
+            <span className="font-semibold text-amber-600">Provisional</span> DUPR
+          </span>
+        )}
         <span className="flex items-center gap-1">
           <span className="font-semibold text-gray-500">Self-rated</span>
         </span>

@@ -24,6 +24,8 @@ function player(overrides: Partial<EventPlayer> = {}): EventPlayer {
     live_dupr_verified: null,
     partner_live_dupr: null,
     partner_live_dupr_verified: null,
+    live_dupr_provisional: null,
+    partner_live_dupr_provisional: null,
     placement: null,
     ...overrides,
   };
@@ -59,17 +61,29 @@ describe("eventPeople", () => {
     expect(people.map((p) => p.name)).toEqual(["A", "B"]);
   });
 
-  it("classifies status: verified / provisional / self / none", () => {
+  it("classifies status: verified / provisional / live / self / none", () => {
     const e = event({
       players: [
         player({ player_name: "Ver", live_dupr: 3.4, live_dupr_verified: true }),
+        // explicit verified=false (only ever written as !provisional)
         player({ player_name: "Prov", live_dupr: 3.2, live_dupr_verified: false }),
+        // per-format provisional flag from the DUPR profile
+        player({ player_name: "Flag", live_dupr: 3.1, live_dupr_provisional: true }),
+        // live rating with no trust signal either way — unknown, not provisional
+        player({ player_name: "Live", live_dupr: 3.3 }),
         player({ player_name: "Self", dupr_rating: 3.0 }),
         player({ player_name: "None" }),
       ],
     });
     const byName = Object.fromEntries(eventPeople(e).map((p) => [p.name, p.status]));
-    expect(byName).toEqual({ Ver: "verified", Prov: "provisional", Self: "self", None: "none" });
+    expect(byName).toEqual({
+      Ver: "verified",
+      Prov: "provisional",
+      Flag: "provisional",
+      Live: "live",
+      Self: "self",
+      None: "none",
+    });
   });
 });
 

@@ -31,19 +31,26 @@ export async function snapshotEnrichedDupr(): Promise<number> {
 
   const { data: players } = await supabase
     .from("players")
-    .select("id, dupr_doubles, dupr_verified, dupr_singles, dupr_singles_verified")
+    .select("id, dupr_doubles, dupr_verified, dupr_doubles_provisional, dupr_singles, dupr_singles_provisional")
     .in("id", Array.from(playerIds));
 
   if (!players || players.length === 0) return 0;
 
   const playerMap = new Map(players.map((p) => [p.id as string, p]));
 
-  // Pick the rating for this event's format; null when we don't have it.
+  // Pick the rating + trust for this event's format; null when we don't have
+  // it. "Verified" = the rating is established (NOT provisional), preferring
+  // the per-format provisional flag; doubles falls back to the legacy
+  // dupr_verified boolean. (dupr_singles_verified is a DECIMAL rating value —
+  // the old code wrote it into the boolean snapshot column.)
   function ratingFor(player: NonNullable<typeof players>[number] | null | undefined, singles: boolean) {
     if (!player) return { rating: null as number | null, verified: null as boolean | null };
-    return singles
-      ? { rating: player.dupr_singles as number | null, verified: player.dupr_singles_verified as boolean | null }
-      : { rating: player.dupr_doubles as number | null, verified: player.dupr_verified as boolean | null };
+    const provisional = (singles ? player.dupr_singles_provisional : player.dupr_doubles_provisional) as
+      | boolean
+      | null;
+    const verified =
+      provisional != null ? !provisional : singles ? null : (player.dupr_verified as boolean | null);
+    return { rating: (singles ? player.dupr_singles : player.dupr_doubles) as number | null, verified };
   }
 
   let updated = 0;

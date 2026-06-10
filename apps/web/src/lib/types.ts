@@ -89,6 +89,11 @@ export interface EventPlayer {
   live_dupr_verified: boolean | null;
   partner_live_dupr: number | null;
   partner_live_dupr_verified: boolean | null;
+  // DUPR's per-format provisional flag (true = rating not yet established;
+  // null = unknown — the player hasn't been profile-pulled since we started
+  // capturing the flag)
+  live_dupr_provisional: boolean | null;
+  partner_live_dupr_provisional: boolean | null;
   placement: number | null;
 }
 

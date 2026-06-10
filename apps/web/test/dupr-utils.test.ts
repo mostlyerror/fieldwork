@@ -16,6 +16,8 @@ function makePlayer(overrides: Partial<EventPlayer> = {}): EventPlayer {
     live_dupr_verified: null,
     partner_live_dupr: null,
     partner_live_dupr_verified: null,
+    live_dupr_provisional: null,
+    partner_live_dupr_provisional: null,
     placement: null,
     ...overrides,
   };

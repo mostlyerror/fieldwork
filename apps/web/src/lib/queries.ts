@@ -211,7 +211,7 @@ export async function getTournamentEvents(
   const eventIds = events.map((e: TournamentEvent) => e.id);
   const { data: players, error: playersError } = await supabase
     .from("event_players")
-    .select("*, players!event_players_player_id_fkey(dupr_doubles, dupr_verified, dupr_singles, dupr_singles_verified), partner:players!event_players_partner_id_fkey(dupr_doubles, dupr_verified, dupr_singles, dupr_singles_verified)")
+    .select("*, players!event_players_player_id_fkey(dupr_doubles, dupr_verified, dupr_doubles_provisional, dupr_singles, dupr_singles_provisional), partner:players!event_players_partner_id_fkey(dupr_doubles, dupr_verified, dupr_doubles_provisional, dupr_singles, dupr_singles_provisional)")
     .in("event_id", eventIds)
     .order("dupr_rating", { ascending: false, nullsFirst: false });
 
@@ -227,10 +227,22 @@ export async function getTournamentEvents(
 
   type JoinedRatings = {
     dupr_doubles: number | null;
-    dupr_verified: boolean | null;
+    dupr_verified: boolean | null; // legacy doubles "not provisional" flag
+    dupr_doubles_provisional: boolean | null;
     dupr_singles: number | null;
-    dupr_singles_verified: boolean | null;
+    dupr_singles_provisional: boolean | null;
   } | null;
+
+  // Per-format trust flags from DUPR's profile (null = not captured yet).
+  // "Verified" here means the rating is established (NOT provisional) — for
+  // doubles we fall back to the legacy dupr_verified boolean when the new flag
+  // is missing. (players.dupr_singles_verified is a DECIMAL rating value, not
+  // a boolean — the old code read it as one, so singles never showed verified.)
+  function trustFor(joined: JoinedRatings, isSingles: boolean) {
+    const provisional = isSingles ? joined?.dupr_singles_provisional : joined?.dupr_doubles_provisional;
+    if (provisional != null) return { verified: !provisional, provisional };
+    return { verified: isSingles ? null : joined?.dupr_verified ?? null, provisional: null };
+  }
 
   // Group players by event, flattening the joined player data
   const playersByEvent = new Map<string, EventPlayer[]>();
@@ -241,9 +253,9 @@ export async function getTournamentEvents(
     const partnerJoined = (raw as Record<string, unknown>).partner as JoinedRatings;
     // Format-appropriate fallback rating from the players table.
     const liveFallback = isSingles ? joined?.dupr_singles : joined?.dupr_doubles;
-    const liveVerifiedFallback = isSingles ? joined?.dupr_singles_verified : joined?.dupr_verified;
     const partnerLiveFallback = isSingles ? partnerJoined?.dupr_singles : partnerJoined?.dupr_doubles;
-    const partnerLiveVerifiedFallback = isSingles ? partnerJoined?.dupr_singles_verified : partnerJoined?.dupr_verified;
+    const trust = trustFor(joined, isSingles);
+    const partnerTrust = trustFor(partnerJoined, isSingles);
     const p: EventPlayer = {
       id: raw.id as string,
       player_name: raw.player_name as string,
@@ -254,9 +266,13 @@ export async function getTournamentEvents(
       player_id: raw.player_id as string | null,
       partner_id: raw.partner_id as string | null,
       live_dupr: ((raw as Record<string, unknown>).enriched_dupr as number | null) ?? liveFallback ?? null,
-      live_dupr_verified: ((raw as Record<string, unknown>).enriched_dupr_verified as boolean | null) ?? liveVerifiedFallback ?? null,
+      live_dupr_verified: ((raw as Record<string, unknown>).enriched_dupr_verified as boolean | null) ?? trust.verified,
       partner_live_dupr: ((raw as Record<string, unknown>).partner_enriched_dupr as number | null) ?? partnerLiveFallback ?? null,
-      partner_live_dupr_verified: ((raw as Record<string, unknown>).partner_enriched_dupr_verified as boolean | null) ?? partnerLiveVerifiedFallback ?? null,
+      partner_live_dupr_verified: ((raw as Record<string, unknown>).partner_enriched_dupr_verified as boolean | null) ?? partnerTrust.verified,
+      // Provisional reflects the player's CURRENT DUPR state (live join, not
+      // the registration snapshot) — it answers "can you trust this number".
+      live_dupr_provisional: trust.provisional,
+      partner_live_dupr_provisional: partnerTrust.provisional,
       placement: (raw as Record<string, unknown>).placement as number | null,
     };
     if (!playersByEvent.has(eventId)) {

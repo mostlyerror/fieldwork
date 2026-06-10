@@ -34,14 +34,19 @@ function makePerson(
   listed: number | null,
   live: number | null,
   verified: boolean | null,
+  provisional: boolean | null,
 ): Person {
   const isVerified = verified === true && live != null;
   let status: RatingStatus;
   if (isVerified) status = "verified";
-  // A real DUPR-sourced rating with no verification signal. We do NOT call this
-  // "provisional" — DUPR's search API doesn't return per-format verified/
-  // provisional status, so absence of the flag means "unknown", not "provisional".
-  // (Singles ratings have no verified flag at all today — see task #31.)
+  // The rating exists but DUPR hasn't established it yet (too few results).
+  // Two signals mean this: the per-format provisional flag, or an explicit
+  // verified=false (every writer of false computes it as !provisional —
+  // there is no other source).
+  else if (live != null && (provisional === true || verified === false)) status = "provisional";
+  // A real DUPR-sourced rating with no trust signal either way — the player
+  // hasn't been profile-pulled since we started capturing the flags. Absence
+  // of a flag means "unknown", not "provisional".
   else if (live != null) status = "live";
   else if (listed != null) status = "self";
   else status = "none";
@@ -58,7 +63,9 @@ export function registrantLabel(count: number, eventType: string | null): string
 export function eventPeople(event: TournamentEvent): Person[] {
   const people: Person[] = [];
   for (const p of event.players ?? []) {
-    people.push(makePerson(p.player_name, p.player_id, p.dupr_rating, p.live_dupr, p.live_dupr_verified));
+    people.push(
+      makePerson(p.player_name, p.player_id, p.dupr_rating, p.live_dupr, p.live_dupr_verified, p.live_dupr_provisional),
+    );
     if (p.partner_name != null) {
       people.push(
         makePerson(
@@ -67,6 +74,7 @@ export function eventPeople(event: TournamentEvent): Person[] {
           p.partner_dupr_rating,
           p.partner_live_dupr,
           p.partner_live_dupr_verified,
+          p.partner_live_dupr_provisional,
         ),
       );
     }
@@ -310,7 +318,9 @@ export function teamLeaderboard(event: TournamentEvent): Leaderboard {
   const isDoubles = (event.players ?? []).some((p) => p.partner_name != null);
   const teams: LbTeam[] = (event.players ?? []).map((p, i) => {
     const members: LbMember[] = [
-      memberOf(makePerson(p.player_name, p.player_id, p.dupr_rating, p.live_dupr, p.live_dupr_verified)),
+      memberOf(
+        makePerson(p.player_name, p.player_id, p.dupr_rating, p.live_dupr, p.live_dupr_verified, p.live_dupr_provisional),
+      ),
     ];
     if (p.partner_name != null) {
       members.push(
@@ -321,6 +331,7 @@ export function teamLeaderboard(event: TournamentEvent): Leaderboard {
             p.partner_dupr_rating,
             p.partner_live_dupr,
             p.partner_live_dupr_verified,
+            p.partner_live_dupr_provisional,
           ),
         ),
       );
