@@ -4,6 +4,7 @@ import { parseEventName } from "./parse-event-name.js";
 import { computeFieldStrength, computeSandbaggerPct, computeAvgDupr } from "./intelligence.js";
 import { posthog, SCRAPER_ID } from "./posthog.js";
 import { resolveVenue } from "./resolve-venue.js";
+import { isDestructiveEventReplace } from "./roster-guard.js";
 import type { ScrapedTournament, ScrapedEvent, ScrapedPlayer } from "../types.js";
 
 export interface UpsertStats {
@@ -220,7 +221,7 @@ export async function upsertTournaments(
  * Upsert players into the persistent `players` table by source_player_id.
  * Returns a map of sourcePlayerId → players.id for FK linkage.
  */
-async function upsertPlayers(
+export async function upsertPlayers(
   allPlayers: ScrapedPlayer[],
 ): Promise<Map<string, string>> {
   const idMap = new Map<string, string>();
@@ -332,16 +333,33 @@ export async function upsertEvents(
     allPlayers.push(...event.players);
   }
 
-  // Upsert persistent players and get sourcePlayerId → players.id map
-  const playerIdMap = await upsertPlayers(allPlayers);
-
   // Per-bracket start times come from the urgent-refresh JSON path, not this
   // (Playwright) scrape — so preserve them across the delete+reinsert, keyed by
   // source_event_id, instead of wiping them on every full scrape.
   const { data: priorEvents } = await supabase
     .from("tournament_events")
-    .select("source_event_id, start_time, start_time_raw")
+    .select("id, source_event_id, start_time, start_time_raw")
     .eq("tournament_id", tournamentId);
+
+  // Guard the wipe: never replace a populated roster with an empty scrape.
+  if (allPlayers.length === 0 && (priorEvents?.length ?? 0) > 0) {
+    const { count } = await supabase
+      .from("event_players")
+      .select("id", { count: "exact", head: true })
+      .in(
+        "event_id",
+        (priorEvents ?? []).map((e) => e.id as string),
+      );
+    if (isDestructiveEventReplace(allPlayers.length, count ?? 0)) {
+      console.warn(
+        `[upsert-events] SKIP ${tournamentId}: scrape returned 0 players but DB has ${count} — keeping existing events/roster`,
+      );
+      return;
+    }
+  }
+
+  // Upsert persistent players and get sourcePlayerId → players.id map
+  const playerIdMap = await upsertPlayers(allPlayers);
   const priorStart = new Map<string, { start_time: string | null; start_time_raw: string | null }>();
   for (const e of priorEvents ?? []) {
     if (e.source_event_id) {

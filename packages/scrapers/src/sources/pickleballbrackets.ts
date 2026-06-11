@@ -22,6 +22,7 @@ import { hashContent } from "../utils/hash.js";
 import { parseRscTournamentData } from "../utils/parse-rsc.js";
 import { distanceMiles, HOUSTON_LAT, HOUSTON_LNG, MAX_DISTANCE_MILES } from "../utils/geo.js";
 import { parseEventName } from "../utils/parse-event-name.js";
+import { localDateString } from "../utils/local-date.js";
 import type { ScrapedTournament, ScrapedEvent, ScrapedPlayer, ScraperSource } from "../types.js";
 
 // Dev-only page dump for parser development.
@@ -531,8 +532,20 @@ async function parseTournamentDetailPage(
             ?.getAttribute("content") || null
       )) || undefined;
 
-    // Scrape events from the /events sub-page
-    const events = await scrapeEvents(page, slug);
+    // Scrape events from the /events sub-page — but only while the tournament
+    // hasn't started (venue-local time). Once play begins, PBB replaces the
+    // registration UI with a "Completed / Draws & Results" layout that reads
+    // as zero players; the roster is frozen at that point and re-scraping it
+    // can only destroy data. Post-start updates flow through the JSON paths
+    // (urgent-refresh, live-matches, placements) instead.
+    let events: ScrapedEvent[] = [];
+    if (parsedDateStart <= localDateString()) {
+      console.log(
+        `[pickleballbrackets] SKIP events for "${pageTitle}" — started ${parsedDateStart}, roster frozen`,
+      );
+    } else {
+      events = await scrapeEvents(page, slug);
+    }
 
     const tournament: ScrapedTournament = {
       name: pageTitle,
