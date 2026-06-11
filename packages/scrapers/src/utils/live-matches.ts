@@ -1,4 +1,5 @@
 import { supabase } from "./supabase.js";
+import { localDateString } from "./local-date.js";
 
 const PBB_API = "https://pickleballtournaments.com/tournaments/api";
 
@@ -61,8 +62,12 @@ export interface LiveMatchResult {
   matchesUpserted: number;
 }
 
+// Venue-local "today" — NOT UTC. The nightly scrape runs ~9–10 PM Central,
+// which is already tomorrow in UTC; a one-day tournament's evening matches
+// (finals!) were being filtered out as "ended yesterday" and queried with the
+// wrong date param. (PBB's getMatchInfos date is the venue-local match date.)
 function todayString(): string {
-  return new Date().toISOString().split("T")[0];
+  return localDateString();
 }
 
 function packScores(m: PbbMatch, team: "One" | "Two"): number[] {

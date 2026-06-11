@@ -12,6 +12,7 @@
  */
 
 import { runUrgentRefresh } from "./urgent-refresh.js";
+import { fetchLiveMatches } from "./utils/live-matches.js";
 import {
   pullQueuedPlayers,
   type PlayerHistorySummary,
@@ -120,6 +121,22 @@ async function main() {
       },
       { silent: true },
     );
+    // Live match pass: hourly bracket/score updates on tournament days. JSON
+    // APIs only, scoped to tournaments playing today (venue-local) — a no-op
+    // on quiet days. The 2x-daily full scrape alone missed evening matches
+    // entirely before its date logic went venue-local; hourly keeps the live
+    // bracket honest during play. Best-effort, console-only (no Discord —
+    // the full-scrape pass already alerts).
+    try {
+      const lm = await fetchLiveMatches();
+      if (lm.matchesUpserted > 0) {
+        console.log(
+          `[urgent-refresh] live matches: ${lm.tournamentsChecked} tournament(s), ${lm.matchesUpserted} matches upserted`,
+        );
+      }
+    } catch (err) {
+      console.error("[urgent-refresh] live match pass failed (non-fatal):", err);
+    }
     // Metered tournament-roster history pass — gentle on DUPR, best-effort.
     await rosterHistoryPass();
     process.exit(0);

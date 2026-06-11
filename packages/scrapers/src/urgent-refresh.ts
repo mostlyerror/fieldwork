@@ -24,6 +24,7 @@ import {
 import type { ScrapedPlayer } from "./types.js";
 import { parsePbbEventDate } from "./utils/event-time.js";
 import { getDuprCoverage, formatCoverage } from "./utils/dupr-coverage.js";
+import { localDateString } from "./utils/local-date.js";
 
 const PBB_API = "https://pickleballtournaments.com/tournaments/api";
 
@@ -122,7 +123,9 @@ async function fetchUrgentTournaments(): Promise<DbTournament[]> {
   // roster changes (late adds, waitlist, withdrawals) and rating drift, so we
   // must keep refreshing it through the event. Previously these fell into a
   // dead zone between reg-close and start and went stale.
-  const today = now.toISOString().split("T")[0];
+  // Venue-local date: with UTC, a tournament playing *today* fell out of this
+  // window every evening (UTC day flips at 7 PM Central).
+  const today = localDateString(now);
   const { data: starting } = await supabase
     .from("tournaments")
     .select("id, source_url, source_platform")
