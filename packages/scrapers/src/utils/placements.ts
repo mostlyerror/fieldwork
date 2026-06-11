@@ -8,9 +8,24 @@ export function parseMedalNames(html: string): string[] {
   return trimmed.split(/<br\s*\/?>/i).map((n) => n.trim()).filter(Boolean);
 }
 
+// Generational suffixes the medal API includes but the roster omits
+// ("Edward Muniz Jr" vs "Edward Muniz"). Only stripped from names with 3+
+// tokens so a genuine two-token "<First> V" roster initial is left alone.
+const NAME_SUFFIXES = new Set(["jr", "jr.", "sr", "sr.", "ii", "iii", "iv", "v"]);
+
+function normalizeName(s: string): string {
+  const n = s.trim().toLowerCase().replace(/\s+/g, " ");
+  const parts = n.split(" ");
+  if (parts.length >= 3 && NAME_SUFFIXES.has(parts[parts.length - 1])) {
+    parts.pop();
+    return parts.join(" ");
+  }
+  return n;
+}
+
 export function nameMatch(a: string, b: string): boolean {
-  const na = a.trim().toLowerCase().replace(/\s+/g, " ");
-  const nb = b.trim().toLowerCase().replace(/\s+/g, " ");
+  const na = normalizeName(a);
+  const nb = normalizeName(b);
   if (na === nb) return true;
 
   // PBB's public roster often truncates the surname to an initial ("Hue W")
@@ -35,6 +50,46 @@ interface PbbEvent {
   goldMedalTeam: string;
   silverMedalTeam: string;
   bronzeMedalTeam: string;
+}
+
+export interface PbbRosterEntry {
+  playerFullName: string;
+  partnerFullName?: string | null;
+  playerSkill?: string;
+  partnerSkill?: string;
+  isRegistered: boolean;
+  playerId?: string;
+  playerSlug?: string;
+  playerCityState?: string;
+  playerGender?: string;
+  partnerId?: string;
+}
+
+/**
+ * Find a medal team in PBB's live roster. Used when a medalist is missing
+ * from OUR roster: teams that join an event after our last pre-start sync
+ * (late adds, bracket merges on tournament day) never reach event_players —
+ * rosters freeze once play starts — so their medals had nowhere to land.
+ */
+export function findMedalTeamInRoster(
+  roster: PbbRosterEntry[],
+  medalNames: string[],
+): PbbRosterEntry | null {
+  for (const entry of roster) {
+    if (!entry.isRegistered || !entry.playerFullName) continue;
+    if (medalNames.length === 1) {
+      if (nameMatch(entry.playerFullName, medalNames[0])) return entry;
+      continue;
+    }
+    const names = [entry.playerFullName, entry.partnerFullName].filter(Boolean) as string[];
+    if (
+      names.length >= medalNames.length &&
+      medalNames.every((mn) => names.some((pn) => nameMatch(mn, pn)))
+    ) {
+      return entry;
+    }
+  }
+  return null;
 }
 
 // Keep re-checking a tournament for this many days after it ends. Medals post
@@ -162,9 +217,36 @@ export async function writePlacements(): Promise<number> {
             }
           }
         } else {
-          console.log(
-            `[placements] WARN: no match for ${medal.names.join(" / ")} in ${pbbEvent.title}`,
+          // Medalist missing from our roster — backfill from PBB's live
+          // eventPlayers API (still served after completion) so the medal
+          // has a row to land on, then write the placement in one insert.
+          const backfilled = await backfillMissingMedalist(
+            eventId,
+            pbbEvent.activityId,
+            medal.names,
+            medal.placement,
           );
+          if (backfilled) {
+            totalWritten++;
+            console.log(
+              `[placements] ${medal.names.join(" / ")} → ${medal.placement === 1 ? "🥇" : medal.placement === 2 ? "🥈" : "🥉"} in ${pbbEvent.title} (roster backfilled)`,
+            );
+            if (backfilled.playerId) {
+              drops.push({
+                tournamentName: (tournament.name as string) ?? "Tournament",
+                eventName: pbbEvent.title,
+                eventId,
+                playerId: backfilled.playerId,
+                playerName: backfilled.playerName,
+                partnerName: backfilled.partnerName,
+                placement: medal.placement,
+              });
+            }
+          } else {
+            console.log(
+              `[placements] WARN: no match for ${medal.names.join(" / ")} in ${pbbEvent.title}`,
+            );
+          }
         }
       }
     }
@@ -174,4 +256,65 @@ export async function writePlacements(): Promise<number> {
   // Push ready-to-post social prompts for the new gold medalists (the loop).
   await sendResultDrops(drops);
   return totalWritten;
+}
+
+/** Insert a medal team that never made it into event_players (late add or
+ *  bracket merge after our last roster sync), placement included. Returns
+ *  the inserted identity, or null when PBB's roster doesn't have them either. */
+async function backfillMissingMedalist(
+  eventId: string,
+  activityId: string,
+  medalNames: string[],
+  placement: number,
+): Promise<{ playerId: string | null; playerName: string; partnerName: string | null } | null> {
+  const res = await fetch(
+    `${PBB_API}/eventPlayers?activityId=${activityId}&activitySplitId=null`,
+  );
+  if (!res.ok) return null;
+  const roster = (await res.json()) as PbbRosterEntry[];
+  if (!Array.isArray(roster)) return null;
+
+  const entry = findMedalTeamInRoster(roster, medalNames);
+  if (!entry) return null;
+
+  const { supabase } = await import("./supabase.js");
+  const { upsertPlayers } = await import("./upsert.js");
+
+  const skill = parseFloat(entry.playerSkill ?? "");
+  const partnerSkill = parseFloat(entry.partnerSkill ?? "");
+  const scraped = {
+    name: entry.playerFullName.trim(),
+    duprRating: !isNaN(skill) && skill > 0 ? skill : undefined,
+    partnerName: entry.partnerFullName?.trim() || undefined,
+    partnerDuprRating: !isNaN(partnerSkill) && partnerSkill > 0 ? partnerSkill : undefined,
+    sourcePlayerId: entry.playerId || undefined,
+    sourceSlug: entry.playerSlug || undefined,
+    location: entry.playerCityState || undefined,
+    gender: entry.playerGender || undefined,
+    partnerSourcePlayerId: entry.partnerId || undefined,
+  };
+  const idMap = await upsertPlayers([scraped]);
+  const playerId = scraped.sourcePlayerId ? (idMap.get(scraped.sourcePlayerId) ?? null) : null;
+
+  const { error } = await supabase.from("event_players").insert({
+    event_id: eventId,
+    player_name: scraped.name,
+    dupr_rating: scraped.duprRating ?? null,
+    partner_name: scraped.partnerName ?? null,
+    partner_dupr_rating: scraped.partnerDuprRating ?? null,
+    team_avg_dupr:
+      scraped.duprRating != null && scraped.partnerDuprRating != null
+        ? Math.round(((scraped.duprRating + scraped.partnerDuprRating) / 2) * 100) / 100
+        : null,
+    player_id: playerId,
+    partner_id: scraped.partnerSourcePlayerId
+      ? (idMap.get(scraped.partnerSourcePlayerId) ?? null)
+      : null,
+    placement,
+  });
+  if (error) {
+    console.error(`[placements] backfill insert failed for ${scraped.name}:`, error.message);
+    return null;
+  }
+  return { playerId, playerName: scraped.name, partnerName: scraped.partnerName ?? null };
 }
