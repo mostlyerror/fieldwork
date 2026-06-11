@@ -186,7 +186,7 @@ export default async function TournamentPage({ params }: PageProps) {
             <TournamentHero tournament={tournament} sources={sources} events={events} />
           </div>
 
-          <div className="lg:col-start-1 lg:row-start-1 lg:row-span-2 lg:self-start lg:sticky lg:top-6">
+          <div className="lg:col-start-1 lg:row-start-1 lg:row-span-4 lg:self-start lg:sticky lg:top-6">
             <TournamentOverview
               tournament={tournament}
               sources={sources}
@@ -203,24 +203,26 @@ export default async function TournamentPage({ params }: PageProps) {
               <EventBreakdown events={events} />
             </section>
           )}
+
+          {/* Bracket and podium continue down the right column on lg so the
+              page keeps one consistent alignment below the hero — they used
+              to drop back to a centered max-w-4xl, which jogged the layout. */}
+          {matches.length > 0 && (
+            <section className="mt-6 lg:col-start-2 lg:row-start-3 lg:mt-8">
+              <LiveBracket matches={matches} events={events} />
+            </section>
+          )}
+
+          {events.length > 0 && (
+            <section className="mt-6 lg:col-start-2 lg:row-start-4 lg:mt-8">
+              <TournamentPodium events={events} />
+            </section>
+          )}
         </div>
 
-        {/* Everything below the briefing block stays at the original reading
-            width (max-w-4xl) and centered, identical on mobile and desktop —
-            only the briefing block above goes wide on lg. */}
+        {/* The quiet "keep exploring" zone stays at reading width (max-w-4xl)
+            and centered, identical on mobile and desktop. */}
         <div className="lg:mx-auto lg:max-w-4xl">
-        {matches.length > 0 && (
-          <section className="mt-6">
-            <LiveBracket matches={matches} events={events} />
-          </section>
-        )}
-
-        {events.length > 0 && (
-          <section className="mt-6">
-            <TournamentPodium events={events} />
-          </section>
-        )}
-
         {/* Secondary "keep exploring" zone — deliberately quiet so it never
             competes with this tournament's field intelligence (the main event).
             Compact text links, not full cards. */}
