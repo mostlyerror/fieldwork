@@ -30,34 +30,11 @@ import { startRun, completeRun, failRun } from "./utils/logger.js";
 // (migration 031) ensures the 12 are the players who most need a pull.
 const ROSTER_REFRESH_CAP = 12;
 
-/** Format one player line, e.g. "• Ben Poon  3.38 → 3.40  (+0.02, +5 matches)". */
-function formatPlayerLine(p: PlayerHistorySummary): string {
-  const matches = `${p.matchesAdded >= 0 ? "+" : ""}${p.matchesAdded} match${p.matchesAdded === 1 ? "" : "es"}`;
-
-  // Honest rating display: only show a before→after delta when we have both
-  // numbers; otherwise just show the current rating (or nothing if unknown).
-  let rating = "";
-  if (p.ratingBefore != null && p.ratingAfter != null) {
-    const delta = p.ratingAfter - p.ratingBefore;
-    const deltaStr = `${delta >= 0 ? "+" : ""}${delta.toFixed(2)}`;
-    rating =
-      delta === 0
-        ? `${p.ratingAfter.toFixed(2)}  `
-        : `${p.ratingBefore.toFixed(2)} → ${p.ratingAfter.toFixed(2)}  (${deltaStr}, `;
-  } else if (p.ratingAfter != null) {
-    rating = `${p.ratingAfter.toFixed(2)}  `;
-  }
-
-  // When there's a non-zero delta we opened a paren above; close it with matches.
-  if (rating.endsWith(", ")) return `• ${p.name}  ${rating}${matches})`;
-  return `• ${p.name}  ${rating}(${matches})`;
-}
-
-/** Best-effort: post the refreshed player history (name, rating, matches) to
- *  Discord — but ONLY for players who actually gained matches this run. The
+/** Best-effort: post an aggregate summary of the refreshed player history to
+ *  Discord — but ONLY when players actually gained matches this run. The
  *  hourly metered pass mostly re-checks players with no new DUPR matches, and
- *  posting those (+0, no change) is just noise. Stay silent unless something
- *  actually moved. */
+ *  posting those (+0, no change) is just noise. Per-player lines proved noisy
+ *  too, so this stays aggregate-only: counts and rating movement, no names. */
 async function postPlayerHistory(players: PlayerHistorySummary[]): Promise<void> {
   const changed = players.filter((p) => p.matchesAdded > 0);
   if (changed.length === 0) return;
@@ -69,11 +46,18 @@ async function postPlayerHistory(players: PlayerHistorySummary[]): Promise<void>
   }
   try {
     const coverage = await getDuprCoverage().catch(() => null);
-    const lines = changed.map(formatPlayerLine).join("\n");
+    const totalMatches = changed.reduce((sum, p) => sum + p.matchesAdded, 0);
+    const deltas = changed
+      .filter((p) => p.ratingBefore != null && p.ratingAfter != null)
+      .map((p) => p.ratingAfter! - p.ratingBefore!)
+      .filter((d) => d !== 0);
+    const up = deltas.filter((d) => d > 0).length;
+    const down = deltas.filter((d) => d < 0).length;
+    const ratingsPart = deltas.length > 0 ? ` · ratings moved: ${up}↑ ${down}↓` : "";
     const coverageLine = coverage ? `\n\nDUPR coverage: ${formatCoverage(coverage)}` : "";
     await sendDiscordAlert({
       title: `📊 Player history — ${changed.length} updated`,
-      description: `${lines}${coverageLine}`,
+      description: `+${totalMatches} match${totalMatches === 1 ? "" : "es"} across ${changed.length} player${changed.length === 1 ? "" : "s"}${ratingsPart}${coverageLine}`,
     });
   } catch (err) {
     console.error("[urgent-refresh] player history alert failed (non-fatal):", err);
