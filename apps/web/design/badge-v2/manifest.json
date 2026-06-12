@@ -1,0 +1,7 @@
+[
+  { "file": "01-medallion-shelf.html", "name": "Medallion Shelf", "desc": "Chunky 3D coins with rarity-metal rims; locked = dark silhouettes." },
+  { "file": "02-quest-path.html", "name": "Quest Path", "desc": "Duolingo pressable nodes; progress rings on almost-earned; 6/9 bar." },
+  { "file": "03-sticker-pack.html", "name": "Sticker Pack", "desc": "Glossy die-cut stickers, playful tilt, holo sheen on legendary." },
+  { "file": "04-trophy-foil-cards.html", "name": "Trophy Foil Cards", "desc": "Mini TCG cards, foil frames, 3D tilt, flip-to-reveal." },
+  { "file": "05-xp-gem-grid.html", "name": "XP Gem Grid", "desc": "Faceted gems on pedestals + an RPG Lvl/XP bar; locked = shards." }
+]

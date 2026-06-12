@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PickleRadar — Share Card · The Receipt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Mono:wght@400;700&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  :root {
+    --cream: #fffdf7;
+    --ink: #13231c;
+    --ink-near: #0a0a0a;
+    --emerald: #065f46;
+    --rule: #e7e3d8;
+    --muted: #8a8675;
+    --muted-2: #6f6c5e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: #f3f1ea;
+    color: var(--ink);
+    font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .stage {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px 64px;
+    /* soft neutral backdrop */
+    background:
+      radial-gradient(120% 90% at 50% 0%, #f7f5ee 0%, #efece3 60%, #e9e6dc 100%);
+  }
+
+  .label {
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 22px;
+  }
+
+  /* ── The square card ─────────────────────────────── */
+  .card {
+    width: 1080px;
+    height: 1080px;
+    /* keep it responsive in the browser preview */
+    max-width: min(92vw, 1080px);
+    aspect-ratio: 1 / 1;
+    background: var(--cream);
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+      0 1px 0 rgba(19, 35, 28, 0.04),
+      0 40px 80px -40px rgba(19, 35, 28, 0.28),
+      0 8px 24px -16px rgba(19, 35, 28, 0.22);
+    /* internal scale so everything is sized in card-px regardless of preview width */
+    container-type: inline-size;
+  }
+
+  /* a faint perforated edge — the "receipt" tell, very quiet */
+  .card::before,
+  .card::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background:
+      repeating-linear-gradient(
+        to right,
+        var(--rule) 0,
+        var(--rule) 10px,
+        transparent 10px,
+        transparent 20px
+      );
+    opacity: 0.9;
+  }
+  .card::before { top: 7.4cqw; }
+  .card::after { bottom: 7.4cqw; }
+
+  .inner {
+    position: absolute;
+    inset: 0;
+    padding: 9.6cqw 9.2cqw;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Masthead ───────────────────────────────────── */
+  .masthead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 1.5cqw;
+  }
+
+  .mark {
+    width: 3.4cqw;
+    height: 3.4cqw;
+    flex: 0 0 auto;
+    display: block;
+  }
+  .mark circle, .mark line { fill: none; stroke: var(--emerald); }
+  .mark .sweep { stroke: var(--emerald); }
+
+  .wordmark {
+    font-size: 2.0cqw;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    color: var(--ink);
+  }
+
+  .docmeta {
+    font-family: "Space Mono", ui-monospace, monospace;
+    font-size: 1.45cqw;
+    letter-spacing: 0.04em;
+    color: var(--muted-2);
+    text-align: right;
+  }
+
+  /* ── Header block ───────────────────────────────── */
+  .eyebrow {
+    margin-top: 9.5cqw;
+    font-family: "Space Mono", ui-monospace, monospace;
+    font-size: 1.55cqw;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .partnership {
+    margin-top: 3.0cqw;
+  }
+  .partnership .p-name {
+    font-size: 5.6cqw;
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+  .partnership .amp {
+    display: block;
+    margin: 0.6cqw 0;
+    font-size: 2.4cqw;
+    font-weight: 600;
+    color: var(--emerald);
+    font-style: italic;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── The quiet hero: the record ─────────────────── */
+  .hero {
+    margin-top: 7.2cqw;
+    display: flex;
+    align-items: flex-end;
+    gap: 3.2cqw;
+  }
+  .hero .record {
+    font-family: "Space Mono", ui-monospace, monospace;
+    font-size: 13.5cqw;
+    font-weight: 700;
+    line-height: 0.86;
+    letter-spacing: -0.02em;
+    color: var(--ink-near);
+  }
+  .hero .record .dash {
+    color: var(--emerald);
+    font-weight: 400;
+  }
+  .hero .record-cap {
+    padding-bottom: 1.6cqw;
+  }
+  .hero .record-cap .k {
+    font-family: "Space Mono", ui-monospace, monospace;
+    font-size: 1.5cqw;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .hero .record-cap .v {
+    margin-top: 0.6cqw;
+    font-size: 2.0cqw;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+
+  /* ── Stat rows / the receipt body ───────────────── */
+  .rule {
+    height: 1px;
+    background: var(--rule);
+    margin: 6.4cqw 0 0;
+  }
+
+  .rows {
+    margin-top: 0.4cqw;
+  }
+  .row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 2.55cqw 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .row .k {
+    font-size: 1.95cqw;
+    font-weight: 600;
+    color: var(--muted-2);
+    letter-spacing: 0.005em;
+  }
+  .row .leader {
+    flex: 1 1 auto;
+    margin: 0 1.4cqw;
+    height: 1px;
+    align-self: center;
+    background:
+      repeating-linear-gradient(
+        to right,
+        var(--rule) 0,
+        var(--rule) 2px,
+        transparent 2px,
+        transparent 7px
+      );
+    opacity: 0.85;
+  }
+  .row .v {
+    font-family: "Space Mono", ui-monospace, monospace;
+    font-size: 2.05cqw;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+  .row .v.accent { color: var(--emerald); }
+
+  /* ── Footer / CTA ───────────────────────────────── */
+  .foot {
+    margin-top: auto;
+    padding-top: 5.0cqw;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+  .cta {
+    font-size: 2.15cqw;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+  .cta .dot {
+    color: var(--emerald);
+    padding: 0 0.55cqw;
+  }
+  .cta .url {
+    color: var(--emerald);
+  }
+  .stamp {
+    text-align: right;
+    font-family: "Space Mono", ui-monospace, monospace;
+    font-size: 1.4cqw;
+    line-height: 1.5;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="label">Share card · Instagram 1:1</div>
+
+    <div class="card">
+      <div class="inner">
+
+        <!-- Masthead -->
+        <div class="masthead">
+          <div class="brand">
+            <svg class="mark" viewBox="0 0 40 40" aria-hidden="true">
+              <circle cx="20" cy="20" r="17.5" stroke-width="2" />
+              <circle cx="20" cy="20" r="10.5" stroke-width="2" />
+              <circle cx="20" cy="20" r="2.6" fill="#065f46" stroke="none" />
+              <line class="sweep" x1="20" y1="20" x2="33.5" y2="9.5" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            <span class="wordmark">PickleRadar</span>
+          </div>
+          <div class="docmeta">
+            HOU · MIXED DOUBLES<br />
+            NO. 0607-BP-CT
+          </div>
+        </div>
+
+        <!-- Header -->
+        <div class="eyebrow">Partnership record</div>
+        <div class="partnership">
+          <div class="p-name">Ben Poon</div>
+          <span class="amp">&amp;</span>
+          <div class="p-name">Cecilia Trinh</div>
+        </div>
+
+        <!-- Hero record -->
+        <div class="hero">
+          <div class="record">3<span class="dash">–</span>2</div>
+          <div class="record-cap">
+            <div class="k">Together</div>
+            <div class="v">5 matches played</div>
+          </div>
+        </div>
+
+        <div class="rule"></div>
+
+        <!-- Stat rows -->
+        <div class="rows">
+          <div class="row">
+            <span class="k">Win rate</span>
+            <span class="leader"></span>
+            <span class="v accent">60%</span>
+          </div>
+          <div class="row">
+            <span class="k">Avg. margin</span>
+            <span class="leader"></span>
+            <span class="v">+1.8</span>
+          </div>
+          <div class="row">
+            <span class="k">Ben — DUPR</span>
+            <span class="leader"></span>
+            <span class="v">3.38</span>
+          </div>
+          <div class="row">
+            <span class="k">Event</span>
+            <span class="leader"></span>
+            <span class="v">The Village Mini</span>
+          </div>
+          <div class="row">
+            <span class="k">First played</span>
+            <span class="leader"></span>
+            <span class="v">Jun 7, 2026</span>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="foot">
+          <div class="cta">
+            see your side <span class="dot">·</span><span class="url">pickleradar.app</span>
+          </div>
+          <div class="stamp">
+            HOUSTON, TX<br />
+            JUN 2026
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>

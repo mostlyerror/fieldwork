@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PickleRadar · Share Card · The Headline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFFDF7;
+    --ink:#0a0a0a;
+    --emerald:#065F46;
+    --emerald-bright:#0a7d5a;
+    --gold:#d4a72c;
+    --paper-line:rgba(10,10,10,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+    background:
+      radial-gradient(120% 90% at 50% 0%, #f3efe2 0%, #e9e3d3 60%, #e3dcc9 100%);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:48px 24px;
+    gap:18px;
+  }
+
+  .stage{width:1080px;max-width:100%;display:flex;flex-direction:column;align-items:center;gap:14px;}
+
+  .label{
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:rgba(10,10,10,.42);
+  }
+
+  /* ---- THE CARD ---- */
+  .card{
+    position:relative;
+    width:1080px;
+    height:1080px;
+    background:var(--cream);
+    overflow:hidden;
+    box-shadow:0 40px 90px -30px rgba(20,30,25,.45), 0 4px 14px rgba(20,30,25,.10);
+    display:flex;
+    flex-direction:column;
+    /* paper grain */
+    background-image:
+      radial-gradient(rgba(10,10,10,.018) 1px, transparent 1px);
+    background-size:4px 4px;
+  }
+
+  /* faint radar arcs, bottom-right, as quiet motif */
+  .radar{position:absolute;right:-160px;bottom:-180px;width:560px;height:560px;pointer-events:none;opacity:.55;}
+  .radar svg{width:100%;height:100%;}
+
+  /* ---- MASTHEAD ---- */
+  .masthead{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:46px 64px 0;
+    z-index:2;
+  }
+  .wordmark{display:flex;align-items:center;gap:12px;}
+  .wordmark .dot{
+    width:26px;height:26px;border-radius:999px;
+    background:var(--emerald);
+    position:relative;
+    box-shadow:0 0 0 5px rgba(6,95,70,.12);
+  }
+  .wordmark .dot::after{
+    content:"";position:absolute;inset:8px;border-radius:999px;background:var(--gold);
+  }
+  .wordmark .name{
+    font-weight:800;font-size:25px;letter-spacing:-.01em;color:var(--ink);
+  }
+  .issue{
+    text-align:right;font-size:14px;font-weight:600;letter-spacing:.14em;
+    text-transform:uppercase;color:rgba(10,10,10,.5);line-height:1.5;
+  }
+  .issue .iss{color:var(--emerald);}
+
+  .rule{
+    height:3px;margin:30px 64px 0;
+    background:var(--ink);
+    z-index:2;
+  }
+  .kicker{
+    margin:22px 64px 0;
+    display:flex;align-items:center;gap:14px;
+    z-index:2;
+  }
+  .kicker .tag{
+    font-size:15px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;
+    color:#fff;background:var(--emerald);padding:7px 14px;border-radius:4px;
+  }
+  .kicker .sub{
+    font-size:16px;font-weight:600;letter-spacing:.05em;color:rgba(10,10,10,.55);
+  }
+
+  /* ---- HEADLINE ---- */
+  .headline-wrap{padding:26px 64px 0;z-index:2;}
+  .headline{
+    font-family:'Fraunces',Georgia,serif;
+    font-weight:600;
+    font-size:128px;
+    line-height:.92;
+    letter-spacing:-.025em;
+    color:var(--ink);
+  }
+  .headline em{
+    font-style:italic;
+    color:var(--emerald-bright);
+  }
+  .headline .amp{color:var(--gold);font-style:italic;}
+
+  .deck{
+    font-family:'Fraunces',Georgia,serif;
+    font-style:italic;
+    font-weight:400;
+    font-size:33px;
+    line-height:1.32;
+    color:rgba(10,10,10,.74);
+    margin:30px 64px 0;
+    max-width:880px;
+    z-index:2;
+  }
+  .deck .drop{
+    font-style:normal;font-weight:800;color:var(--emerald);
+  }
+
+  /* ---- BYLINE / PLAYERS ---- */
+  .byline{
+    margin:34px 64px 0;
+    display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;
+    z-index:2;
+  }
+  .byline .by{
+    font-size:16px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+    color:rgba(10,10,10,.4);
+  }
+  .byline .names{
+    font-size:34px;font-weight:800;letter-spacing:-.01em;color:var(--ink);
+  }
+  .byline .names .vs{color:var(--gold);padding:0 6px;}
+
+  /* spacer pushes stats to bottom */
+  .spacer{flex:1;}
+
+  /* ---- STAT STRIP ---- */
+  .stats{
+    margin:0 64px 0;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    border-top:3px solid var(--ink);
+    z-index:2;
+  }
+  .stat{
+    padding:26px 22px 8px;
+    border-right:1px solid var(--paper-line);
+  }
+  .stat:last-child{border-right:none;}
+  .stat .k{
+    font-size:13px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;
+    color:rgba(10,10,10,.45);margin-bottom:10px;
+  }
+  .stat .v{
+    font-family:'Fraunces',Georgia,serif;
+    font-weight:600;font-size:50px;line-height:1;letter-spacing:-.02em;color:var(--ink);
+  }
+  .stat .v small{font-size:21px;font-weight:600;color:rgba(10,10,10,.5);letter-spacing:0;}
+  .stat .v .win{color:var(--emerald-bright);}
+
+  /* ---- FOOTER / CTA ---- */
+  .footer{
+    margin-top:30px;
+    background:var(--emerald);
+    color:#fff;
+    padding:30px 64px;
+    display:flex;align-items:center;justify-content:space-between;
+    z-index:2;
+  }
+  .footer .cta{
+    display:flex;align-items:center;gap:14px;
+    font-size:26px;font-weight:800;letter-spacing:-.005em;
+  }
+  .footer .cta .arrow{color:var(--gold);}
+  .footer .url{
+    text-align:right;
+    font-size:15px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+    color:rgba(255,255,255,.72);line-height:1.5;
+  }
+  .footer .url b{display:block;color:#fff;font-weight:800;letter-spacing:.06em;font-size:18px;}
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="label">Share card · Instagram 1:1</div>
+
+    <div class="card">
+      <!-- quiet radar motif -->
+      <div class="radar" aria-hidden="true">
+        <svg viewBox="0 0 560 560" fill="none">
+          <g stroke="#065F46" stroke-width="1.4" opacity="0.5">
+            <circle cx="280" cy="280" r="90"/>
+            <circle cx="280" cy="280" r="160"/>
+            <circle cx="280" cy="280" r="230"/>
+            <circle cx="280" cy="280" r="300"/>
+          </g>
+          <path d="M280 280 L520 130 A300 300 0 0 1 540 300 Z" fill="#d4a72c" opacity="0.10"/>
+          <line x1="280" y1="280" x2="540" y2="118" stroke="#d4a72c" stroke-width="2" opacity="0.55"/>
+          <circle cx="280" cy="280" r="6" fill="#065F46"/>
+        </svg>
+      </div>
+
+      <div class="masthead">
+        <div class="wordmark">
+          <span class="dot"></span>
+          <span class="name">PickleRadar</span>
+        </div>
+        <div class="issue">
+          The Scouting Report<br>
+          <span class="iss">Houston · Vol. 1</span>
+        </div>
+      </div>
+
+      <div class="rule"></div>
+
+      <div class="kicker">
+        <span class="tag">The Read</span>
+        <span class="sub">Mixed Doubles · The Village Mini · June 2026</span>
+      </div>
+
+      <div class="headline-wrap">
+        <h1 class="headline">Better<br><em>together,</em><br>obviously.</h1>
+      </div>
+
+      <p class="deck">
+        <span class="drop">Two righties</span> who refuse to leave the middle open. Poon sets the table from the baseline, Trinh closes at the kitchen — and at 3.38, he's the one nobody's seeding high enough yet.
+      </p>
+
+      <div class="byline">
+        <span class="by">A duo read by</span>
+        <span class="names">Ben Poon <span class="vs">&amp;</span> Cecilia Trinh</span>
+      </div>
+
+      <div class="spacer"></div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="k">Together</div>
+          <div class="v"><span class="win">3</span>–2 <small>· 5 mt</small></div>
+        </div>
+        <div class="stat">
+          <div class="k">Poon · DUPR</div>
+          <div class="v">3.38</div>
+        </div>
+        <div class="stat">
+          <div class="k">Trinh · DUPR</div>
+          <div class="v">—</div>
+        </div>
+        <div class="stat">
+          <div class="k">Event</div>
+          <div class="v" style="font-size:27px;line-height:1.15;">Village<br><small>Mini · MXD</small></div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="cta">
+          <span>Read your side of the duo</span>
+          <span class="arrow">→</span>
+        </div>
+        <div class="url">
+          See your read on<br>
+          <b>pickleradar.app</b>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

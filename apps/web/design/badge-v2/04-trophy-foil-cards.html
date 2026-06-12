@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Badge Grid · Trophy Foil Cards · PickleRadar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --cream: #FFFDF7;
+    --ink: #0d2b22;
+    --ink-soft: #3c5650;
+    --emerald-d: #065F46;
+    --emerald: #1f9d57;
+
+    /* rarity materials */
+    --bronze-1: #d8a667;
+    --bronze-2: #a9682f;
+    --bronze-3: #7a4715;
+    --bronze-bg: linear-gradient(160deg, #fff6ea 0%, #fbe6cb 55%, #f4d3a6 100%);
+
+    --emr-1: #4fd190;
+    --emr-2: #1f9d57;
+    --emr-3: #065F46;
+    --emr-bg: linear-gradient(160deg, #f0fff6 0%, #d6f6e3 55%, #b6eccd 100%);
+
+    --gold-1: #ffe9a3;
+    --gold-2: #e9b949;
+    --gold-3: #b07d18;
+    --gold-bg: linear-gradient(160deg, #fffdf0 0%, #fdf0c4 50%, #f7dd97 100%);
+
+    --leg-bg: linear-gradient(150deg, #fff4fb 0%, #eef6ff 30%, #f3fff6 60%, #fff7ec 100%);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 40px 20px 96px;
+  }
+
+  .page-head { margin-bottom: 36px; }
+  .page-head .eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--emerald);
+    margin: 0 0 8px;
+  }
+  .page-head h1 {
+    margin: 0; font-size: clamp(26px, 5vw, 40px); font-weight: 800;
+    letter-spacing: -.02em; line-height: 1.05;
+  }
+  .page-head p { margin: 10px 0 0; color: var(--ink-soft); max-width: 56ch; font-size: 15px; }
+
+  .size-label {
+    display: flex; align-items: baseline; gap: 10px;
+    margin: 48px 0 18px;
+  }
+  .size-label .tag {
+    font-size: 11px; font-weight: 800; letter-spacing: .12em;
+    text-transform: uppercase; color: #fff;
+    background: var(--emerald-d); padding: 4px 10px; border-radius: 999px;
+  }
+  .size-label .sub { font-size: 13px; color: var(--ink-soft); font-weight: 500; }
+
+  /* ---------------- RAIL container ---------------- */
+  .rail {
+    width: 320px; max-width: 100%;
+    background: #fff;
+    border: 1px solid #ece3d2;
+    border-radius: 20px;
+    padding: 18px 16px 22px;
+    box-shadow: 0 14px 40px -22px rgba(40,30,10,.35), 0 2px 4px rgba(40,30,10,.04);
+  }
+  .standalone {
+    width: 560px; max-width: 100%;
+    background: #fff;
+    border: 1px solid #ece3d2;
+    border-radius: 22px;
+    padding: 22px 22px 26px;
+    box-shadow: 0 18px 50px -26px rgba(40,30,10,.38), 0 2px 4px rgba(40,30,10,.04);
+  }
+
+  .col-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .col-head .who { display: flex; align-items: center; gap: 10px; }
+  .col-head .avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--emerald) 0%, var(--emerald-d) 100%);
+    color: #fff; font-weight: 800; font-size: 13px;
+    display: grid; place-items: center; flex: none;
+  }
+  .col-head .titles strong {
+    display: block; font-size: 11px; font-weight: 800; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink);
+  }
+  .col-head .titles span { font-size: 12px; color: var(--ink-soft); }
+  .col-head .count {
+    font-size: 12px; font-weight: 800; color: var(--emerald-d);
+    background: #eafaf0; border: 1px solid #cdeedd;
+    padding: 4px 10px; border-radius: 999px; white-space: nowrap;
+  }
+
+  /* progress */
+  .progress {
+    height: 6px; border-radius: 999px; background: #eee5d4;
+    overflow: hidden; margin-bottom: 18px;
+  }
+  .progress > i {
+    display: block; height: 100%; width: 66.6%;
+    background: linear-gradient(90deg, var(--emerald) 0%, var(--emerald-d) 100%);
+    border-radius: 999px;
+  }
+
+  /* ---------------- card grid ---------------- */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .standalone .grid { gap: 16px; grid-template-columns: repeat(3, 1fr); }
+
+  /* ---------------- CARD ---------------- */
+  .card {
+    position: relative;
+    aspect-ratio: 3 / 4.05;
+    border-radius: 14px;
+    cursor: pointer;
+    perspective: 900px;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+  .card:focus-visible .flip { box-shadow: 0 0 0 3px rgba(31,157,87,.45); }
+
+  .flip {
+    position: absolute; inset: 0;
+    transform-style: preserve-3d;
+    transition: transform .55s cubic-bezier(.2,.7,.2,1);
+    border-radius: 14px;
+  }
+  .card.flipped .flip { transform: rotateY(180deg); }
+
+  .face {
+    position: absolute; inset: 0;
+    border-radius: 14px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    padding: 9px 8px 10px;
+  }
+  .standalone .face { padding: 12px 11px 13px; }
+
+  /* frame = a thick foil border drawn with gradient + inner panel */
+  .front {
+    border: 2.5px solid transparent;
+  }
+  /* corner notches */
+  .face .notch {
+    position: absolute; width: 9px; height: 9px;
+    border: 2px solid rgba(255,255,255,.85);
+    z-index: 4; pointer-events: none;
+    mix-blend-mode: overlay;
+  }
+  .notch.tl { top: 4px; left: 4px; border-right: 0; border-bottom: 0; border-radius: 3px 0 0 0; }
+  .notch.tr { top: 4px; right: 4px; border-left: 0; border-bottom: 0; border-radius: 0 3px 0 0; }
+  .notch.bl { bottom: 4px; left: 4px; border-right: 0; border-top: 0; border-radius: 0 0 0 3px; }
+  .notch.br { bottom: 4px; right: 4px; border-left: 0; border-top: 0; border-radius: 0 0 3px 0; }
+
+  /* rarity frame coloring via background on .front (border is transparent, bg shows through) */
+  .r-common  .front { background: var(--bronze-bg); border-color: var(--bronze-2);
+    box-shadow: inset 0 0 0 1px rgba(122,71,21,.35), inset 0 1px 0 rgba(255,255,255,.7); }
+  .r-uncommon .front { background: var(--emr-bg); border-color: var(--emr-2);
+    box-shadow: inset 0 0 0 1px rgba(6,95,70,.32), inset 0 1px 0 rgba(255,255,255,.7); }
+  .r-rare .front { background: var(--gold-bg); border-color: var(--gold-2);
+    box-shadow: inset 0 0 0 1px rgba(176,125,24,.4), inset 0 1px 0 rgba(255,255,255,.85); }
+  .r-legendary .front { background: var(--leg-bg); border-color: transparent;
+    box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.6); }
+
+  /* legendary iridescent frame */
+  .r-legendary .front::after {
+    content: ""; position: absolute; inset: -2.5px; border-radius: 14px;
+    padding: 2.5px; z-index: 0;
+    background: linear-gradient(125deg,
+      #ff7eb3, #ff9966, #f7e463, #6ee7b7, #5ed2ff, #b59cff, #ff7eb3);
+    background-size: 300% 300%;
+    animation: holo 6s linear infinite;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    pointer-events: none;
+  }
+  @keyframes holo { to { background-position: 300% 300%; } }
+
+  /* inner panel */
+  .panel {
+    position: relative; z-index: 2;
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    border-radius: 9px;
+    background:
+      radial-gradient(120% 80% at 50% -10%, rgba(255,255,255,.9), rgba(255,255,255,0) 60%),
+      rgba(255,255,255,.55);
+    backdrop-filter: blur(.5px);
+    padding: 8px 6px 8px;
+    text-align: center;
+    overflow: hidden;
+  }
+  .standalone .panel { padding: 11px 8px 10px; }
+
+  /* crest holding the glyph */
+  .crest {
+    width: 46px; height: 46px; border-radius: 50%;
+    display: grid; place-items: center;
+    margin-top: 4px;
+    position: relative; flex: none;
+    color: #fff;
+  }
+  .standalone .crest { width: 56px; height: 56px; }
+  .crest svg { width: 24px; height: 24px; position: relative; z-index: 2; }
+  .standalone .crest svg { width: 28px; height: 28px; }
+  .crest::before {
+    content: ""; position: absolute; inset: -4px; border-radius: 50%;
+    z-index: 0; opacity: .5;
+  }
+
+  .r-common  .crest { background: linear-gradient(150deg, var(--bronze-1), var(--bronze-3)); box-shadow: 0 4px 10px -4px rgba(122,71,21,.6), inset 0 1px 1px rgba(255,255,255,.6); }
+  .r-uncommon .crest { background: linear-gradient(150deg, var(--emr-1), var(--emr-3)); box-shadow: 0 4px 10px -4px rgba(6,95,70,.6), inset 0 1px 1px rgba(255,255,255,.5); }
+  .r-rare .crest { background: linear-gradient(150deg, var(--gold-1), var(--gold-3)); color: #5a3d05; box-shadow: 0 4px 12px -4px rgba(176,125,24,.7), inset 0 1px 1px rgba(255,255,255,.9); }
+  .r-legendary .crest {
+    background: conic-gradient(from 0deg, #ff7eb3, #ffb86b, #f7e463, #6ee7b7, #5ed2ff, #b59cff, #ff7eb3);
+    color: #2a2140; box-shadow: 0 4px 14px -3px rgba(120,80,200,.5), inset 0 1px 2px rgba(255,255,255,.9);
+  }
+
+  .badge-name {
+    font-size: 11.5px; font-weight: 800; line-height: 1.15;
+    letter-spacing: -.01em; color: var(--ink);
+    margin: 8px 2px 0; min-height: 2.3em;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .standalone .badge-name { font-size: 13.5px; margin-top: 10px; }
+
+  /* ribbon */
+  .ribbon {
+    margin-top: auto;
+    font-size: 8.5px; font-weight: 800; letter-spacing: .14em;
+    text-transform: uppercase; color: #fff;
+    padding: 3px 9px; border-radius: 999px;
+    position: relative; z-index: 2;
+  }
+  .standalone .ribbon { font-size: 9.5px; padding: 3px 11px; }
+  .r-common  .ribbon { background: linear-gradient(90deg, var(--bronze-2), var(--bronze-3)); }
+  .r-uncommon .ribbon { background: linear-gradient(90deg, var(--emr-2), var(--emr-3)); }
+  .r-rare .ribbon { background: linear-gradient(90deg, var(--gold-2), var(--gold-3)); color: #fff; }
+  .r-legendary .ribbon {
+    background: linear-gradient(90deg, #b59cff, #ff7eb3, #ffb86b); color: #2a2140;
+    text-shadow: 0 1px 0 rgba(255,255,255,.3);
+  }
+
+  /* SHINE SWEEP for rare + legendary */
+  .shine {
+    position: absolute; inset: 0; z-index: 3; pointer-events: none;
+    border-radius: 12px; overflow: hidden;
+  }
+  .shine::before {
+    content: ""; position: absolute; top: -60%; left: -90%;
+    width: 60%; height: 220%;
+    background: linear-gradient(105deg, transparent, rgba(255,255,255,.85), transparent);
+    transform: rotate(8deg);
+    animation: sweep 4.5s ease-in-out infinite;
+    opacity: .9;
+  }
+  .r-rare .shine::before { animation-delay: 1.2s; }
+  @keyframes sweep {
+    0%, 55% { left: -90%; }
+    78%, 100% { left: 150%; }
+  }
+
+  /* tilt only applies to rare/legendary via JS-set transform on .flip */
+  .tilt .flip { transition: transform .12s ease-out; }
+
+  /* ---------- BACK face ---------- */
+  .back {
+    transform: rotateY(180deg);
+    background: linear-gradient(160deg, #0c3b2e 0%, #062e22 100%);
+    color: #eafaf0;
+    border: 2.5px solid rgba(255,255,255,.12);
+    align-items: center; justify-content: center;
+    padding: 14px 12px;
+  }
+  .back .why-rarity {
+    font-size: 8.5px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase;
+    color: #7fe3ad; margin-bottom: 8px;
+  }
+  .back .why-name { font-size: 12px; font-weight: 800; margin-bottom: 8px; line-height: 1.2; }
+  .standalone .back .why-name { font-size: 14px; }
+  .back .why-text { font-size: 11px; line-height: 1.4; color: #cdeedd; }
+  .standalone .back .why-text { font-size: 12.5px; }
+  .back .tapflip { margin-top: 10px; font-size: 8px; letter-spacing: .14em; text-transform: uppercase; color: #5eb98b; }
+
+  /* ---------- LOCKED ---------- */
+  .card.locked { cursor: pointer; }
+  .locked .front {
+    background: repeating-linear-gradient(135deg, #ece6da 0 8px, #e6dfd1 8px 16px);
+    border-color: #c8bda6;
+    box-shadow: inset 0 0 0 1px rgba(140,125,95,.3);
+  }
+  .locked .panel {
+    background: rgba(255,255,255,.35);
+    color: #8b8170;
+  }
+  .locked .crest {
+    background: #cfc6b3 !important;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.12) !important;
+    color: #fff;
+  }
+  .locked .qmark {
+    font-size: 26px; font-weight: 800; color: #b3a892; margin: 6px 0 4px;
+    letter-spacing: .04em;
+  }
+  .locked .badge-name { color: #9c917c; }
+  .locked .lockhint {
+    margin-top: auto; font-size: 9px; line-height: 1.3; color: #9c917c;
+    padding: 0 2px;
+  }
+  .standalone .locked .lockhint { font-size: 10.5px; }
+  .locked .ribbon { opacity: .55; }
+  .locked .lockbadge {
+    position: absolute; top: 8px; right: 8px; z-index: 5;
+    width: 18px; height: 18px; color: #8b8170;
+  }
+
+  /* back of locked reveals the goal */
+  .locked .back { background: linear-gradient(160deg, #4a4334 0%, #2f2a1f 100%); }
+  .locked .back .why-rarity { color: #d9c98f; }
+  .locked .back .why-text { color: #e7ddc4; }
+
+  /* hover lift for non-tilt cards */
+  @media (hover: hover) {
+    .card:not(.flipped):hover .flip { transform: translateY(-3px); }
+    .tilt.card:not(.flipped):hover .flip { transform: none; }
+  }
+
+  .footnote {
+    margin-top: 14px; font-size: 11px; color: var(--ink-soft);
+    text-align: center; font-weight: 500;
+  }
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 10px 16px; margin-top: 40px;
+    padding-top: 20px; border-top: 1px solid #ece3d2;
+  }
+  .legend .item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--ink-soft); font-weight: 600; }
+  .legend .sw { width: 16px; height: 16px; border-radius: 4px; }
+  .sw.c { background: linear-gradient(150deg, var(--bronze-1), var(--bronze-3)); }
+  .sw.u { background: linear-gradient(150deg, var(--emr-1), var(--emr-3)); }
+  .sw.r { background: linear-gradient(150deg, var(--gold-1), var(--gold-3)); }
+  .sw.l { background: conic-gradient(from 0deg, #ff7eb3, #f7e463, #6ee7b7, #5ed2ff, #b59cff, #ff7eb3); }
+
+  @media (max-width: 420px) {
+    .page { padding: 28px 14px 64px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="page-head">
+    <p class="eyebrow">PickleRadar · Badge System v2</p>
+    <h1>Trophy Foil Cards</h1>
+    <p>Each achievement is a collectible mini-card with a rarity foil frame, a crest glyph, and a rarity ribbon. Rare and legendary cards catch a shine sweep and tilt toward your cursor. Tap any card to flip it and reveal why it was earned.</p>
+  </header>
+
+  <!-- ============ RAIL SIZE ============ -->
+  <div class="size-label">
+    <span class="tag">Rail · ~320px</span>
+    <span class="sub">profile left column</span>
+  </div>
+
+  <div class="rail" id="railHost">
+    <div class="col-head">
+      <div class="who">
+        <div class="avatar">MV</div>
+        <div class="titles">
+          <strong>Collection</strong>
+          <span>Marisol Vega</span>
+        </div>
+      </div>
+      <div class="count">6 / 9</div>
+    </div>
+    <div class="progress"><i></i></div>
+    <div class="grid" data-grid></div>
+    <p class="footnote">Tap a card to flip · 3 still locked</p>
+  </div>
+
+  <!-- ============ STANDALONE SIZE ============ -->
+  <div class="size-label">
+    <span class="tag">Standalone · ~560px</span>
+    <span class="sub">collection / achievements page</span>
+  </div>
+
+  <div class="standalone" id="wideHost">
+    <div class="col-head">
+      <div class="who">
+        <div class="avatar">MV</div>
+        <div class="titles">
+          <strong>Collection</strong>
+          <span>Marisol Vega · 6 of 9 unlocked</span>
+        </div>
+      </div>
+      <div class="count">6 / 9</div>
+    </div>
+    <div class="progress"><i></i></div>
+    <div class="grid" data-grid></div>
+    <p class="footnote">Tap a card to flip · rare &amp; legendary tilt and shimmer</p>
+  </div>
+
+  <div class="legend">
+    <div class="item"><span class="sw c"></span>Common · bronze</div>
+    <div class="item"><span class="sw u"></span>Uncommon · emerald</div>
+    <div class="item"><span class="sw r"></span>Rare · gold</div>
+    <div class="item"><span class="sw l"></span>Legendary · foil</div>
+  </div>
+</div>
+
+<script>
+/* ---------- glyphs (inline SVG, stroke=currentColor) ---------- */
+const G = {
+  climb: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-9"/><path d="M16 7h5v5"/></svg>',
+  battle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 9.5L20 4M18 4h2v2"/><path d="M5 12l3 3"/><path d="M3 21l6-6"/><path d="M9.5 14.5L4 20M6 20H4v-2"/><path d="M19 12l-3 3"/><path d="M21 21l-6-6"/></svg>',
+  fire: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c.6 2.5-1.5 4-2.5 5.5C8 10.5 7 12 7 14a5 5 0 0010 0c0-2-1-3.5-2-4.5"/><path d="M12 12.5c.8.8 1.2 1.7 1.2 2.7a1.7 1.7 0 11-3.4 0c0-.6.3-1.2.7-1.6"/></svg>',
+  handshake: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M11 17l2 2a1.5 1.5 0 002.1-2.1"/><path d="M13 15l2.5 2.5a1.5 1.5 0 002.1-2.1L13 11"/><path d="M3 8l3-3 5 4-2 2a1.5 1.5 0 01-2.1 0z"/><path d="M21 8l-3-3-4 3"/></svg>',
+  swap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3"/><path d="M4 8l3 3"/><path d="M20 16H7l3 3"/><path d="M20 16l-3-3"/></svg>',
+  pickle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="10" r="1"/><circle cx="11" cy="13.5" r="1"/><circle cx="14.5" cy="14.5" r="1"/></svg>',
+  giant: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.2 4.5L19 8l-3.5 3.4.8 4.8L12 14l-4.3 2.2.8-4.8L5 8l4.8-.5z"/></svg>',
+  comeback: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 109-9"/><path d="M3 4v5h5"/><path d="M12 8v4l3 2"/></svg>',
+  peak: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19h18"/><path d="M5 19l5-11 3 6 2-3 4 8"/><circle cx="10" cy="5" r="1"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>'
+};
+
+const RLABEL = { common:'Common', uncommon:'Uncommon', rare:'Rare', legendary:'Legendary' };
+
+const BADGES = [
+  { id:'climb',  name:'On the Climb',  rarity:'uncommon', glyph:'climb',
+    why:'Rating trending up toward a fresh peak.' },
+  { id:'battle', name:'Battle-Tested', rarity:'common',   glyph:'battle',
+    why:'142 matches on record.' },
+  { id:'hot',    name:'Hot Hand',      rarity:'rare',     glyph:'fire',
+    why:'Riding a 5-win streak.' },
+  { id:'money',  name:'Money Partner', rarity:'rare',     glyph:'handshake',
+    why:'Elite alongside Diego Fuentes.' },
+  { id:'switch', name:'Switch-Hitter', rarity:'rare',     glyph:'swap',
+    why:'Equally dangerous in singles or doubles.' },
+  { id:'pickle', name:'The Pickle',    rarity:'legendary',glyph:'pickle',
+    why:'Won a game 11–0 — a clean pickle.' },
+  // locked
+  { id:'giant',  name:'Giant Slayer',  rarity:'rare',     glyph:'giant', locked:true,
+    why:'Beat an opponent rated 0.50+ above you.' },
+  { id:'comeback',name:'Comeback Kid', rarity:'rare',     glyph:'comeback', locked:true,
+    why:'Win after trailing by 5+ points in a game.' },
+  { id:'peak',   name:'At Their Peak', rarity:'legendary',glyph:'peak', locked:true,
+    why:'Reach a new career-high DUPR rating.' }
+];
+
+function cardHTML(b){
+  const sweep = (b.rarity==='rare' || b.rarity==='legendary') && !b.locked
+    ? '<div class="shine"></div>' : '';
+  const tiltClass = (b.rarity==='rare' || b.rarity==='legendary') && !b.locked ? ' tilt' : '';
+
+  if(b.locked){
+    return `
+    <div class="card locked r-${b.rarity}${tiltClass}" tabindex="0" role="button"
+         aria-label="${b.name}, locked ${RLABEL[b.rarity]} badge. ${b.why}">
+      <div class="flip">
+        <div class="face front">
+          <span class="notch tl"></span><span class="notch tr"></span>
+          <span class="notch bl"></span><span class="notch br"></span>
+          <div class="lockbadge">${G.lock}</div>
+          <div class="panel">
+            <div class="crest">${G[b.glyph]}</div>
+            <div class="qmark">???</div>
+            <div class="lockhint">${b.why}</div>
+            <span class="ribbon">${RLABEL[b.rarity]}</span>
+          </div>
+        </div>
+        <div class="face back">
+          <div class="why-rarity">Locked · ${RLABEL[b.rarity]}</div>
+          <div class="why-name">${b.name}</div>
+          <div class="why-text">${b.why}</div>
+          <div class="tapflip">Tap to close</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  return `
+  <div class="card r-${b.rarity}${tiltClass}" tabindex="0" role="button"
+       aria-label="${b.name}, ${RLABEL[b.rarity]} badge. ${b.why}">
+    <div class="flip">
+      <div class="face front">
+        <span class="notch tl"></span><span class="notch tr"></span>
+        <span class="notch bl"></span><span class="notch br"></span>
+        ${sweep}
+        <div class="panel">
+          <div class="crest">${G[b.glyph]}</div>
+          <div class="badge-name">${b.name}</div>
+          <span class="ribbon">${RLABEL[b.rarity]}</span>
+        </div>
+      </div>
+      <div class="face back">
+        <div class="why-rarity">${RLABEL[b.rarity]} · Earned</div>
+        <div class="why-name">${b.name}</div>
+        <div class="why-text">${b.why}</div>
+        <div class="tapflip">Tap to close</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function render(){
+  const html = BADGES.map(cardHTML).join('');
+  document.querySelectorAll('[data-grid]').forEach(g => g.innerHTML = html);
+  wire();
+}
+
+function wire(){
+  document.querySelectorAll('.card').forEach(card => {
+    // flip on click/Enter/Space
+    card.addEventListener('click', () => card.classList.toggle('flipped'));
+    card.addEventListener('keydown', e => {
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); card.classList.toggle('flipped'); }
+    });
+
+    // 3D tilt parallax for rare/legendary
+    if(card.classList.contains('tilt')){
+      const flip = card.querySelector('.flip');
+      card.addEventListener('pointermove', e => {
+        if(card.classList.contains('flipped')) return;
+        const r = card.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width - .5;
+        const py = (e.clientY - r.top) / r.height - .5;
+        const max = 12;
+        flip.style.transform =
+          `rotateY(${px*max}deg) rotateX(${-py*max}deg) translateZ(6px)`;
+      });
+      card.addEventListener('pointerleave', () => {
+        if(!card.classList.contains('flipped')) flip.style.transform = '';
+      });
+    }
+  });
+}
+
+render();
+</script>
+</body>
+</html>

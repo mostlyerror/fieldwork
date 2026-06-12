@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PickleRadar · Scoreboard Share Card</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,500;0,600;0,700;0,800;1,700&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --field:        #065F46;
+    --field-bright: #0a7d5a;
+    --field-deep:   #044031;
+    --cream:        #FFFDF7;
+    --ink:          #0a0a0a;
+    --gold:         #d4a72c;
+    --gold-bright:  #e8bd45;
+    --ben:          #0a7d5a;   /* home team color */
+    --raj:          #b1442e;   /* away team color (clay/terracotta) */
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    background:
+      radial-gradient(120% 90% at 50% 0%, #f3efe4 0%, #e9e3d4 55%, #ded6c2 100%);
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 0 56px;
+  }
+
+  .stage { width: 1200px; display: flex; flex-direction: column; align-items: center; }
+
+  .meta-label {
+    font-size: 13px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #9a917c;
+    font-weight: 600;
+    margin-bottom: 18px;
+  }
+
+  /* ============ THE CARD ============ */
+  .card {
+    position: relative;
+    width: 1080px;
+    height: 1080px;
+    background:
+      radial-gradient(140% 100% at 50% -10%, var(--field-bright) 0%, var(--field) 42%, var(--field-deep) 100%);
+    color: var(--cream);
+    overflow: hidden;
+    box-shadow:
+      0 2px 0 rgba(255,255,255,0.04) inset,
+      0 50px 90px -40px rgba(4,40,33,0.55),
+      0 18px 40px -28px rgba(0,0,0,0.45);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* faint court / radar field texture */
+  .court-lines {
+    position: absolute; inset: 0; pointer-events: none; opacity: 0.5;
+  }
+  .scanlines {
+    position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.022) 0px,
+      rgba(255,255,255,0.022) 1px,
+      transparent 1px,
+      transparent 4px
+    );
+    mix-blend-mode: overlay;
+  }
+  .vignette {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(120% 90% at 50% 42%, transparent 50%, rgba(2,28,22,0.55) 100%);
+  }
+
+  /* ---------- TOP BROADCAST BAR ---------- */
+  .topbar {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 40px 56px 0;
+  }
+  .wordmark {
+    display: flex; align-items: center; gap: 14px;
+  }
+  .radar-mark { width: 42px; height: 42px; display: block; }
+  .wordmark .name {
+    font-weight: 800;
+    font-size: 27px;
+    letter-spacing: -0.01em;
+  }
+  .wordmark .name b { color: var(--gold-bright); font-weight: 800; }
+
+  .live-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    background: rgba(0,0,0,0.28);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 999px;
+    padding: 9px 16px 9px 13px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .live-dot {
+    width: 11px; height: 11px; border-radius: 50%;
+    background: #e8503a;
+    box-shadow: 0 0 0 3px rgba(232,80,58,0.28);
+  }
+
+  /* ---------- TITLE STRIP ---------- */
+  .title-strip {
+    position: relative; z-index: 3;
+    text-align: center;
+    margin-top: 26px;
+  }
+  .matchup-kicker {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .matchup-sub {
+    margin-top: 9px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,253,247,0.62);
+  }
+
+  /* ---------- SCOREBOARD ROW ---------- */
+  .board {
+    position: relative; z-index: 3;
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 300px 1fr;
+    align-items: stretch;
+    padding: 30px 50px 0;
+  }
+
+  .team {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 30px 8px;
+  }
+  .team.home { align-items: flex-start; text-align: left; }
+  .team.away { align-items: flex-end;  text-align: right; }
+
+  .team-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,253,247,0.78);
+    margin-bottom: 16px;
+  }
+  .away .team-tag { flex-direction: row-reverse; }
+  .swatch {
+    width: 30px; height: 18px; border-radius: 4px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.25) inset, 0 4px 10px -3px rgba(0,0,0,0.5);
+  }
+  .swatch.home { background: linear-gradient(160deg, #18a978, var(--ben)); }
+  .swatch.away { background: linear-gradient(160deg, #d3603f, var(--raj)); }
+
+  .player-name {
+    font-weight: 800;
+    font-size: 62px;
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+  }
+  .player-name .last { display: block; }
+  .player-name .first {
+    display: block;
+    font-size: 38px;
+    font-weight: 600;
+    color: rgba(255,253,247,0.72);
+    letter-spacing: -0.01em;
+    margin-bottom: 2px;
+  }
+
+  .dupr {
+    margin-top: 22px;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 10px;
+    background: rgba(0,0,0,0.26);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    padding: 11px 16px;
+  }
+  .dupr .lbl {
+    font-size: 13px; font-weight: 800; letter-spacing: 0.18em;
+    text-transform: uppercase; color: rgba(255,253,247,0.55);
+  }
+  .dupr .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 25px; font-weight: 800; color: var(--cream);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* team accent base line */
+  .team-baseline {
+    margin-top: 24px;
+    height: 6px; width: 86px; border-radius: 3px;
+  }
+  .home .team-baseline { background: linear-gradient(90deg, #18a978, var(--ben)); }
+  .away .team-baseline { background: linear-gradient(90deg, var(--raj), #d3603f); }
+
+  /* ---------- CENTER JUMBOTRON ---------- */
+  .center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .h2h-label {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .score {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    line-height: 1;
+  }
+  .score .digit {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    font-size: 168px;
+    color: var(--gold-bright);
+    text-shadow:
+      0 0 26px rgba(212,167,44,0.45),
+      0 4px 0 rgba(0,0,0,0.25);
+    font-variant-numeric: tabular-nums;
+    width: 110px; text-align: center;
+  }
+  .score .dash {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 90px;
+    color: rgba(255,253,247,0.5);
+    transform: translateY(-10px);
+  }
+  .meetings {
+    margin-top: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,253,247,0.62);
+  }
+  .meetings b { color: var(--cream); }
+
+  /* ---------- STREAK STRIP ---------- */
+  .streak {
+    position: relative; z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px 56px 0;
+  }
+  .streak-label {
+    font-size: 13px; font-weight: 700; letter-spacing: 0.22em;
+    text-transform: uppercase; color: rgba(255,253,247,0.5);
+    margin-bottom: 12px;
+  }
+  .streak-row { display: flex; gap: 10px; align-items: center; }
+  .pip {
+    width: 46px; height: 46px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800; font-size: 21px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .pip.w {
+    background: linear-gradient(165deg, rgba(24,169,120,0.92), rgba(6,95,70,0.92));
+    color: var(--cream);
+    box-shadow: 0 6px 16px -8px rgba(6,95,70,0.8);
+  }
+  .pip.l {
+    background: rgba(0,0,0,0.24);
+    color: rgba(255,253,247,0.55);
+  }
+  .streak-from {
+    margin-top: 11px;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase; color: rgba(255,253,247,0.42);
+  }
+
+  /* ---------- BOTTOM CTA BAR ---------- */
+  .cta-bar {
+    position: relative; z-index: 3;
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 26px 56px 40px;
+  }
+  .cta-bar::before {
+    content: "";
+    position: absolute; left: 56px; right: 56px; top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  }
+  .cta-hook {
+    display: inline-flex; align-items: center; gap: 12px;
+    font-size: 26px; font-weight: 800; letter-spacing: -0.01em;
+  }
+  .cta-hook .arrow { color: var(--gold-bright); }
+  .cta-url {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 19px; font-weight: 700;
+    color: rgba(255,253,247,0.78);
+    letter-spacing: 0.02em;
+  }
+  .cta-url .dot { color: var(--gold); }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="meta-label">Share card · Instagram 1:1</div>
+
+    <div class="card">
+      <!-- court / radar field texture -->
+      <svg class="court-lines" viewBox="0 0 1080 1080" preserveAspectRatio="none" aria-hidden="true">
+        <g stroke="rgba(255,255,255,0.10)" stroke-width="2" fill="none">
+          <rect x="120" y="150" width="840" height="780" rx="4"/>
+          <line x1="540" y1="150" x2="540" y2="930"/>
+          <line x1="120" y1="430" x2="960" y2="430"/>
+          <line x1="120" y1="650" x2="960" y2="650"/>
+        </g>
+        <g stroke="rgba(212,167,44,0.10)" stroke-width="2" fill="none">
+          <circle cx="540" cy="540" r="150"/>
+          <circle cx="540" cy="540" r="260"/>
+          <circle cx="540" cy="540" r="370"/>
+        </g>
+      </svg>
+      <div class="scanlines"></div>
+      <div class="vignette"></div>
+
+      <!-- top broadcast bar -->
+      <div class="topbar">
+        <div class="wordmark">
+          <svg class="radar-mark" viewBox="0 0 42 42" aria-hidden="true">
+            <circle cx="21" cy="21" r="19" fill="none" stroke="rgba(255,253,247,0.30)" stroke-width="2"/>
+            <circle cx="21" cy="21" r="12" fill="none" stroke="rgba(255,253,247,0.30)" stroke-width="2"/>
+            <path d="M21 21 L21 3 A18 18 0 0 1 35 13 Z" fill="rgba(212,167,44,0.55)"/>
+            <circle cx="21" cy="21" r="3.2" fill="#e8bd45"/>
+          </svg>
+          <span class="name">Pickle<b>Radar</b></span>
+        </div>
+        <div class="live-pill"><span class="live-dot"></span>Head&nbsp;to&nbsp;Head</div>
+      </div>
+
+      <!-- title strip -->
+      <div class="title-strip">
+        <div class="matchup-kicker">The Rivalry</div>
+        <div class="matchup-sub">Houston · 5 Meetings Tracked</div>
+      </div>
+
+      <!-- scoreboard -->
+      <div class="board">
+        <!-- HOME -->
+        <div class="team home">
+          <div class="team-tag"><span class="swatch home"></span>Home</div>
+          <div class="player-name">
+            <span class="first">Ben</span>
+            <span class="last">Poon</span>
+          </div>
+          <div class="dupr"><span class="lbl">DUPR</span><span class="val">3.38</span></div>
+          <div class="team-baseline"></div>
+        </div>
+
+        <!-- CENTER JUMBOTRON -->
+        <div class="center">
+          <div class="h2h-label">Series</div>
+          <div class="score">
+            <span class="digit">3</span>
+            <span class="dash">–</span>
+            <span class="digit">2</span>
+          </div>
+          <div class="meetings"><b>Poon</b> leads the series</div>
+        </div>
+
+        <!-- AWAY -->
+        <div class="team away">
+          <div class="team-tag"><span class="swatch away"></span>Away</div>
+          <div class="player-name">
+            <span class="first">Raj</span>
+            <span class="last">Nair</span>
+          </div>
+          <div class="dupr"><span class="lbl">DUPR</span><span class="val">3.41</span></div>
+          <div class="team-baseline"></div>
+        </div>
+      </div>
+
+      <!-- streak strip (Ben's side) -->
+      <div class="streak">
+        <div class="streak-label">Last 5 Meetings</div>
+        <div class="streak-row">
+          <span class="pip w">W</span>
+          <span class="pip l">L</span>
+          <span class="pip w">W</span>
+          <span class="pip w">W</span>
+          <span class="pip l">L</span>
+        </div>
+        <div class="streak-from">From Poon's side · most recent right</div>
+      </div>
+
+      <!-- bottom CTA -->
+      <div class="cta-bar">
+        <div class="cta-hook">See the rivalry <span class="arrow">→</span></div>
+        <div class="cta-url">pickleradar<span class="dot">.</span>app</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

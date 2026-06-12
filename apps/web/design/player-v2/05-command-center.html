@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Marisol Vega — Command Center · PickleRadar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #FFFDF7;
+    --card: #ffffff;
+    --ink: #0d2820;
+    --ink-soft: #4a5d56;
+    --ink-faint: #8a9893;
+    --line: #ece7da;
+    --line-soft: #f3efe4;
+    --emerald: #065F46;
+    --emerald-bright: #1f9d57;
+    --gold: #c79a2e;
+    --amber: #d98a1f;
+    --amber-soft: #fbf2da;
+    --red: #b4493e;
+    --shadow: 0 18px 40px -24px rgba(6, 40, 30, .28);
+    --shadow-lg: 0 30px 70px -32px rgba(6, 40, 30, .42);
+    --radius: 24px;
+
+    /* rarity */
+    --r-common: #7c8a84;       --r-common-bg: #f1f1ec;
+    --r-uncommon: #2f8f5b;     --r-uncommon-bg: #e8f5ec;
+    --r-rare: #2563a8;         --r-rare-bg: #e8f0fa;
+    --r-legendary: #b07d12;    --r-legendary-bg: #fbf2da;
+
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    padding-bottom: 56px;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(1000px 560px at 88% -10%, rgba(31,157,87,.06), transparent 60%),
+      radial-gradient(760px 540px at -6% 8%, rgba(199,154,46,.05), transparent 55%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .wrap {
+    position: relative; z-index: 1;
+    max-width: 1280px; margin: 0 auto;
+    padding: 22px 22px 0;
+  }
+
+  .num { font-family: var(--mono); font-feature-settings: "tnum" 1; letter-spacing: -.01em; }
+
+  /* ===================== TOP IDENTITY BAR ===================== */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; margin-bottom: 18px;
+  }
+  .brand { display: flex; align-items: center; gap: 9px; font-weight: 800; letter-spacing: -.02em; font-size: 16px; }
+  .brand .logo {
+    width: 26px; height: 26px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--emerald), var(--emerald-bright));
+    display: grid; place-items: center;
+  }
+  .back {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--ink-soft); text-decoration: none; font-weight: 600;
+    font-size: 13.5px; padding: 8px 12px; border-radius: 10px; transition: background .15s;
+  }
+  .back:active { background: var(--line); }
+
+  /* dense identity header */
+  .idbar {
+    background: var(--card); border-radius: 18px; box-shadow: var(--shadow);
+    border: 1px solid var(--line-soft);
+    display: flex; align-items: center; gap: 18px;
+    padding: 14px 20px; margin-bottom: 22px; flex-wrap: wrap;
+  }
+  .idbar .avatar {
+    width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0;
+    background: linear-gradient(135deg, #0f6b4f, #07442f);
+    color: #eafff5; display: grid; place-items: center;
+    font-weight: 800; font-size: 18px; letter-spacing: -.02em;
+  }
+  .idbar .who { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .idbar .who h1 { font-size: 21px; font-weight: 800; letter-spacing: -.025em; line-height: 1.1; }
+  .idbar .who .loc {
+    display: inline-flex; align-items: center; gap: 5px;
+    color: var(--ink-faint); font-size: 13px; font-weight: 600;
+  }
+  .idbar .spacer { flex: 1 1 18px; }
+  .idbar .rates { display: flex; align-items: stretch; gap: 14px; }
+  .rate {
+    display: flex; flex-direction: column; gap: 1px; padding: 2px 0;
+  }
+  .rate .lab {
+    font-size: 10px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--ink-faint); display: flex; align-items: center; gap: 5px;
+  }
+  .rate .val { font-size: 23px; font-weight: 700; letter-spacing: -.02em; line-height: 1; }
+  .rate.sing .val { color: var(--ink-soft); }
+  .vchip {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 9px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--emerald-bright);
+  }
+  .vsep { width: 1px; align-self: stretch; background: var(--line); margin: 4px 0; }
+  .form-pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--r-uncommon-bg); color: var(--r-uncommon);
+    border-radius: 999px; padding: 7px 13px; font-size: 12.5px; font-weight: 800; white-space: nowrap;
+  }
+  .form-pill .streak { display: inline-flex; gap: 3px; }
+  .form-pill .streak i {
+    width: 6px; height: 6px; border-radius: 999px; background: currentColor; opacity: .85;
+  }
+
+  /* ===================== BENTO GRID ===================== */
+  .bento {
+    display: grid; gap: 18px;
+    grid-template-columns: repeat(12, 1fr);
+    grid-auto-rows: minmax(10px, auto);
+  }
+
+  /* tile spans (desktop ≥1024) */
+  .t-read    { grid-column: span 8; }
+  .t-rating  { grid-column: span 4; grid-row: span 2; }
+  .t-badges  { grid-column: span 5; }
+  .t-record  { grid-column: span 3; }
+  .t-chart   { grid-column: span 8; }
+  .t-partners{ grid-column: span 7; }
+  .t-h2h     { grid-column: span 5; }
+  .t-matches { grid-column: span 7; }
+  .t-upcoming{ grid-column: span 5; }
+
+  .tile {
+    background: var(--card); border-radius: var(--radius);
+    box-shadow: var(--shadow); border: 1px solid var(--line-soft);
+    padding: 20px 20px; position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+
+  .tile-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 10px; }
+  .tile-title {
+    font-size: 11px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase;
+    color: var(--ink-faint); display: flex; align-items: center; gap: 8px;
+  }
+  .tile-title svg { color: var(--emerald-bright); }
+
+  /* ---------- THE READ ---------- */
+  .t-read { background: linear-gradient(160deg, #ffffff 0%, #fbfaf3 100%); }
+  .read-body { font-size: 18px; line-height: 1.55; font-weight: 500; letter-spacing: -.01em; color: var(--ink); }
+  .read-body b { font-weight: 800; }
+  .read-body .up { color: var(--emerald-bright); font-weight: 800; }
+  .read-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; }
+  .read-tags span {
+    font-size: 11.5px; font-weight: 700; color: var(--ink-soft);
+    background: var(--line-soft); padding: 4px 10px; border-radius: 999px;
+  }
+
+  /* ---------- RATING TILE (tall) ---------- */
+  .t-rating { background: radial-gradient(130% 100% at 80% 0%, #0f6b4f 0%, #07442f 55%, #052e21 100%); color: #eafff5; border: none; }
+  .t-rating .tile-title { color: rgba(234,255,245,.62); }
+  .t-rating .tile-title svg { color: #6fe6a6; }
+  .live {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+    color: rgba(234,255,245,.8);
+  }
+  .live .pip { position: relative; width: 8px; height: 8px; }
+  .live .pip::before, .live .pip::after {
+    content: ""; position: absolute; inset: 0; border-radius: 999px; background: #5ef0a0;
+  }
+  .live .pip::after { animation: ping 2.4s cubic-bezier(0,0,.2,1) infinite; }
+  @keyframes ping { 0% { transform: scale(1); opacity: .7; } 70%,100% { transform: scale(2.6); opacity: 0; } }
+  .rating-big { display: flex; align-items: baseline; gap: 12px; margin-top: 6px; }
+  .rating-big .n { font-size: 56px; font-weight: 700; letter-spacing: -.03em; line-height: .9; }
+  .rating-big .delta {
+    display: inline-flex; align-items: center; gap: 3px;
+    background: rgba(94,240,160,.16); color: #aef5cf;
+    font-size: 14px; font-weight: 800; padding: 4px 9px; border-radius: 999px;
+  }
+  .rating-sub { color: rgba(234,255,245,.62); font-size: 13px; font-weight: 600; margin-top: 8px; }
+  .peaklow {
+    margin-top: auto; padding-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .pl-box {
+    background: rgba(255,255,255,.07); border-radius: 14px; padding: 11px 13px;
+    border: 1px solid rgba(255,255,255,.08);
+  }
+  .pl-box .lab { font-size: 9.5px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: rgba(234,255,245,.55); }
+  .pl-box .v { font-size: 19px; font-weight: 700; margin-top: 2px; }
+  .pl-box.peak .v { color: #9af3c4; }
+
+  /* ---------- BADGES ---------- */
+  .badges { display: flex; flex-wrap: wrap; gap: 9px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 12px; border-radius: 12px; cursor: pointer;
+    font-size: 12.5px; font-weight: 800; letter-spacing: -.005em;
+    border: 1px solid transparent; transition: transform .12s, box-shadow .12s;
+    user-select: none;
+  }
+  .badge:active { transform: scale(.96); }
+  .badge svg { flex-shrink: 0; }
+  .badge[data-r="common"]    { color: var(--r-common);    background: var(--r-common-bg);    border-color: #e4e4dd; }
+  .badge[data-r="uncommon"]  { color: var(--r-uncommon);  background: var(--r-uncommon-bg);  border-color: #d4ecdc; }
+  .badge[data-r="rare"]      { color: var(--r-rare);      background: var(--r-rare-bg);      border-color: #d6e6f6; }
+  .badge[data-r="legendary"] { color: var(--r-legendary); background: var(--r-legendary-bg); border-color: #f0e2b8;
+    box-shadow: inset 0 0 0 1px rgba(176,125,18,.18); }
+  .badge[data-r="legendary"]::after {
+    content: ""; position: absolute;
+  }
+  .badge-why {
+    grid-column: 1 / -1; display: none;
+    margin-top: 12px; padding: 12px 14px; border-radius: 12px;
+    background: var(--line-soft); font-size: 13px; line-height: 1.45; color: var(--ink-soft); font-weight: 500;
+  }
+  .badge-why.show { display: block; }
+  .badge-why b { color: var(--ink); font-weight: 800; }
+  .badge-why .tier { font-weight: 800; text-transform: uppercase; font-size: 10px; letter-spacing: .08em; }
+
+  /* ---------- RECORD ---------- */
+  .rec-main { display: flex; align-items: baseline; gap: 8px; }
+  .rec-main .wl { font-size: 30px; font-weight: 700; letter-spacing: -.02em; }
+  .rec-main .pct { font-size: 14px; font-weight: 800; color: var(--emerald-bright); }
+  .rec-rows { margin-top: 14px; display: flex; flex-direction: column; gap: 12px; }
+  .rec-row .top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+  .rec-row .lab { font-size: 11px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-faint); }
+  .rec-row .wl2 { font-size: 13px; font-weight: 700; }
+  .rec-row .wl2 .l { color: var(--ink-faint); }
+  .bar { height: 7px; border-radius: 999px; background: var(--line); overflow: hidden; display: flex; }
+  .bar i { height: 100%; background: linear-gradient(90deg, var(--emerald), var(--emerald-bright)); display: block; }
+  .rec-row.sing .bar i { background: linear-gradient(90deg, #5b7a70, #82a89b); }
+
+  /* ---------- CHART ---------- */
+  .chart-cur { display: flex; align-items: baseline; gap: 10px; }
+  .chart-cur .n { font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
+  .chart-cur .delta { font-size: 13px; font-weight: 800; color: var(--emerald-bright); }
+  .chart-wrap { position: relative; margin-top: 8px; }
+  .chart-wrap svg { display: block; width: 100%; height: auto; }
+  .legend { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; color: var(--ink-soft); }
+  .legend i { width: 9px; height: 9px; border-radius: 999px; }
+  .marker-dot { cursor: pointer; }
+  .marker-dot:active { opacity: .7; }
+  .tip {
+    position: absolute; pointer-events: none; opacity: 0; transform: translate(-50%, -8px);
+    background: var(--ink); color: #fff; padding: 8px 11px; border-radius: 10px;
+    font-size: 11.5px; font-weight: 600; white-space: nowrap; transition: opacity .15s;
+    box-shadow: 0 10px 24px -10px rgba(0,0,0,.5); z-index: 5;
+  }
+  .tip.show { opacity: 1; }
+  .tip b { font-weight: 800; }
+  .tip .amb { color: #ffcf7a; }
+  .tip::after { content:""; position:absolute; bottom:-5px; left:50%; transform:translateX(-50%) rotate(45deg); width:9px; height:9px; background: var(--ink); }
+
+  /* ---------- LIST TILES (partners, h2h, matches, upcoming) ---------- */
+  .row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 0; border-top: 1px solid var(--line-soft);
+  }
+  .row:first-of-type { border-top: none; }
+  .row .nm { font-weight: 700; font-size: 14.5px; letter-spacing: -.01em; }
+  .row .meta { font-size: 12px; color: var(--ink-faint); font-weight: 600; }
+  .grow { flex: 1; min-width: 0; }
+  .av-sm {
+    width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+    background: var(--r-uncommon-bg); color: var(--r-uncommon);
+    display: grid; place-items: center; font-weight: 800; font-size: 12px;
+  }
+  .wl-mini { font-family: var(--mono); font-weight: 700; font-size: 13px; }
+  .wl-mini .l { color: var(--ink-faint); }
+  .verdict {
+    font-size: 10.5px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase;
+    padding: 4px 9px; border-radius: 999px; white-space: nowrap;
+  }
+  .v-elite    { color: var(--r-legendary); background: var(--r-legendary-bg); }
+  .v-reliable { color: var(--emerald);     background: var(--r-uncommon-bg); }
+  .v-gelling  { color: var(--amber);       background: var(--amber-soft); }
+  .v-out      { color: var(--red);         background: #f8ebe9; }
+  .v-owns     { color: var(--r-legendary); background: var(--r-legendary-bg); }
+  .v-leads    { color: var(--emerald);     background: var(--r-uncommon-bg); }
+  .v-even     { color: var(--ink-soft);    background: var(--line-soft); }
+  .v-trails   { color: var(--amber);       background: var(--amber-soft); }
+  .v-nemesis  { color: var(--red);         background: #f8ebe9; }
+  .win-pct { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--ink-soft); min-width: 38px; text-align: right; }
+
+  .show-all {
+    margin-top: 12px; width: 100%; padding: 11px; border: 1px dashed var(--line);
+    background: transparent; border-radius: 12px; cursor: pointer;
+    font-family: inherit; font-size: 13px; font-weight: 800; color: var(--emerald);
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    transition: background .15s;
+  }
+  .show-all:active { background: var(--line-soft); }
+  .partner-hidden { display: none; }
+  .partner-hidden.show { display: flex; }
+
+  /* ---------- MATCHES ---------- */
+  .match {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 10px; margin: 0 -10px; border-top: 1px solid var(--line-soft);
+    border-radius: 12px; text-decoration: none; color: inherit; transition: background .14s;
+  }
+  .match:first-of-type { border-top: none; }
+  .match:hover { background: var(--line-soft); }
+  .match:active { background: var(--line); }
+  .res {
+    width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0;
+    display: grid; place-items: center; font-weight: 800; font-size: 12px; font-family: var(--mono);
+  }
+  .res.w { background: var(--r-uncommon-bg); color: var(--r-uncommon); }
+  .res.l { background: #f4ece9; color: var(--red); }
+  .match .fmt { font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-faint); }
+  .match .opp { font-weight: 700; font-size: 14px; letter-spacing: -.01em; }
+  .match .score { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--ink-soft); }
+  .match .tlink {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11.5px; font-weight: 700; color: var(--emerald);
+  }
+  .match .tlink .dt { color: var(--ink-faint); font-weight: 600; }
+
+  /* ---------- UPCOMING ---------- */
+  .up-card {
+    display: flex; align-items: center; gap: 13px; padding: 13px 0;
+    border-top: 1px solid var(--line-soft);
+  }
+  .up-card:first-of-type { border-top: none; }
+  .up-date {
+    width: 50px; flex-shrink: 0; text-align: center;
+    background: var(--r-uncommon-bg); border-radius: 12px; padding: 7px 4px; color: var(--emerald);
+  }
+  .up-date .mo { font-size: 9.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+  .up-date .dy { font-size: 19px; font-weight: 800; line-height: 1; }
+  .up-card .nm2 { font-weight: 700; font-size: 14.5px; letter-spacing: -.01em; }
+  .up-card .meta2 { font-size: 12px; color: var(--ink-faint); font-weight: 600; }
+  .up-badge { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--amber); background: var(--amber-soft); padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
+
+  .sect-label {
+    font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-faint); margin: 4px 0 -6px 4px; grid-column: 1 / -1;
+  }
+
+  .updated { font-size: 11.5px; color: var(--ink-faint); font-weight: 600; }
+
+  /* ===================== RESPONSIVE ===================== */
+  @media (max-width: 1023px) {
+    .bento { grid-template-columns: repeat(6, 1fr); }
+    .t-read    { grid-column: span 6; }
+    .t-rating  { grid-column: span 6; grid-row: span 1; }
+    .t-badges  { grid-column: span 6; }
+    .t-record  { grid-column: span 6; }
+    .t-chart   { grid-column: span 6; }
+    .t-partners{ grid-column: span 6; }
+    .t-h2h     { grid-column: span 6; }
+    .t-matches { grid-column: span 6; }
+    .t-upcoming{ grid-column: span 6; }
+    .peaklow { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 768px) {
+    .wrap { padding: 16px 14px 0; }
+    .bento { grid-template-columns: 1fr; gap: 14px; }
+    .bento > * { grid-column: 1 / -1 !important; grid-row: auto !important; }
+    .idbar { gap: 12px 16px; padding: 14px 16px; }
+    .idbar .spacer { display: none; flex-basis: 100%; }
+    .idbar .rates { width: 100%; }
+    .idbar .form-pill { margin-left: auto; }
+    .read-body { font-size: 16px; }
+    .rating-big .n { font-size: 48px; }
+    .sect-label { margin-left: 2px; }
+  }
+  @media (max-width: 400px) {
+    .idbar .rates { gap: 10px; }
+    .rate .val { font-size: 20px; }
+    .rating-big .n { font-size: 42px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== TOP BRAND BAR ===== -->
+  <div class="topbar">
+    <div class="brand">
+      <span class="logo">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#eafff5" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>
+      </span>
+      PickleRadar
+    </div>
+    <a class="back" href="#">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      Back to players
+    </a>
+  </div>
+
+  <!-- ===== DENSE IDENTITY HEADER ===== -->
+  <header class="idbar">
+    <div class="avatar">MV</div>
+    <div class="who">
+      <h1>Marisol Vega</h1>
+      <span class="loc">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0116 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Houston, TX
+      </span>
+    </div>
+    <div class="spacer"></div>
+    <div class="rates">
+      <div class="rate">
+        <span class="lab">Doubles DUPR
+          <span class="vchip"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Verified</span>
+        </span>
+        <span class="val num">3.72</span>
+      </div>
+      <div class="vsep"></div>
+      <div class="rate sing">
+        <span class="lab">Singles DUPR
+          <span class="vchip"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Verified</span>
+        </span>
+        <span class="val num">3.41</span>
+      </div>
+    </div>
+    <div class="form-pill">
+      <span class="streak"><i></i><i></i><i></i><i></i></span>
+      Won last 4
+    </div>
+  </header>
+
+  <!-- ===== BENTO ===== -->
+  <main class="bento">
+
+    <!-- THE READ -->
+    <section class="tile t-read">
+      <div class="tile-head">
+        <span class="tile-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+          The Read
+        </span>
+        <span class="updated">Updated 2 days ago</span>
+      </div>
+      <p class="read-body">
+        <b>3.72 doubles, verified, and climbing</b> — <span class="up">up 0.14 to a fresh peak</span>. A <b>58% doubles player over 142 matches</b> who travels: both formats hold up, and the recent four-match win streak says she's arriving in form, not fading.
+      </p>
+      <div class="read-tags">
+        <span>Climbing</span><span>Both formats</span><span>142 matches</span><span>Travels to compete</span>
+      </div>
+    </section>
+
+    <!-- RATING (tall) -->
+    <section class="tile t-rating">
+      <div class="tile-head">
+        <span class="tile-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          Live Rating
+        </span>
+        <span class="live"><span class="pip"></span>Live</span>
+      </div>
+      <div class="rating-big">
+        <span class="n num">3.72</span>
+        <span class="delta num"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>0.14</span>
+      </div>
+      <div class="rating-sub">Doubles DUPR · fresh career peak</div>
+      <div class="peaklow">
+        <div class="pl-box peak">
+          <div class="lab">Peak</div>
+          <div class="v num">3.72</div>
+        </div>
+        <div class="pl-box">
+          <div class="lab">Season low</div>
+          <div class="v num">3.41</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BADGES -->
+    <section class="tile t-badges" id="badgeTile">
+      <div class="tile-head">
+        <span class="tile-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M8.5 13.5L7 22l5-3 5 3-1.5-8.5"/></svg>
+          Scouting Tells
+        </span>
+        <span class="updated">Tap to reveal</span>
+      </div>
+      <div class="badges">
+        <button class="badge" data-r="uncommon"
+          data-tier="Uncommon" data-name="On the Climb"
+          data-why="Up 0.14 doubles DUPR over her last 12 rated matches — trending toward a new ceiling, not coasting.">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg>On the Climb
+        </button>
+        <button class="badge" data-r="rare"
+          data-tier="Rare" data-name="Hot Hand"
+          data-why="Won 8 of her last 10 matches across both formats. When she's rolling, she compounds.">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s4 4 4 8a4 4 0 11-8 0c0-2 1-3 2-4"/><path d="M8 14a5 5 0 008 0"/></svg>Hot Hand
+        </button>
+        <button class="badge" data-r="rare"
+          data-tier="Rare" data-name="Money Partner"
+          data-why="Her partners win 11% more often than their solo baseline. People play above themselves next to her.">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Money Partner
+        </button>
+        <button class="badge" data-r="legendary"
+          data-tier="Legendary" data-name="The Pickle"
+          data-why="Closed out a match from 1–9 down in the third. Fewer than 1% of tracked players have ever pulled this off.">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2c4 0 7 3 7 7 0 5-4 11-7 13C6 20 2 14 2 9c0-4 3-7 7-7z" transform="translate(3 0) rotate(20 12 12)"/></svg>The Pickle
+        </button>
+        <button class="badge" data-r="common"
+          data-tier="Common" data-name="Battle-Tested"
+          data-why="142 rated matches logged. She's seen every style of opponent the bracket can throw.">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Battle-Tested
+        </button>
+        <button class="badge" data-r="rare"
+          data-tier="Rare" data-name="Switch-Hitter"
+          data-why="Verified and winning in both singles and doubles. Most players are only dangerous in one.">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M21 3l-7 7M8 21H3v-5M3 21l7-7"/></svg>Switch-Hitter
+        </button>
+        <div class="badge-why" id="badgeWhy"></div>
+      </div>
+    </section>
+
+    <!-- RECORD -->
+    <section class="tile t-record">
+      <div class="tile-head">
+        <span class="tile-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="7"/><rect x="13" y="7" width="3" height="11"/></svg>
+          Record
+        </span>
+      </div>
+      <div class="rec-main">
+        <span class="wl num">109–93</span>
+        <span class="pct num">54%</span>
+      </div>
+      <div class="rec-rows">
+        <div class="rec-row">
+          <div class="top">
+            <span class="lab">Doubles</span>
+            <span class="wl2 num">71<span class="l">–52</span></span>
+          </div>
+          <div class="bar"><i style="width:58%"></i></div>
+        </div>
+        <div class="rec-row sing">
+          <div class="top">
+            <span class="lab">Singles</span>
+            <span class="wl2 num">38<span class="l">–41</span></span>
+          </div>
+          <div class="bar"><i style="width:48%"></i></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RATING CHART (wide) -->
+    <section class="tile t-chart">
+      <div class="tile-head">
+        <span class="tile-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M19 9l-5 5-4-4-3 3"/></svg>
+          Doubles DUPR · last 12 months
+        </span>
+        <div class="chart-cur">
+          <span class="n num">3.72</span>
+          <span class="delta num">▲ +0.14</span>
+        </div>
+      </div>
+      <div class="chart-wrap" id="chartWrap">
+        <svg viewBox="0 0 720 220" preserveAspectRatio="none" id="chartSvg">
+          <defs>
+            <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#1f9d57" stop-opacity=".18"/>
+              <stop offset="100%" stop-color="#1f9d57" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <!-- gridlines -->
+          <line x1="0" y1="40"  x2="720" y2="40"  stroke="#f0ece0" stroke-width="1"/>
+          <line x1="0" y1="100" x2="720" y2="100" stroke="#f0ece0" stroke-width="1"/>
+          <line x1="0" y1="160" x2="720" y2="160" stroke="#f0ece0" stroke-width="1"/>
+          <!-- area + line over 14 points -->
+          <path id="area" fill="url(#fill)" d="M0,150 L0,150 55,158 110,138 166,144 221,120 276,128 332,104 387,112 443,96 498,108 553,80 609,72 664,64 720,48 L720,220 L0,220 Z"/>
+          <polyline id="line" fill="none" stroke="#1f9d57" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+            points="0,150 55,158 110,138 166,144 221,120 276,128 332,104 387,112 443,96 498,108 553,80 609,72 664,64 720,48"/>
+          <!-- LOW dot -->
+          <g class="marker-dot" data-tip="Season low · 3.41 · Jan"><circle cx="55" cy="158" r="6" fill="#fff" stroke="#b4493e" stroke-width="3"/></g>
+          <!-- amber tournament markers -->
+          <g class="marker-dot" data-tip="<b>Bayou Doubles</b> · Mar 8 · <span class='amb'>+0.07</span>"><circle cx="276" cy="128" r="6.5" fill="#d98a1f"/><circle cx="276" cy="128" r="11" fill="#d98a1f" opacity=".15"/></g>
+          <g class="marker-dot" data-tip="<b>Lone Star Open</b> · Apr 19 · <span class='amb'>+0.10</span>"><circle cx="498" cy="108" r="6.5" fill="#d98a1f"/><circle cx="498" cy="108" r="11" fill="#d98a1f" opacity=".15"/></g>
+          <g class="marker-dot" data-tip="<b>Casa Pickle Open</b> · May 31 · <span class='amb'>+0.14</span>"><circle cx="664" cy="64" r="6.5" fill="#d98a1f"/><circle cx="664" cy="64" r="11" fill="#d98a1f" opacity=".15"/></g>
+          <!-- PEAK dot (current) -->
+          <g class="marker-dot" data-tip="<b>Career peak · 3.72</b> · now"><circle cx="720" cy="48" r="6.5" fill="#1f9d57" stroke="#fff" stroke-width="2.5"/></g>
+        </svg>
+        <div class="tip" id="tip"></div>
+      </div>
+      <div class="legend">
+        <span><i style="background:#1f9d57"></i>Doubles DUPR</span>
+        <span><i style="background:#d98a1f"></i>Tournament result (tap)</span>
+        <span><i style="background:#fff;border:2px solid #b4493e"></i>Season low</span>
+      </div>
+    </section>
+
+    <div class="sect-label">Matchup intelligence</div>
+
+    <!-- PARTNERS (70) -->
+    <section class="tile t-partners">
+      <div class="tile-head">
+        <span class="tile-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87M16 3.13A4 4 0 0119 7"/></svg>
+          Partner Chemistry
+        </span>
+        <span class="updated">11 partners</span>
+      </div>
+      <div id="partnerList">
+        <div class="row"><span class="av-sm">DF</span><div class="grow"><div class="nm">Diego Fuentes</div><div class="meta">14 matches together</div></div><span class="win-pct num">79%</span><span class="wl-mini num">11<span class="l">–3</span></span><span class="verdict v-elite">Elite duo</span></div>
+        <div class="row"><span class="av-sm">PR</span><div class="grow"><div class="nm">Priya Raman</div><div class="meta">18 matches together</div></div><span class="win-pct num">67%</span><span class="wl-mini num">12<span class="l">–6</span></span><span class="verdict v-reliable">Reliable pairing</span></div>
+        <div class="row"><span class="av-sm">TO</span><div class="grow"><div class="nm">Tomás Okafor</div><div class="meta">9 matches together</div></div><span class="win-pct num">67%</span><span class="wl-mini num">6<span class="l">–3</span></span><span class="verdict v-reliable">Reliable pairing</span></div>
+        <div class="row"><span class="av-sm">LH</span><div class="grow"><div class="nm">Lena Hartwell</div><div class="meta">7 matches together</div></div><span class="win-pct num">57%</span><span class="wl-mini num">4<span class="l">–3</span></span><span class="verdict v-gelling">Still gelling</span></div>
+        <div class="row"><span class="av-sm">RK</span><div class="grow"><div class="nm">Rashid Kemal</div><div class="meta">10 matches together</div></div><span class="win-pct num">60%</span><span class="wl-mini num">6<span class="l">–4</span></span><span class="verdict v-reliable">Reliable pairing</span></div>
+
+        <div class="row partner-hidden"><span class="av-sm">CB</span><div class="grow"><div class="nm">Camille Boucher</div><div class="meta">5 matches together</div></div><span class="win-pct num">60%</span><span class="wl-mini num">3<span class="l">–2</span></span><span class="verdict v-gelling">Still gelling</span></div>
+        <div class="row partner-hidden"><span class="av-sm">JN</span><div class="grow"><div class="nm">Jonah Reyes</div><div class="meta">8 matches together</div></div><span class="win-pct num">50%</span><span class="wl-mini num">4<span class="l">–4</span></span><span class="verdict v-gelling">Still gelling</span></div>
+        <div class="row partner-hidden"><span class="av-sm">AV</span><div class="grow"><div class="nm">Anaïs Villanueva</div><div class="meta">6 matches together</div></div><span class="win-pct num">50%</span><span class="wl-mini num">3<span class="l">–3</span></span><span class="verdict v-gelling">Still gelling</span></div>
+        <div class="row partner-hidden"><span class="av-sm">MK</span><div class="grow"><div class="nm">Marcus Kane</div><div class="meta">7 matches together</div></div><span class="win-pct num">43%</span><span class="wl-mini num">3<span class="l">–4</span></span><span class="verdict v-out">Out of sync</span></div>
+        <div class="row partner-hidden"><span class="av-sm">SD</span><div class="grow"><div class="nm">Sofia Delgado</div><div class="meta">5 matches together</div></div><span class="win-pct num">40%</span><span class="wl-mini num">2<span class="l">–3</span></span><span class="verdict v-out">Out of sync</span></div>
+        <div class="row partner-hidden"><span class="av-sm">ET</span><div class="grow"><div class="nm">Elias Thorne</div><div class="meta">4 matches together</div></div><span class="win-pct num">25%</span><span class="wl-mini num">1<span class="l">–3</span></span><span class="verdict v-out">Out of sync</span></div>
+      </div>
+      <button class="show-all" id="partnerToggle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" id="ptIcon"><path d="M6 9l6 6 6-6"/></svg>
+        <span id="ptLabel">Show all 11 partners</span>
+      </button>
+    </section>
+
+    <!-- HEAD TO HEAD (30) -->
+    <section class="tile t-h2h">
+      <div class="tile-head">
+        <span class="tile-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9l-2 2-2-2M5 3l4 6M19 3l-4 6"/><path d="M5 21h14M12 11v10"/></svg>
+          Head-to-Head
+        </span>
+        <span class="updated">vs. field</span>
+      </div>
+      <div>
+        <div class="row"><div class="grow"><div class="nm">Bianca Moreau</div><div class="meta">Singles · 5 meetings</div></div><span class="wl-mini num">4<span class="l">–1</span></span><span class="verdict v-owns">Owns the matchup</span></div>
+        <div class="row"><div class="grow"><div class="nm">Hassan Qureshi</div><div class="meta">Doubles · 6 meetings</div></div><span class="wl-mini num">4<span class="l">–2</span></span><span class="verdict v-leads">Leads</span></div>
+        <div class="row"><div class="grow"><div class="nm">Grace Lindqvist</div><div class="meta">Singles · 4 meetings</div></div><span class="wl-mini num">2<span class="l">–2</span></span><span class="verdict v-even">Even</span></div>
+        <div class="row"><div class="grow"><div class="nm">Theo Nakamura</div><div class="meta">Doubles · 5 meetings</div></div><span class="wl-mini num">2<span class="l">–3</span></span><span class="verdict v-trails">Trails</span></div>
+        <div class="row"><div class="grow"><div class="nm">Renata Vasquez</div><div class="meta">Singles · 5 meetings</div></div><span class="wl-mini num">1<span class="l">–4</span></span><span class="verdict v-nemesis">Nemesis</span></div>
+      </div>
+    </section>
+
+    <div class="sect-label">Activity</div>
+
+    <!-- RECENT MATCHES (70) -->
+    <section class="tile t-matches">
+      <div class="tile-head">
+        <span class="tile-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>
+          Recent Matches
+        </span>
+        <span class="updated">Tap a row for the bracket</span>
+      </div>
+      <div>
+        <a class="match" href="#">
+          <span class="res w">W</span>
+          <div class="grow"><span class="fmt">Doubles</span><div class="opp">w/ Diego Fuentes vs. Theo Nakamura</div></div>
+          <span class="score num">11–7, 11–9</span>
+          <span class="tlink"><span class="dt">May 31</span>Casa Pickle Open<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg></span>
+        </a>
+        <a class="match" href="#">
+          <span class="res w">W</span>
+          <div class="grow"><span class="fmt">Singles</span><div class="opp">vs. Bianca Moreau</div></div>
+          <span class="score num">11–9, 9–11, 11–6</span>
+          <span class="tlink"><span class="dt">May 30</span>Casa Pickle Open<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg></span>
+        </a>
+        <a class="match" href="#">
+          <span class="res w">W</span>
+          <div class="grow"><span class="fmt">Doubles</span><div class="opp">w/ Priya Raman vs. Renata Vasquez</div></div>
+          <span class="score num">12–10, 11–8</span>
+          <span class="tlink"><span class="dt">Apr 19</span>Lone Star Open<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg></span>
+        </a>
+        <a class="match" href="#">
+          <span class="res w">W</span>
+          <div class="grow"><span class="fmt">Singles</span><div class="opp">vs. Grace Lindqvist</div></div>
+          <span class="score num">11–6, 11–7</span>
+          <span class="tlink"><span class="dt">Apr 18</span>Lone Star Open<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg></span>
+        </a>
+        <a class="match" href="#">
+          <span class="res l">L</span>
+          <div class="grow"><span class="fmt">Singles</span><div class="opp">vs. Renata Vasquez</div></div>
+          <span class="score num">8–11, 11–9, 7–11</span>
+          <span class="tlink"><span class="dt">Mar 9</span>Bayou Doubles<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg></span>
+        </a>
+        <a class="match" href="#">
+          <span class="res w">W</span>
+          <div class="grow"><span class="fmt">Doubles</span><div class="opp">w/ Tomás Okafor vs. Hassan Qureshi</div></div>
+          <span class="score num">11–4, 11–9</span>
+          <span class="tlink"><span class="dt">Mar 8</span>Bayou Doubles<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg></span>
+        </a>
+      </div>
+    </section>
+
+    <!-- UPCOMING (30) -->
+    <section class="tile t-upcoming">
+      <div class="tile-head">
+        <span class="tile-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          Upcoming
+        </span>
+        <span class="updated">2 entries</span>
+      </div>
+      <div>
+        <div class="up-card">
+          <div class="up-date"><div class="mo">Jun</div><div class="dy">14</div></div>
+          <div class="grow"><div class="nm2">Gulf Coast Classic</div><div class="meta2">Galveston, TX · 3.5 Doubles + Singles</div></div>
+          <span class="up-badge">Registered</span>
+        </div>
+        <div class="up-card">
+          <div class="up-date"><div class="mo">Jul</div><div class="dy">06</div></div>
+          <div class="grow"><div class="nm2">Bluebonnet Open</div><div class="meta2">Austin, TX · 3.5 Mixed Doubles</div></div>
+          <span class="up-badge">Registered</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // ---------- badge tap-to-reveal ----------
+  (function () {
+    const why = document.getElementById('badgeWhy');
+    let active = null;
+    document.querySelectorAll('#badgeTile .badge').forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (active === b) { why.classList.remove('show'); active = null; return; }
+        active = b;
+        why.innerHTML = '<span class="tier" style="color:var(--r-' + b.dataset.r + ')">' +
+          b.dataset.tier + ' · ' + b.dataset.name + '</span><br>' +
+          '<span style="display:inline-block;margin-top:5px">' + b.dataset.why + '</span>';
+        why.classList.add('show');
+      });
+    });
+  })();
+
+  // ---------- partner expand ----------
+  (function () {
+    const btn = document.getElementById('partnerToggle');
+    const icon = document.getElementById('ptIcon');
+    const label = document.getElementById('ptLabel');
+    let open = false;
+    btn.addEventListener('click', function () {
+      open = !open;
+      document.querySelectorAll('#partnerList .partner-hidden').forEach(function (r) {
+        r.classList.toggle('show', open);
+      });
+      label.textContent = open ? 'Show top 5 only' : 'Show all 11 partners';
+      icon.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
+    });
+  })();
+
+  // ---------- chart marker tooltips ----------
+  (function () {
+    const wrap = document.getElementById('chartWrap');
+    const svg = document.getElementById('chartSvg');
+    const tip = document.getElementById('tip');
+    let activeDot = null;
+
+    function place(dot) {
+      const c = dot.querySelector('circle');
+      const vb = svg.viewBox.baseVal;     // 0 0 720 220
+      const rect = svg.getBoundingClientRect();
+      const px = (parseFloat(c.getAttribute('cx')) / vb.width) * rect.width;
+      const py = (parseFloat(c.getAttribute('cy')) / vb.height) * rect.height;
+      tip.style.left = px + 'px';
+      tip.style.top = py + 'px';
+      tip.innerHTML = dot.dataset.tip;
+      tip.classList.add('show');
+    }
+    document.querySelectorAll('.marker-dot').forEach(function (dot) {
+      dot.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (activeDot === dot) { tip.classList.remove('show'); activeDot = null; return; }
+        activeDot = dot; place(dot);
+      });
+      dot.addEventListener('mouseenter', function () { place(dot); });
+      dot.addEventListener('mouseleave', function () { if (!activeDot) tip.classList.remove('show'); });
+    });
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.marker-dot')) { tip.classList.remove('show'); activeDot = null; }
+    });
+    window.addEventListener('resize', function () { if (activeDot) place(activeDot); });
+  })();
+</script>
+</body>
+</html>

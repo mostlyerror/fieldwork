@@ -1,0 +1,12 @@
+import { chromium } from "playwright";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+const dir = dirname(fileURLToPath(import.meta.url));
+const browser = await chromium.launch();
+const pg = await browser.newPage({ viewport: { width: 1180, height: 1200 }, deviceScaleFactor: 2 });
+await pg.goto("file://" + resolve(dir, "rivalry-final.html"), { waitUntil: "networkidle" });
+await pg.waitForTimeout(1500);
+const card = await pg.$(".card");
+await card.screenshot({ path: resolve(dir, "rivalry-final.png") });
+await browser.close();
+console.log("rivalry-final.png written");

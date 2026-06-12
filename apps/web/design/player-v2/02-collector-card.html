@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Marisol Vega — Scouting Report · PickleRadar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #FFFDF7;
+    --card: #ffffff;
+    --ink: #0d2820;
+    --ink-soft: #4a5d56;
+    --ink-faint: #8a9893;
+    --line: #ece7da;
+    --emerald: #065F46;
+    --emerald-bright: #1f9d57;
+    --gold: #c79a2e;
+    --amber: #d98a1f;
+    --red: #b4493e;
+    --shadow: 0 18px 40px -24px rgba(6, 40, 30, .28);
+    --shadow-lg: 0 30px 70px -32px rgba(6, 40, 30, .42);
+    --radius: 20px;
+
+    /* rarity */
+    --r-common: #7c8a84;
+    --r-common-bg: #f1f1ec;
+    --r-uncommon: #2f8f5b;
+    --r-uncommon-bg: #e8f5ec;
+    --r-rare: #2563a8;
+    --r-rare-bg: #e8f0fa;
+    --r-legendary: #b07d12;
+    --r-legendary-bg: #fbf2da;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    padding-bottom: 64px;
+  }
+
+  /* faint texture wash */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(900px 500px at 85% -8%, rgba(31,157,87,.06), transparent 60%),
+      radial-gradient(700px 500px at -5% 12%, rgba(199,154,46,.05), transparent 55%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 28px 20px 0;
+  }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 9px;
+    font-weight: 800; letter-spacing: -.02em; font-size: 17px;
+  }
+  .brand .dot {
+    width: 26px; height: 26px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--emerald), var(--emerald-bright));
+    display: grid; place-items: center;
+  }
+  .back {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--ink-soft); text-decoration: none; font-weight: 600;
+    font-size: 14px; padding: 8px 12px; border-radius: 10px;
+    transition: background .15s;
+  }
+  .back:active { background: var(--line); }
+
+  /* ---------- layout ---------- */
+  .grid {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 26px;
+    align-items: start;
+  }
+  @media (max-width: 1023px) {
+    .grid { grid-template-columns: 1fr; gap: 20px; }
+  }
+
+  .left-rail { position: sticky; top: 22px; }
+  @media (max-width: 1023px) {
+    .left-rail { position: static; }
+  }
+
+  /* ============ HERO COLLECTOR CARD ============ */
+  .card-stage {
+    perspective: 1400px;
+    padding: 6px;
+  }
+  .hero-card {
+    position: relative;
+    border-radius: 24px;
+    padding: 26px 24px 22px;
+    color: #f4fff9;
+    background:
+      radial-gradient(120% 90% at 20% 0%, #0f6b4f 0%, #07442f 52%, #052e21 100%);
+    box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,.07);
+    overflow: hidden;
+    transform-style: preserve-3d;
+    animation: float 7s ease-in-out infinite;
+    transition: transform .4s cubic-bezier(.2,.7,.2,1);
+    border: 1px solid rgba(255,255,255,.08);
+  }
+  .card-stage:hover .hero-card {
+    transform: rotateX(3.5deg) rotateY(-4deg) translateY(-2px);
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-7px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-card { animation: none; }
+  }
+
+  /* foil sheen */
+  .hero-card::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(115deg,
+      transparent 30%,
+      rgba(199,154,46,.16) 44%,
+      rgba(255,255,255,.22) 50%,
+      rgba(31,157,87,.18) 56%,
+      transparent 70%);
+    background-size: 280% 280%;
+    mix-blend-mode: screen;
+    animation: sweep 6.5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes sweep {
+    0% { background-position: 120% 0; }
+    60%,100% { background-position: -40% 0; }
+  }
+  /* corner foil ticks */
+  .hero-card::after {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 100% 0%, rgba(199,154,46,.20), transparent 22%),
+      radial-gradient(circle at 0% 100%, rgba(31,157,87,.18), transparent 24%);
+    pointer-events: none;
+  }
+
+  .card-inner { position: relative; z-index: 2; }
+
+  .card-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .rank-pill {
+    font-size: 11px; font-weight: 800; letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #ffe6a3;
+    background: rgba(199,154,46,.18);
+    border: 1px solid rgba(199,154,46,.4);
+    padding: 5px 10px; border-radius: 999px;
+  }
+  .serial {
+    font-size: 11px; font-weight: 600; letter-spacing: .08em;
+    color: rgba(244,255,249,.55);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .avatar-row { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+  .avatar {
+    width: 84px; height: 84px; flex: none;
+    border-radius: 20px;
+    background: linear-gradient(150deg, #14855f, #0a4f39);
+    border: 2px solid rgba(255,230,163,.55);
+    box-shadow: 0 10px 24px -10px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.18);
+    display: grid; place-items: center;
+    overflow: hidden;
+    position: relative;
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .avatar .mono {
+    font-size: 34px; font-weight: 800; color: #fff3d4; letter-spacing: -.02em;
+  }
+  .id-block .nm {
+    font-size: 26px; font-weight: 800; letter-spacing: -.03em; line-height: 1.06;
+  }
+  .id-block .loc {
+    display: inline-flex; align-items: center; gap: 5px;
+    color: rgba(244,255,249,.72); font-size: 13.5px; font-weight: 500;
+    margin-top: 5px;
+  }
+
+  .ratings {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin: 4px 0 16px;
+  }
+  .rt {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 14px; padding: 12px 13px;
+  }
+  .rt .lab {
+    font-size: 10.5px; font-weight: 700; letter-spacing: .12em;
+    text-transform: uppercase; color: rgba(244,255,249,.6);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .rt .val {
+    font-size: 30px; font-weight: 800; letter-spacing: -.03em; line-height: 1;
+    margin-top: 7px; font-variant-numeric: tabular-nums;
+  }
+  .verif {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 700; color: #aef0c8; margin-top: 7px;
+  }
+
+  .card-meta {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding-top: 14px; border-top: 1px solid rgba(255,255,255,.1);
+  }
+  .form-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: linear-gradient(120deg, rgba(31,157,87,.34), rgba(31,157,87,.16));
+    border: 1px solid rgba(174,240,200,.34);
+    color: #d6ffe6; font-weight: 700; font-size: 12.5px;
+    padding: 6px 11px; border-radius: 999px;
+  }
+  .updated {
+    font-size: 12px; color: rgba(244,255,249,.55); font-weight: 500;
+    margin-left: auto;
+  }
+
+  /* ---------- generic card ---------- */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px;
+    margin-bottom: 20px;
+  }
+  .card-head {
+    display: flex; align-items: center; gap: 9px; margin-bottom: 4px;
+  }
+  .card-head h2 {
+    font-size: 12px; font-weight: 800; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--emerald);
+  }
+  .card-head .ic { color: var(--emerald-bright); }
+  .card-sub { font-size: 13px; color: var(--ink-faint); margin-bottom: 14px; }
+
+  /* ---------- The Read ---------- */
+  .read .read-body {
+    font-size: 17px; line-height: 1.62; font-weight: 500; color: var(--ink);
+    margin-top: 12px;
+    border-left: 3px solid var(--emerald-bright);
+    padding-left: 16px;
+  }
+  .read .read-body strong { font-weight: 800; color: var(--emerald); }
+
+  /* ============ BADGE SHELF ============ */
+  .shelf-card { padding-bottom: 14px; }
+  .shelf {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 14px;
+  }
+  @media (max-width: 480px) {
+    .shelf { grid-template-columns: repeat(2, 1fr); }
+  }
+  .badge {
+    position: relative;
+    border-radius: 16px;
+    padding: 14px 10px 12px;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid var(--line);
+    background: #fff;
+    transition: transform .14s ease, box-shadow .2s;
+    overflow: hidden;
+  }
+  .badge:active { transform: scale(.96); }
+  .badge:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+
+  .medallion {
+    width: 52px; height: 52px; margin: 0 auto 9px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    position: relative;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+  }
+  .medallion svg { width: 26px; height: 26px; }
+  .badge .b-name {
+    font-size: 12.5px; font-weight: 700; letter-spacing: -.01em;
+    color: var(--ink); line-height: 1.2;
+  }
+  .badge .b-rar {
+    font-size: 9.5px; font-weight: 800; letter-spacing: .12em;
+    text-transform: uppercase; margin-top: 3px;
+  }
+
+  /* rarity skins */
+  .r-common .medallion { background: radial-gradient(circle at 35% 30%, #fff, var(--r-common-bg)); color: var(--r-common); border: 1px solid #dcdcd4;}
+  .r-common .b-rar { color: var(--r-common); }
+  .r-uncommon .medallion { background: radial-gradient(circle at 35% 30%, #fff, var(--r-uncommon-bg)); color: var(--r-uncommon); border: 1px solid #c4e6d0;}
+  .r-uncommon .b-rar { color: var(--r-uncommon); }
+  .r-uncommon { background: linear-gradient(180deg,#fff,#fbfefb); }
+  .r-rare .medallion { background: radial-gradient(circle at 35% 30%, #fff, var(--r-rare-bg)); color: var(--r-rare); border: 1px solid #c3d8ef;}
+  .r-rare .b-rar { color: var(--r-rare); }
+  .r-rare { background: linear-gradient(180deg,#fff,#fafcff); border-color:#dde8f4;}
+  .r-legendary .medallion {
+    background: radial-gradient(circle at 35% 28%, #fff5d8, #f0c869 55%, #cf9b22);
+    color: #7a5408;
+    border: 1px solid #e9cb86;
+  }
+  .r-legendary .b-rar { color: var(--r-legendary); }
+  .r-legendary {
+    background: linear-gradient(180deg,#fffdf3,#fdf4dc);
+    border-color: #ecd9a4;
+  }
+  /* legendary shimmer */
+  .r-legendary::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(115deg, transparent 38%, rgba(255,236,170,.85) 48%, rgba(255,255,255,.95) 51%, rgba(255,224,140,.7) 55%, transparent 64%);
+    background-size: 250% 250%;
+    animation: shimmer 3.2s ease-in-out infinite;
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+  @keyframes shimmer {
+    0% { background-position: 130% 0; }
+    55%,100% { background-position: -30% 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .r-legendary::before { animation: none; opacity: .25; }
+  }
+
+  .badge-why {
+    display: none;
+    margin-top: 14px;
+    background: var(--bg);
+    border: 1px dashed var(--line);
+    border-radius: 12px;
+    padding: 11px 14px;
+    font-size: 13.5px; color: var(--ink-soft); font-weight: 500;
+  }
+  .badge-why.show { display: block; }
+  .badge-why b { color: var(--emerald); font-weight: 800; }
+
+  /* ---------- Record ---------- */
+  .rec-grid {
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 12px;
+    margin-top: 12px;
+  }
+  .rec {
+    background: var(--bg); border: 1px solid var(--line);
+    border-radius: 14px; padding: 14px 12px; text-align: center;
+  }
+  .rec .rl { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+  .rec .rv { font-size: 22px; font-weight: 800; margin-top: 6px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .rec .rp { font-size: 12.5px; font-weight: 700; color: var(--emerald-bright); margin-top: 2px; }
+  .rec.muted .rp { color: var(--red); }
+
+  /* ---------- Trend chart ---------- */
+  .chart-top { display: flex; align-items: flex-end; justify-content: space-between; margin: 4px 0 14px; }
+  .chart-now { font-size: 32px; font-weight: 800; letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .chart-now small { font-size: 13px; font-weight: 600; color: var(--ink-faint); letter-spacing: 0; margin-left: 4px; }
+  .delta {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 13px; font-weight: 800; color: var(--emerald-bright);
+    background: var(--r-uncommon-bg); padding: 5px 9px; border-radius: 999px;
+  }
+  .chartbox { position: relative; }
+  .chartbox svg { width: 100%; height: auto; display: block; }
+  .chart-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+  .chart-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .lg-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .marker-pop {
+    display: none;
+    margin-top: 12px;
+    background: linear-gradient(120deg, #fdf6e7, #fbf0d8);
+    border: 1px solid #ecd9a4;
+    border-radius: 12px; padding: 11px 14px;
+    font-size: 13.5px; font-weight: 600; color: #6b4e12;
+  }
+  .marker-pop.show { display: block; }
+  .marker-pop b { font-weight: 800; }
+  .marker-pop .pp { color: var(--emerald-bright); font-weight: 800; }
+
+  .tmark { cursor: pointer; }
+  .tmark circle.hit { fill: transparent; }
+  .tmark:active circle.glyph { r: 7; }
+
+  /* ---------- Partner / H2H rows ---------- */
+  .rows { margin-top: 6px; }
+  .row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 4px;
+    border-bottom: 1px solid var(--line);
+  }
+  .row:last-child { border-bottom: none; }
+  .ava-sm {
+    width: 38px; height: 38px; border-radius: 11px; flex: none;
+    background: linear-gradient(150deg, #e8f3ec, #d6ebdd);
+    color: var(--emerald); font-weight: 800; font-size: 14px;
+    display: grid; place-items: center; letter-spacing: -.02em;
+  }
+  .row .who { flex: 1; min-width: 0; }
+  .row .who .n { font-weight: 700; font-size: 14.5px; letter-spacing: -.01em; }
+  .row .who .s { font-size: 12.5px; color: var(--ink-faint); font-weight: 500; margin-top: 1px; font-variant-numeric: tabular-nums;}
+  .verdict {
+    font-size: 11px; font-weight: 800; letter-spacing: .02em;
+    padding: 5px 10px; border-radius: 999px; white-space: nowrap;
+  }
+  .v-elite { color: var(--r-legendary); background: var(--r-legendary-bg); }
+  .v-reliable { color: var(--emerald); background: var(--r-uncommon-bg); }
+  .v-gel { color: var(--amber); background: #fdf1df; }
+  .v-out { color: var(--red); background: #fbeae8; }
+  .v-owns { color: var(--emerald); background: var(--r-uncommon-bg); }
+  .v-leads { color: var(--r-rare); background: var(--r-rare-bg); }
+  .v-even { color: var(--ink-soft); background: var(--r-common-bg); }
+  .v-trails { color: var(--amber); background: #fdf1df; }
+  .v-nemesis { color: var(--red); background: #fbeae8; }
+
+  .hidden-partner { display: none; }
+  .expand-btn {
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    width: 100%; margin-top: 12px;
+    background: var(--bg); border: 1px solid var(--line);
+    color: var(--emerald); font-weight: 700; font-size: 13.5px;
+    padding: 11px; border-radius: 12px; cursor: pointer;
+    font-family: inherit;
+    transition: background .15s;
+  }
+  .expand-btn:active { background: var(--line); }
+  .expand-btn svg { transition: transform .25s; }
+  .expand-btn.open svg { transform: rotate(180deg); }
+
+  /* ---------- Recent matches ---------- */
+  .match {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 0; border-bottom: 1px solid var(--line);
+  }
+  .match:last-child { border-bottom: none; }
+  .res {
+    width: 30px; height: 30px; flex: none; border-radius: 9px;
+    display: grid; place-items: center; font-weight: 800; font-size: 13px;
+  }
+  .res.w { background: var(--r-uncommon-bg); color: var(--emerald); }
+  .res.l { background: #fbeae8; color: var(--red); }
+  .match .mid { flex: 1; min-width: 0; }
+  .match .mtop { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .match .opp { font-weight: 700; font-size: 14.5px; letter-spacing: -.01em; }
+  .match .fmt {
+    font-size: 10.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ink-faint); background: var(--bg); padding: 2px 7px; border-radius: 6px;
+    border: 1px solid var(--line);
+  }
+  .match .score { font-size: 13px; color: var(--ink-soft); font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 2px;}
+  .tlink {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12.5px; font-weight: 700; color: var(--emerald);
+    text-decoration: none; margin-top: 4px;
+    border-bottom: 1.5px solid rgba(6,95,70,.3);
+    padding-bottom: 1px; width: fit-content;
+  }
+  .tlink:active { color: var(--emerald-bright); }
+  .tlink .dt { color: var(--ink-faint); font-weight: 600; border:none; }
+
+  /* ---------- Upcoming ---------- */
+  .up {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px; border: 1px solid var(--line); border-radius: 14px;
+    margin-top: 12px; background: linear-gradient(120deg, #fbfefc, #fff);
+  }
+  .up:first-of-type { margin-top: 0; }
+  .up .cal {
+    width: 46px; height: 50px; flex: none; border-radius: 11px;
+    background: #fff; border: 1px solid var(--line);
+    display: grid; place-items: center; text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .up .cal .mo { font-size: 9.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--red); }
+  .up .cal .dy { font-size: 19px; font-weight: 800; line-height: 1; margin-top: 1px; }
+  .up .ut { flex: 1; }
+  .up .ut .tn { font-weight: 700; font-size: 15px; letter-spacing: -.01em; }
+  .up .ut .ev { font-size: 12.5px; color: var(--ink-faint); font-weight: 600; margin-top: 2px; }
+  .up .ut .dd { font-size: 12.5px; color: var(--emerald-bright); font-weight: 700; margin-top: 3px; }
+
+  footer {
+    text-align: center; color: var(--ink-faint); font-size: 12px;
+    margin-top: 36px; font-weight: 500;
+  }
+
+  .section-stack { min-width: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <span class="dot">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+      </span>
+      PickleRadar
+    </div>
+    <a class="back" href="#">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      All players
+    </a>
+  </div>
+
+  <div class="grid">
+
+    <!-- ============ LEFT: HERO COLLECTOR CARD ============ -->
+    <div class="left-rail">
+      <div class="card-stage">
+        <div class="hero-card">
+          <div class="card-inner">
+
+            <div class="card-top">
+              <span class="rank-pill">★ Verified Pull</span>
+              <span class="serial">No. 0142 / TX</span>
+            </div>
+
+            <div class="avatar-row">
+              <div class="avatar">
+                <img src="https://i.pravatar.cc/240?img=47" alt="Marisol Vega" onerror="this.style.display='none';this.parentNode.querySelector('.mono').style.display='block'"/>
+                <span class="mono" style="display:none">MV</span>
+              </div>
+              <div class="id-block">
+                <div class="nm">Marisol Vega</div>
+                <div class="loc">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="2.6"/></svg>
+                  Houston, TX
+                </div>
+              </div>
+            </div>
+
+            <div class="ratings">
+              <div class="rt">
+                <div class="lab">Doubles DUPR</div>
+                <div class="val">3.72</div>
+                <div class="verif">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                  Verified
+                </div>
+              </div>
+              <div class="rt">
+                <div class="lab">Singles DUPR</div>
+                <div class="val">3.41</div>
+                <div class="verif">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                  Verified
+                </div>
+              </div>
+            </div>
+
+            <div class="card-meta">
+              <span class="form-chip">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"/></svg>
+                Won last 4
+              </span>
+              <span class="updated">Updated 2 days ago</span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ RIGHT: MODULES ============ -->
+    <div class="section-stack">
+
+      <!-- The Read -->
+      <div class="card read">
+        <div class="card-head">
+          <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
+          <h2>The Read</h2>
+        </div>
+        <p class="read-body">
+          <strong>3.72 doubles</strong>, verified, and climbing — up <strong>0.14</strong> to a fresh peak. A <strong>58% doubles</strong> player over 142 matches who travels: both formats hold up, but the partner she pulls decides the night. Streaky scorer with a real putaway — punish her transitions early before she settles.
+        </p>
+      </div>
+
+      <!-- Badge Shelf -->
+      <div class="card shelf-card">
+        <div class="card-head">
+          <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 9.2 7.7 3 8.5l4.5 4.3L6.3 19 12 16l5.7 3-1.2-6.2L21 8.5l-6.2-.8L12 2Z"/></svg></span>
+          <h2>The Collection</h2>
+        </div>
+        <p class="card-sub">Scouting-tell badges earned from match data. Tap a medallion for the read.</p>
+
+        <div class="shelf" id="shelf">
+          <div class="badge r-uncommon" data-why="<b>On the Climb.</b> +0.14 over her last 12 matches — trending up, not coasting.">
+            <div class="medallion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg></div>
+            <div class="b-name">On the Climb</div>
+            <div class="b-rar">Uncommon</div>
+          </div>
+
+          <div class="badge r-rare" data-why="<b>Hot Hand.</b> Won 9 of her last 10 — riding the best form of her season.">
+            <div class="medallion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1.5 3 4 4.5 4 8a4 4 0 0 1-8 0c0-1.2.4-2 1-3-.2 2 1 3 1 3 .6-2-.4-4 2-8Z"/><path d="M9 16a5 5 0 0 0 6 0"/></svg></div>
+            <div class="b-name">Hot Hand</div>
+            <div class="b-rar">Rare</div>
+          </div>
+
+          <div class="badge r-rare" data-why="<b>Money Partner.</b> 18–4 alongside her top partner — elite when paired right.">
+            <div class="medallion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3"/><circle cx="16" cy="9" r="2.4"/><path d="M3 20c0-3 2.5-5 6-5s6 2 6 5"/><path d="M15 20c0-1.6.6-2.6 1.6-3.3"/></svg></div>
+            <div class="b-name">Money Partner</div>
+            <div class="b-rar">Rare</div>
+          </div>
+
+          <div class="badge r-legendary" data-why="<b>The Pickle.</b> Climbed back from 1–7 down to win 12–10 — ice in clutch moments. Awarded to under 1% of players.">
+            <div class="medallion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l2.5 2.5M16.5 16.5 19 19M19 5l-2.5 2.5M7.5 16.5 5 19"/><circle cx="12" cy="12" r="3.2"/></svg></div>
+            <div class="b-name">The Pickle</div>
+            <div class="b-rar">Legendary</div>
+          </div>
+
+          <div class="badge r-common" data-why="<b>Battle-Tested.</b> 142 logged matches across 19 events — a deep, honest sample.">
+            <div class="medallion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3Z"/></svg></div>
+            <div class="b-name">Battle-Tested</div>
+            <div class="b-rar">Common</div>
+          </div>
+
+          <div class="badge r-rare" data-why="<b>Switch-Hitter.</b> Both formats above 3.4 verified — equally dangerous in singles and doubles.">
+            <div class="medallion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M21 3l-7 7M8 21H3v-5M3 21l7-7"/></svg></div>
+            <div class="b-name">Switch-Hitter</div>
+            <div class="b-rar">Rare</div>
+          </div>
+        </div>
+
+        <div class="badge-why" id="badgeWhy"></div>
+      </div>
+
+      <!-- Record -->
+      <div class="card">
+        <div class="card-head">
+          <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M10 19v-8M16 19V8M22 19H2"/></svg></span>
+          <h2>Career Record</h2>
+        </div>
+        <div class="rec-grid">
+          <div class="rec">
+            <div class="rl">Overall</div>
+            <div class="rv">109–93</div>
+            <div class="rp">54%</div>
+          </div>
+          <div class="rec">
+            <div class="rl">Doubles</div>
+            <div class="rv">71–52</div>
+            <div class="rp">58%</div>
+          </div>
+          <div class="rec muted">
+            <div class="rl">Singles</div>
+            <div class="rv">38–41</div>
+            <div class="rp">48%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rating trend chart -->
+      <div class="card">
+        <div class="card-head">
+          <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 3-4 3 2 5-7"/></svg></span>
+          <h2>Doubles DUPR Trend</h2>
+        </div>
+        <p class="card-sub">Last 14 rated events. Tap an amber marker for the tournament behind the move.</p>
+
+        <div class="chart-top">
+          <div class="chart-now">3.72<small>current</small></div>
+          <div class="delta">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>
+            +0.14
+          </div>
+        </div>
+
+        <div class="chartbox">
+          <svg viewBox="0 0 600 220" preserveAspectRatio="none" role="img" aria-label="Doubles DUPR over time">
+            <!-- gridlines -->
+            <g stroke="#f0ece0" stroke-width="1">
+              <line x1="0" y1="40" x2="600" y2="40"/>
+              <line x1="0" y1="90" x2="600" y2="90"/>
+              <line x1="0" y1="140" x2="600" y2="140"/>
+              <line x1="0" y1="190" x2="600" y2="190"/>
+            </g>
+            <!-- area fill -->
+            <path d="M12,150 L57,158 L102,138 L147,146 L192,120 L237,168 L282,128 L327,108 L372,118 L417,96 L462,110 L507,84 L552,70 L588,62 L588,210 L12,210 Z"
+                  fill="url(#area)" opacity="0.5"/>
+            <!-- line -->
+            <path d="M12,150 L57,158 L102,138 L147,146 L192,120 L237,168 L282,128 L327,108 L372,118 L417,96 L462,110 L507,84 L552,70 L588,62"
+                  fill="none" stroke="#065F46" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#1f9d57" stop-opacity="0.28"/>
+                <stop offset="1" stop-color="#1f9d57" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+
+            <!-- LOW dot (point index 5: 237,168) -->
+            <circle cx="237" cy="168" r="5.5" fill="#fff" stroke="#b4493e" stroke-width="3"/>
+            <text x="237" y="190" text-anchor="middle" font-size="11" font-weight="800" fill="#b4493e" font-family="Plus Jakarta Sans">LOW</text>
+
+            <!-- PEAK dot (last: 588,62) -->
+            <circle cx="588" cy="62" r="6" fill="#065F46" stroke="#fff" stroke-width="3"/>
+            <text x="566" y="48" text-anchor="middle" font-size="11" font-weight="800" fill="#065F46" font-family="Plus Jakarta Sans">PEAK</text>
+
+            <!-- tournament markers -->
+            <g class="tmark" data-pop="m1">
+              <circle class="hit" cx="192" cy="120" r="16"/>
+              <circle class="glyph" cx="192" cy="120" r="5.5" fill="#d98a1f" stroke="#fff" stroke-width="2.5"/>
+            </g>
+            <g class="tmark" data-pop="m2">
+              <circle class="hit" cx="417" cy="96" r="16"/>
+              <circle class="glyph" cx="417" cy="96" r="5.5" fill="#d98a1f" stroke="#fff" stroke-width="2.5"/>
+            </g>
+            <g class="tmark" data-pop="m3">
+              <circle class="hit" cx="552" cy="70" r="16"/>
+              <circle class="glyph" cx="552" cy="70" r="5.5" fill="#d98a1f" stroke="#fff" stroke-width="2.5"/>
+            </g>
+          </svg>
+        </div>
+
+        <div class="chart-legend">
+          <span><i class="lg-dot" style="background:#065F46"></i> Peak 3.72</span>
+          <span><i class="lg-dot" style="background:#b4493e"></i> Low 3.49</span>
+          <span><i class="lg-dot" style="background:#d98a1f"></i> Tournament</span>
+        </div>
+
+        <div class="marker-pop" id="markerPop"></div>
+      </div>
+
+      <!-- Partner Chemistry -->
+      <div class="card">
+        <div class="card-head">
+          <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><circle cx="16" cy="9" r="2.6"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M15.5 20c0-1.8.7-3 1.8-3.8"/></svg></span>
+          <h2>Partner Chemistry</h2>
+        </div>
+        <p class="card-sub">Most-played doubles partners and how the pairing performs.</p>
+
+        <div class="rows" id="partnerRows">
+          <!-- top 5 -->
+          <div class="row"><div class="ava-sm">DF</div><div class="who"><div class="n">Diego Fuentes</div><div class="s">18–4 · 82%</div></div><span class="verdict v-elite">Elite duo</span></div>
+          <div class="row"><div class="ava-sm">PR</div><div class="who"><div class="n">Priya Raman</div><div class="s">12–7 · 63%</div></div><span class="verdict v-reliable">Reliable pairing</span></div>
+          <div class="row"><div class="ava-sm">TO</div><div class="who"><div class="n">Tomás Okafor</div><div class="s">9–6 · 60%</div></div><span class="verdict v-reliable">Reliable pairing</span></div>
+          <div class="row"><div class="ava-sm">LH</div><div class="who"><div class="n">Lena Hartwell</div><div class="s">7–5 · 58%</div></div><span class="verdict v-reliable">Reliable pairing</span></div>
+          <div class="row"><div class="ava-sm">RC</div><div class="who"><div class="n">Renata Cho</div><div class="s">5–5 · 50%</div></div><span class="verdict v-gel">Still gelling</span></div>
+          <!-- hidden 6-11 -->
+          <div class="row hidden-partner"><div class="ava-sm">SB</div><div class="who"><div class="n">Sami Bouchard</div><div class="s">6–4 · 60%</div></div><span class="verdict v-reliable">Reliable pairing</span></div>
+          <div class="row hidden-partner"><div class="ava-sm">AK</div><div class="who"><div class="n">Aria Kowalski</div><div class="s">4–4 · 50%</div></div><span class="verdict v-gel">Still gelling</span></div>
+          <div class="row hidden-partner"><div class="ava-sm">MN</div><div class="who"><div class="n">Marcus Nguyen</div><div class="s">3–3 · 50%</div></div><span class="verdict v-gel">Still gelling</span></div>
+          <div class="row hidden-partner"><div class="ava-sm">DV</div><div class="who"><div class="n">Daniela Vargas</div><div class="s">3–5 · 38%</div></div><span class="verdict v-out">Out of sync</span></div>
+          <div class="row hidden-partner"><div class="ava-sm">JP</div><div class="who"><div class="n">Jonah Pierce</div><div class="s">2–4 · 33%</div></div><span class="verdict v-out">Out of sync</span></div>
+          <div class="row hidden-partner"><div class="ava-sm">EM</div><div class="who"><div class="n">Elif Mayouf</div><div class="s">2–5 · 29%</div></div><span class="verdict v-out">Out of sync</span></div>
+        </div>
+
+        <button class="expand-btn" id="partnerBtn">
+          <span id="partnerBtnLabel">Show all 11 partners</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+      </div>
+
+      <!-- Head to Head -->
+      <div class="card">
+        <div class="card-head">
+          <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3 9 21M5 8l-3 4 3 4M19 8l3 4-3 4"/></svg></span>
+          <h2>Head-to-Head</h2>
+        </div>
+        <p class="card-sub">Most-faced opponents — record shown from Marisol's perspective.</p>
+
+        <div class="rows">
+          <div class="row"><div class="ava-sm">CG</div><div class="who"><div class="n">Camille Geffré</div><div class="s">7–2</div></div><span class="verdict v-owns">Owns the matchup</span></div>
+          <div class="row"><div class="ava-sm">RK</div><div class="who"><div class="n">Rohan Kapadia</div><div class="s">5–3</div></div><span class="verdict v-leads">Leads</span></div>
+          <div class="row"><div class="ava-sm">NT</div><div class="who"><div class="n">Naomi Tanaka</div><div class="s">4–4</div></div><span class="verdict v-even">Even</span></div>
+          <div class="row"><div class="ava-sm">BS</div><div class="who"><div class="n">Bianca Solano</div><div class="s">3–5</div></div><span class="verdict v-trails">Trails</span></div>
+          <div class="row"><div class="ava-sm">KO</div><div class="who"><div class="n">Kwame Osei</div><div class="s">1–6</div></div><span class="verdict v-nemesis">Nemesis</span></div>
+        </div>
+      </div>
+
+      <!-- Recent Matches -->
+      <div class="card">
+        <div class="card-head">
+          <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="9"/></svg></span>
+          <h2>Recent Matches</h2>
+        </div>
+        <p class="card-sub">Last 6 results. Each links to the tournament it was played at.</p>
+
+        <div class="matches">
+          <div class="match">
+            <div class="res w">W</div>
+            <div class="mid">
+              <div class="mtop"><span class="opp">vs Bianca Solano</span><span class="fmt">Doubles</span></div>
+              <div class="score">11–6, 9–11, 11–7</div>
+              <a class="tlink" href="#">Casa Pickle Open <span class="dt">· May 31</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
+            </div>
+          </div>
+
+          <div class="match">
+            <div class="res w">W</div>
+            <div class="mid">
+              <div class="mtop"><span class="opp">vs Kwame Osei</span><span class="fmt">Singles</span></div>
+              <div class="score">11–8, 11–9</div>
+              <a class="tlink" href="#">Bayou City Slam <span class="dt">· May 17</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
+            </div>
+          </div>
+
+          <div class="match">
+            <div class="res w">W</div>
+            <div class="mid">
+              <div class="mtop"><span class="opp">vs Naomi Tanaka</span><span class="fmt">Doubles</span></div>
+              <div class="score">11–4, 11–7</div>
+              <a class="tlink" href="#">Bayou City Slam <span class="dt">· May 16</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
+            </div>
+          </div>
+
+          <div class="match">
+            <div class="res w">W</div>
+            <div class="mid">
+              <div class="mtop"><span class="opp">vs Rohan Kapadia</span><span class="fmt">Doubles</span></div>
+              <div class="score">12–10, 11–9</div>
+              <a class="tlink" href="#">Gulf Coast Classic <span class="dt">· May 3</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
+            </div>
+          </div>
+
+          <div class="match">
+            <div class="res l">L</div>
+            <div class="mid">
+              <div class="mtop"><span class="opp">vs Camille Geffré</span><span class="fmt">Singles</span></div>
+              <div class="score">9–11, 11–7, 8–11</div>
+              <a class="tlink" href="#">Gulf Coast Classic <span class="dt">· May 2</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
+            </div>
+          </div>
+
+          <div class="match">
+            <div class="res l">L</div>
+            <div class="mid">
+              <div class="mtop"><span class="opp">vs Bianca Solano</span><span class="fmt">Doubles</span></div>
+              <div class="score">11–13, 7–11</div>
+              <a class="tlink" href="#">Heights Hardcourt Cup <span class="dt">· Apr 19</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upcoming -->
+      <div class="card">
+        <div class="card-head">
+          <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg></span>
+          <h2>Upcoming Tournaments</h2>
+        </div>
+
+        <div class="up">
+          <div class="cal"><div class="mo">Jun</div><div class="dy">14</div></div>
+          <div class="ut">
+            <div class="tn">Lone Star Open</div>
+            <div class="ev">Women's Doubles 3.5 · Singles 3.5</div>
+            <div class="dd">Sat, Jun 14 · Austin, TX</div>
+          </div>
+        </div>
+
+        <div class="up">
+          <div class="cal"><div class="mo">Jun</div><div class="dy">28</div></div>
+          <div class="ut">
+            <div class="tn">Spacetown Smash</div>
+            <div class="ev">Mixed Doubles 3.5</div>
+            <div class="dd">Sat, Jun 28 · Houston, TX</div>
+          </div>
+        </div>
+      </div>
+
+      <footer>PickleRadar · scouting report · sample data for design review</footer>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---- Badge tap → why ----
+  (function () {
+    var shelf = document.getElementById('shelf');
+    var whyBox = document.getElementById('badgeWhy');
+    var active = null;
+    shelf.addEventListener('click', function (e) {
+      var b = e.target.closest('.badge');
+      if (!b) return;
+      if (active === b) {
+        whyBox.classList.remove('show');
+        active = null;
+        return;
+      }
+      whyBox.innerHTML = b.getAttribute('data-why');
+      whyBox.classList.add('show');
+      active = b;
+    });
+  })();
+
+  // ---- Partner expand ----
+  (function () {
+    var btn = document.getElementById('partnerBtn');
+    var label = document.getElementById('partnerBtnLabel');
+    var open = false;
+    btn.addEventListener('click', function () {
+      open = !open;
+      document.querySelectorAll('#partnerRows .hidden-partner').forEach(function (r) {
+        r.style.display = open ? 'flex' : 'none';
+      });
+      btn.classList.toggle('open', open);
+      label.textContent = open ? 'Show top 5 partners' : 'Show all 11 partners';
+    });
+  })();
+
+  // ---- Tournament marker tap ----
+  (function () {
+    var pop = document.getElementById('markerPop');
+    var data = {
+      m1: { t: 'Heights Hardcourt Cup', d: 'Mar 22', dlt: '+0.06' },
+      m2: { t: 'Gulf Coast Classic', d: 'May 3', dlt: '+0.09' },
+      m3: { t: 'Casa Pickle Open', d: 'May 31', dlt: '+0.14' }
+    };
+    var active = null;
+    document.querySelectorAll('.tmark').forEach(function (m) {
+      m.addEventListener('click', function () {
+        var key = m.getAttribute('data-pop');
+        if (active === key) { pop.classList.remove('show'); active = null; return; }
+        var d = data[key];
+        pop.innerHTML = '<b>' + d.t + '</b> · ' + d.d + ' · <span class="pp">' + d.dlt + ' DUPR</span>';
+        pop.classList.add('show');
+        active = key;
+      });
+    });
+  })();
+</script>
+</body>
+</html>

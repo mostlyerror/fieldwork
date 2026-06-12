@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rating Trend — Annotated Journey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --cream: #FFFDF7;
+    --ink: #18211d;
+    --ink-soft: #5b6660;
+    --ink-faint: #8a948f;
+    --emerald: #065F46;
+    --emerald-bright: #1f9d57;
+    --amber: #E0A93B;
+    --amber-deep: #b9842a;
+    --line: #ebe7dc;
+    --card: #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { width: 100%; overflow-x: hidden; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    padding: 40px 20px 80px;
+    line-height: 1.4;
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+
+  .page-head {
+    max-width: 720px;
+    margin: 0 auto 40px;
+  }
+  .page-head .eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--emerald-bright);
+  }
+  .page-head h1 {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-top: 6px;
+  }
+  .page-head p { color: var(--ink-soft); font-size: 14px; margin-top: 4px; }
+
+  .size-label {
+    max-width: 720px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 14px;
+  }
+  .size-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+
+  .frame {
+    margin: 0 auto 56px;
+    display: flex;
+    justify-content: center;
+  }
+  .frame.desktop { max-width: 720px; }
+  .frame.mobile { max-width: 360px; }
+
+  /* ---------- CARD ---------- */
+  .card {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    box-shadow: 0 1px 2px rgba(24,33,29,0.04), 0 12px 34px -18px rgba(24,33,29,0.18);
+    overflow: hidden;
+  }
+
+  .card-head {
+    padding: 22px 24px 16px;
+  }
+  .mobile .card-head { padding: 18px 16px 12px; }
+
+  .head-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .who { display: flex; flex-direction: column; gap: 2px; }
+  .who .name {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .who .sub {
+    font-size: 12px;
+    color: var(--ink-faint);
+    font-weight: 500;
+  }
+
+  .trend-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(31,157,87,0.10);
+    color: var(--emerald);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 11px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .trend-pill svg { display: block; }
+
+  .season-line {
+    margin-top: 16px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .season-line .from {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ink-faint);
+  }
+  .season-line .arrow {
+    color: var(--amber);
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .season-line .to {
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--emerald);
+  }
+  .season-line .delta {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--emerald-bright);
+    background: rgba(31,157,87,0.10);
+    padding: 3px 8px;
+    border-radius: 7px;
+  }
+  .season-caption {
+    margin-top: 4px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+
+  /* ---------- CHART ---------- */
+  .chart-wrap { padding: 4px 8px 8px; position: relative; }
+  .mobile .chart-wrap { padding: 0 4px 4px; }
+
+  svg.chart { display: block; width: 100%; height: auto; }
+
+  /* annotation fade-up on load */
+  .anno { opacity: 0; transform: translateY(8px); }
+  .loaded .anno {
+    animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) forwards;
+  }
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* chip styling via foreignObject */
+  .chip {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    display: inline-flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 5px 9px;
+    box-shadow: 0 4px 14px -8px rgba(24,33,29,0.4);
+    line-height: 1.15;
+    width: max-content;
+    max-width: 150px;
+  }
+  .chip.tap { cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
+  .chip.tap:hover { transform: translateY(-1px); box-shadow: 0 8px 18px -8px rgba(24,33,29,0.45); }
+  .chip .c-name {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .chip .c-meta {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--ink-faint);
+    margin-top: 1px;
+    white-space: nowrap;
+  }
+  .chip .c-delta { font-family: 'JetBrains Mono', monospace; }
+  .chip .pos { color: var(--emerald-bright); }
+  .chip .neg { color: #c0653b; }
+
+  .chip.milestone {
+    background: var(--emerald);
+    border-color: var(--emerald);
+  }
+  .chip.milestone .c-name { color: #fff; }
+  .chip.milestone .c-meta { color: rgba(255,255,255,0.7); }
+
+  .chip.peak {
+    background: var(--amber);
+    border-color: var(--amber);
+  }
+  .chip.peak .c-name { color: #2e2008; }
+  .chip.peak .c-meta { color: #6a4f17; }
+
+  /* ---------- MOBILE DETAIL CALLOUT ---------- */
+  .callout {
+    margin: 4px 16px 0;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #fff;
+    padding: 14px 16px;
+    display: none;
+  }
+  .callout.show { display: block; animation: fadeUp 0.35s ease forwards; }
+  .callout .co-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .callout .co-name { font-size: 15px; font-weight: 700; }
+  .callout .co-delta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px; font-weight: 700;
+  }
+  .callout .co-delta.pos { color: var(--emerald-bright); }
+  .callout .co-delta.neg { color: #c0653b; }
+  .callout .co-date { font-size: 12.5px; color: var(--ink-soft); margin-top: 3px; }
+  .callout .co-hint {
+    font-size: 11px; color: var(--ink-faint); margin-top: 8px;
+    display: flex; align-items: center; gap: 5px;
+  }
+
+  /* legend / footer */
+  .card-foot {
+    border-top: 1px solid var(--line);
+    padding: 12px 24px 16px;
+    display: flex; gap: 18px; flex-wrap: wrap;
+    font-size: 11.5px; color: var(--ink-soft); font-weight: 600;
+  }
+  .mobile .card-foot { padding: 12px 16px 16px; gap: 14px; }
+  .leg { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dot.tour { background: var(--amber); }
+  .dot.peak { background: var(--emerald-bright); }
+  .dot.low { background: #c0653b; }
+
+  .mobile-hint {
+    font-size: 11px; color: var(--ink-faint); font-weight: 600;
+    padding: 0 16px 8px; text-align: center;
+  }
+  .desktop .mobile-hint { display: none; }
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <div class="eyebrow">Rating Trend · Chart v2</div>
+  <h1>Annotated Journey</h1>
+  <p>A season told left-to-right — milestones, peaks, and tournaments narrated inline on the line.</p>
+</div>
+
+<!-- ============ DESKTOP ============ -->
+<div class="size-label">Desktop · ~720px</div>
+<div class="frame desktop">
+  <div class="card" id="card-desktop"></div>
+</div>
+
+<!-- ============ MOBILE ============ -->
+<div class="size-label">Mobile · ~360px</div>
+<div class="frame mobile">
+  <div class="card" id="card-mobile"></div>
+</div>
+
+<script>
+/* ----------------------------------------------------------
+   DATA
+---------------------------------------------------------- */
+// 16 doubles DUPR points, ~8 months, Oct -> May
+const POINTS = [
+  { m: 'Oct', v: 3.41 }, // LOW
+  { m: 'Oct', v: 3.45 },
+  { m: 'Nov', v: 3.43 },
+  { m: 'Nov', v: 3.48 }, // START flag region
+  { m: 'Dec', v: 3.52 },
+  { m: 'Dec', v: 3.50 },
+  { m: 'Jan', v: 3.55 },
+  { m: 'Feb', v: 3.58 },
+  { m: 'Feb', v: 3.67 }, // Memorial Doubles +0.09
+  { m: 'Feb', v: 3.65 },
+  { m: 'Mar', v: 3.60 }, // Heights Open -0.05
+  { m: 'Mar', v: 3.63 },
+  { m: 'Apr', v: 3.69 }, // Bayou Brawl +0.06
+  { m: 'Apr', v: 3.74 }, // PEAK
+  { m: 'May', v: 3.71 },
+  { m: 'May', v: 3.72 }, // Casa Pickle +0.14 / CURRENT
+];
+
+// indices into POINTS that carry annotations
+const TOURNAMENTS = [
+  { i: 8,  name: 'Memorial Doubles', date: 'Feb 8',  delta: '+0.09', sign: 'pos', place: 'above' },
+  { i: 10, name: 'Heights Open',      date: 'Mar 1',  delta: '-0.05', sign: 'neg', place: 'below' },
+  { i: 12, name: 'Bayou Brawl',       date: 'Apr 12', delta: '+0.06', sign: 'pos', place: 'above' },
+  { i: 15, name: 'Casa Pickle Open',  date: 'May 31', delta: '+0.14', sign: 'pos', place: 'below' },
+];
+
+/* ----------------------------------------------------------
+   GEOMETRY
+---------------------------------------------------------- */
+function buildChart(opts) {
+  // opts: { W, H, pad, mobile }
+  const { W, H, pad, mobile } = opts;
+  const plotL = pad.l, plotR = W - pad.r, plotT = pad.t, plotB = H - pad.b;
+  const plotW = plotR - plotL, plotH = plotB - plotT;
+
+  const vs = POINTS.map(p => p.v);
+  const vMin = Math.min(...vs) - 0.03;
+  const vMax = Math.max(...vs) + 0.03;
+
+  const x = i => plotL + (i / (POINTS.length - 1)) * plotW;
+  const y = v => plotB - ((v - vMin) / (vMax - vMin)) * plotH;
+
+  const coords = POINTS.map((p, i) => ({ x: x(i), y: y(p.v), v: p.v, i }));
+
+  // smooth path (catmull-rom -> bezier)
+  function smoothPath(pts) {
+    if (pts.length < 2) return '';
+    let d = `M ${pts[0].x.toFixed(2)} ${pts[0].y.toFixed(2)}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i - 1] || pts[i];
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const p3 = pts[i + 2] || p2;
+      const c1x = p1.x + (p2.x - p0.x) / 6;
+      const c1y = p1.y + (p2.y - p0.y) / 6;
+      const c2x = p2.x - (p3.x - p1.x) / 6;
+      const c2y = p2.y - (p3.y - p1.y) / 6;
+      d += ` C ${c1x.toFixed(2)} ${c1y.toFixed(2)}, ${c2x.toFixed(2)} ${c2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+    }
+    return d;
+  }
+
+  const linePath = smoothPath(coords);
+  const areaPath = `${linePath} L ${plotR.toFixed(2)} ${plotB.toFixed(2)} L ${plotL.toFixed(2)} ${plotB.toFixed(2)} Z`;
+
+  return { coords, linePath, areaPath, plotL, plotR, plotT, plotB, plotW, plotH, x, y, W, H };
+}
+
+/* ----------------------------------------------------------
+   CHIP HTML
+---------------------------------------------------------- */
+function tourChip(t, tappable) {
+  const sClass = t.sign === 'pos' ? 'pos' : 'neg';
+  const tap = tappable ? 'tap' : '';
+  return `<div class="chip ${tap}" data-tour="${t.name}">
+    <span class="c-name">${t.name}</span>
+    <span class="c-meta">${t.date} · <span class="c-delta ${sClass}">${t.delta}</span></span>
+  </div>`;
+}
+
+/* ----------------------------------------------------------
+   RENDER (DESKTOP — full annotations)
+---------------------------------------------------------- */
+function renderDesktop(el) {
+  const W = 672, H = 320;
+  const g = buildChart({ W, H, pad: { l: 18, r: 18, t: 70, b: 34 }, mobile: false });
+  const { coords, linePath, areaPath, plotL, plotR, plotB } = g;
+
+  const peak = coords[13]; // 3.74 Apr
+  const low = coords[0];   // 3.41 Oct
+  const start = coords[3]; // 3.48
+  const cur = coords[15];  // 3.72
+
+  // month axis labels (sparse)
+  const months = ['Oct','Nov','Dec','Jan','Feb','Mar','Apr','May'];
+  const monthIdx = [0,2,4,6,8,10,12,15];
+
+  // build SVG
+  let svg = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Rating trend annotated journey">
+    <defs>
+      <linearGradient id="areaGradD" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#1f9d57" stop-opacity="0.18"/>
+        <stop offset="1" stop-color="#1f9d57" stop-opacity="0"/>
+      </linearGradient>
+    </defs>`;
+
+  // baseline gridlines (subtle)
+  for (const mi of monthIdx) {
+    const cx = coords[mi].x;
+    svg += `<line x1="${cx}" y1="${g.plotT}" x2="${cx}" y2="${plotB}" stroke="#f1eee4" stroke-width="1"/>`;
+  }
+
+  svg += `<path d="${areaPath}" fill="url(#areaGradD)"/>`;
+  svg += `<path d="${linePath}" fill="none" stroke="#1f9d57" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+  // month labels
+  for (let k = 0; k < monthIdx.length; k++) {
+    const c = coords[monthIdx[k]];
+    svg += `<text class="mono anno" style="animation-delay:${0.05*k}s" x="${c.x}" y="${plotB+22}" text-anchor="middle" font-size="10" fill="#a8b0aa" font-weight="600">${months[k]}</text>`;
+  }
+
+  // ---- LOW point ----
+  svg += pointDot(low.x, low.y, '#c0653b', 4);
+  svg += connector(low.x, low.y, low.x, low.y + 30, '#d9a08a');
+  svg += foreign(low.x - 30, low.y + 30, 90, 34,
+    `<div class="chip" style="border-color:#e7cbbd">
+       <span class="c-name" style="color:#a84f29">Low 3.41</span>
+       <span class="c-meta">Oct · season start</span>
+     </div>`, 0.45);
+
+  // ---- START flag ----
+  svg += pointDot(start.x, start.y, '#065F46', 4);
+  svg += connector(start.x, start.y, start.x, start.y - 30, '#9fc4ad');
+  svg += foreign(start.x - 8, start.y - 64, 96, 34,
+    `<div class="chip milestone">
+       <span class="c-name">Start 3.48</span>
+       <span class="c-meta">where she opened</span>
+     </div>`, 0.2);
+
+  // ---- PEAK flag ----
+  svg += pointDot(peak.x, peak.y, '#E0A93B', 5);
+  svg += connector(peak.x, peak.y, peak.x, peak.y - 26, '#e6c576');
+  svg += foreign(peak.x - 78, peak.y - 60, 104, 36,
+    `<div class="chip peak">
+       <span class="c-name">Peak 3.74 · Apr</span>
+       <span class="c-meta">career high to date</span>
+     </div>`, 0.55);
+
+  // ---- CURRENT dot ----
+  svg += `<circle cx="${cur.x}" cy="${cur.y}" r="6.5" fill="#fff" stroke="#065F46" stroke-width="2.5"/>`;
+  svg += `<circle cx="${cur.x}" cy="${cur.y}" r="3" fill="#065F46"/>`;
+
+  // ---- TOURNAMENT markers ----
+  TOURNAMENTS.forEach((t, k) => {
+    const c = coords[t.i];
+    // amber marker ring on line
+    let mk = `<circle cx="${c.x}" cy="${c.y}" r="6" fill="#fff" stroke="#E0A93B" stroke-width="2.4"/>`;
+    mk += `<circle cx="${c.x}" cy="${c.y}" r="2.5" fill="#E0A93B"/>`;
+    svg += mk;
+
+    const above = t.place === 'above';
+    const chipH = 38, chipW = 132;
+    const gap = 34;
+    const cy = above ? c.y - gap - chipH : c.y + gap;
+    // connector
+    svg += connector(c.x, c.y, c.x, above ? c.y - gap : c.y + gap, '#ecd29a');
+    // horizontal nudge to avoid edges
+    let cx = c.x - chipW / 2;
+    cx = Math.max(plotL - 2, Math.min(cx, plotR - chipW + 2));
+    svg += foreign(cx, cy, chipW, chipH, tourChip(t, true), 0.65 + 0.08 * k);
+  });
+
+  svg += `</svg>`;
+
+  el.innerHTML = `
+    <div class="card-head">
+      <div class="head-top">
+        <div class="who">
+          <span class="name">Marisol Vega</span>
+          <span class="sub">Doubles DUPR · last 8 months</span>
+        </div>
+        ${trendPill()}
+      </div>
+      <div class="season-line">
+        <span class="from mono">3.48</span>
+        <span class="arrow">&rarr;</span>
+        <span class="to mono">3.72</span>
+        <span class="delta mono">+0.14</span>
+      </div>
+      <div class="season-caption">Her season, start to now &mdash; four tournaments, one career-high.</div>
+    </div>
+    <div class="chart-wrap">${svg}</div>
+    <div class="card-foot">
+      <span class="leg"><span class="dot tour"></span>Tournament</span>
+      <span class="leg"><span class="dot peak"></span>Current 3.72</span>
+      <span class="leg"><span class="dot low"></span>Season low 3.41</span>
+    </div>`;
+}
+
+/* ----------------------------------------------------------
+   RENDER (MOBILE — condensed annotations + tap-to-reveal)
+---------------------------------------------------------- */
+function renderMobile(el) {
+  const W = 332, H = 300;
+  const g = buildChart({ W, H, pad: { l: 12, r: 12, t: 56, b: 30 }, mobile: true });
+  const { coords, linePath, areaPath, plotB } = g;
+
+  const peak = coords[13];
+  const start = coords[3];
+  const cur = coords[15];
+
+  const months = ['Oct','Dec','Feb','Apr','May'];
+  const monthIdx = [0,4,8,12,15];
+
+  let svg = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Rating trend annotated journey">
+    <defs>
+      <linearGradient id="areaGradM" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#1f9d57" stop-opacity="0.18"/>
+        <stop offset="1" stop-color="#1f9d57" stop-opacity="0"/>
+      </linearGradient>
+    </defs>`;
+
+  svg += `<path d="${areaPath}" fill="url(#areaGradM)"/>`;
+  svg += `<path d="${linePath}" fill="none" stroke="#1f9d57" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+  for (let k = 0; k < monthIdx.length; k++) {
+    const c = coords[monthIdx[k]];
+    svg += `<text class="mono anno" style="animation-delay:${0.05*k}s" x="${c.x}" y="${plotB+20}" text-anchor="middle" font-size="9" fill="#a8b0aa" font-weight="600">${months[k]}</text>`;
+  }
+
+  // CONDENSED: only Start + Peak labels survive on mobile. Tournaments become tappable dots.
+  // Start flag (compact)
+  svg += pointDot(start.x, start.y, '#065F46', 3.5);
+  svg += connector(start.x, start.y, start.x, start.y - 24, '#9fc4ad');
+  svg += foreign(start.x - 6, start.y - 50, 70, 28,
+    `<div class="chip milestone"><span class="c-name">Start 3.48</span></div>`, 0.25);
+
+  // Peak flag (compact)
+  svg += pointDot(peak.x, peak.y, '#E0A93B', 4.5);
+  svg += connector(peak.x, peak.y, peak.x, peak.y - 22, '#e6c576');
+  svg += foreign(peak.x - 62, peak.y - 48, 78, 28,
+    `<div class="chip peak"><span class="c-name">Peak 3.74</span></div>`, 0.4);
+
+  // Current dot
+  svg += `<circle cx="${cur.x}" cy="${cur.y}" r="5.5" fill="#fff" stroke="#065F46" stroke-width="2.2"/>`;
+  svg += `<circle cx="${cur.x}" cy="${cur.y}" r="2.5" fill="#065F46"/>`;
+
+  // Tournament markers — TAP TARGETS (no inline chips, condensed)
+  TOURNAMENTS.forEach(t => {
+    const c = coords[t.i];
+    // larger transparent hit area
+    svg += `<circle class="tour-hit" data-tour="${t.name}" cx="${c.x}" cy="${c.y}" r="16" fill="transparent" style="cursor:pointer"/>`;
+    svg += `<circle cx="${c.x}" cy="${c.y}" r="5.5" fill="#fff" stroke="#E0A93B" stroke-width="2.2"/>`;
+    svg += `<circle cx="${c.x}" cy="${c.y}" r="2.2" fill="#E0A93B"/>`;
+  });
+
+  svg += `</svg>`;
+
+  el.innerHTML = `
+    <div class="card-head">
+      <div class="head-top">
+        <div class="who">
+          <span class="name">Marisol Vega</span>
+          <span class="sub">Doubles DUPR · 8 mo</span>
+        </div>
+        ${trendPill()}
+      </div>
+      <div class="season-line">
+        <span class="from mono">3.48</span>
+        <span class="arrow">&rarr;</span>
+        <span class="to mono">3.72</span>
+        <span class="delta mono">+0.14</span>
+      </div>
+      <div class="season-caption">Tap any amber dot to see the tournament.</div>
+    </div>
+    <div class="chart-wrap">${svg}</div>
+    <div class="callout" id="m-callout"></div>
+    <div class="mobile-hint">4 tournaments on the line · tap to reveal</div>
+    <div class="card-foot">
+      <span class="leg"><span class="dot tour"></span>Tournament</span>
+      <span class="leg"><span class="dot peak"></span>Current 3.72</span>
+    </div>`;
+
+  // wire taps
+  const callout = el.querySelector('#m-callout');
+  let active = null;
+  el.querySelectorAll('.tour-hit').forEach(node => {
+    node.addEventListener('click', () => {
+      const name = node.getAttribute('data-tour');
+      const t = TOURNAMENTS.find(x => x.name === name);
+      if (active === name) { callout.classList.remove('show'); active = null; return; }
+      active = name;
+      const sClass = t.sign === 'pos' ? 'pos' : 'neg';
+      callout.innerHTML = `
+        <div class="co-row">
+          <span class="co-name">${t.name}</span>
+          <span class="co-delta ${sClass}">${t.delta}</span>
+        </div>
+        <div class="co-date">${t.date} · rating change at this event</div>
+        <div class="co-hint">${tinyArrow(t.sign)} ${t.sign==='pos'?'Gained ground here':'Slipped slightly here'}</div>`;
+      callout.classList.remove('show');
+      void callout.offsetWidth;
+      callout.classList.add('show');
+    });
+  });
+}
+
+/* ----------------------------------------------------------
+   SVG HELPERS
+---------------------------------------------------------- */
+function pointDot(cx, cy, color, r) {
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}"/>`;
+}
+function connector(x1, y1, x2, y2, color) {
+  return `<line class="anno" x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${color}" stroke-width="1.4" stroke-dasharray="2 2.5"/>`;
+}
+function foreign(x, y, w, h, html, delay) {
+  return `<foreignObject class="anno" style="animation-delay:${delay}s" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w}" height="${h}" overflow="visible">
+    <div xmlns="http://www.w3.org/1999/xhtml">${html}</div>
+  </foreignObject>`;
+}
+function trendPill() {
+  return `<span class="trend-pill">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 9L4.5 5.5L7 8L11 3" stroke="#065F46" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 3H11V6" stroke="#065F46" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    On the rise
+  </span>`;
+}
+function tinyArrow(sign) {
+  if (sign === 'pos') {
+    return `<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 10V2M6 2L2.5 5.5M6 2L9.5 5.5" stroke="#1f9d57" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  }
+  return `<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 2V10M6 10L2.5 6.5M6 10L9.5 6.5" stroke="#c0653b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+
+/* ----------------------------------------------------------
+   DESKTOP MARKER TAP -> inline detail popover
+---------------------------------------------------------- */
+function wireDesktopTaps(el) {
+  // tooltip overlay
+  const wrap = el.querySelector('.chart-wrap');
+  let pop = document.createElement('div');
+  pop.style.cssText = 'position:absolute;display:none;z-index:20;pointer-events:none;';
+  wrap.appendChild(pop);
+
+  el.querySelectorAll('.chip.tap').forEach(chip => {
+    chip.addEventListener('click', (e) => {
+      const name = chip.getAttribute('data-tour');
+      const t = TOURNAMENTS.find(x => x.name === name);
+      const sClass = t.sign === 'pos' ? 'pos' : 'neg';
+      const r = chip.getBoundingClientRect();
+      const wr = wrap.getBoundingClientRect();
+      pop.innerHTML = `
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;background:#18211d;color:#fff;border-radius:12px;padding:11px 13px;box-shadow:0 12px 30px -10px rgba(0,0,0,.4);width:200px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <span style="font-size:13px;font-weight:700;">${t.name}</span>
+            <span class="mono" style="font-size:14px;font-weight:700;color:${t.sign==='pos'?'#5fd99a':'#e89b73'};">${t.delta}</span>
+          </div>
+          <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:3px;">${t.date} · DUPR change at this event</div>
+          <div style="font-size:10.5px;color:rgba(255,255,255,.45);margin-top:7px;">${t.sign==='pos'?'Rating climbed after this draw.':'Small dip — tough field.'}</div>
+        </div>`;
+      pop.style.left = (r.left - wr.left + r.width/2 - 100) + 'px';
+      pop.style.top = (r.top - wr.top - 96) + 'px';
+      pop.style.display = pop.dataset.cur === name ? 'none' : 'block';
+      pop.dataset.cur = pop.style.display === 'none' ? '' : name;
+    });
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.chip.tap')) { pop.style.display = 'none'; pop.dataset.cur=''; }
+  });
+}
+
+/* ----------------------------------------------------------
+   BOOT
+---------------------------------------------------------- */
+const dEl = document.getElementById('card-desktop');
+const mEl = document.getElementById('card-mobile');
+renderDesktop(dEl);
+renderMobile(mEl);
+wireDesktopTaps(dEl);
+
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    dEl.classList.add('loaded');
+    mEl.classList.add('loaded');
+  });
+});
+</script>
+</body>
+</html>

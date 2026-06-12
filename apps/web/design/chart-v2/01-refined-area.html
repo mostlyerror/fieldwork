@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rating Trend — Refined Area</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --cream: #FFFDF7;
+    --ink: #14201b;
+    --ink-soft: #5a6b62;
+    --ink-faint: #8a978f;
+    --emerald-deep: #065F46;
+    --emerald: #1f9d57;
+    --emerald-line: #0e8a4a;
+    --amber: #E0A93B;
+    --amber-deep: #b9821f;
+    --hair: #ece8dd;
+    --card-bd: #efeadd;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 40px 20px 80px;
+    line-height: 1.45;
+  }
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+  .page-head {
+    max-width: 720px;
+    margin: 0 auto 32px;
+  }
+  .page-head h1 {
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+  .page-head p { margin: 0; font-size: 14px; color: var(--ink-soft); }
+
+  .stack { max-width: 720px; margin: 0 auto; }
+  .size-label {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--ink-faint);
+    margin: 40px 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .size-label::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--hair);
+  }
+
+  .frame-mobile { max-width: 360px; }
+
+  /* ===== Card ===== */
+  .chart-card {
+    background: #ffffff;
+    border: 1px solid var(--card-bd);
+    border-radius: 20px;
+    padding: 22px 22px 18px;
+    box-shadow: 0 1px 2px rgba(20,32,27,0.04), 0 12px 30px -18px rgba(20,32,27,0.18);
+    position: relative;
+  }
+  .frame-mobile .chart-card { padding: 18px 16px 14px; border-radius: 18px; }
+
+  /* ===== Header ===== */
+  .card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  .head-left .eyebrow {
+    font-size: 10.5px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--ink-faint);
+    margin-bottom: 7px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .head-left .eyebrow svg { width: 13px; height: 13px; }
+  .value-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .big-value {
+    font-size: 34px;
+    font-weight: 600;
+    color: var(--emerald-deep);
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+  .frame-mobile .big-value { font-size: 30px; }
+  .delta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: rgba(31,157,87,0.10);
+    color: var(--emerald-line);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 3px 9px 3px 6px;
+    border-radius: 999px;
+    transform: translateY(-2px);
+  }
+  .delta-pill svg { width: 12px; height: 12px; }
+  .delta-sub { font-size: 11px; color: var(--ink-faint); font-weight: 500; margin-top: 6px; }
+
+  .head-right { text-align: right; flex-shrink: 0; }
+  .trend-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid rgba(31,157,87,0.28);
+    color: var(--emerald-line);
+    background: rgba(31,157,87,0.05);
+    border-radius: 999px;
+    padding: 5px 11px;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .trend-chip svg { width: 12px; height: 12px; }
+
+  /* ===== Chart wrap ===== */
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+    touch-action: pan-y;
+    user-select: none;
+    cursor: crosshair;
+  }
+  .chart-svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+  /* annotation labels (peak/low/now) */
+  .pin-label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    fill: var(--ink-soft);
+  }
+  .pin-label.tag {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    fill: var(--ink-faint);
+    font-weight: 700;
+    font-size: 8px;
+  }
+
+  /* crosshair */
+  .cross-line { stroke: var(--emerald-deep); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0; transition: opacity .12s ease; }
+  .cross-dot { opacity: 0; transition: opacity .12s ease; }
+  .chart-wrap.active .cross-line, .chart-wrap.active .cross-dot { opacity: 1; }
+
+  /* crosshair tooltip */
+  .cross-tip {
+    position: absolute;
+    top: 0; left: 0;
+    transform: translate(-50%, -118%);
+    background: var(--ink);
+    color: #fff;
+    border-radius: 10px;
+    padding: 7px 11px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .12s ease;
+    white-space: nowrap;
+    box-shadow: 0 8px 22px -8px rgba(20,32,27,0.5);
+    z-index: 5;
+  }
+  .chart-wrap.active .cross-tip { opacity: 1; }
+  .cross-tip .ct-val { font-family: "JetBrains Mono", monospace; font-size: 14px; font-weight: 600; line-height: 1.1; }
+  .cross-tip .ct-date { font-size: 10px; color: rgba(255,255,255,0.62); margin-top: 2px; letter-spacing: 0.03em; }
+  .cross-tip::after {
+    content: "";
+    position: absolute;
+    left: 50%; bottom: -5px;
+    transform: translateX(-50%);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid var(--ink);
+  }
+
+  /* tournament marker tooltip */
+  .tourney-tip {
+    position: absolute;
+    top: 0; left: 0;
+    transform: translate(-50%, -120%);
+    background: #fff;
+    border: 1px solid var(--card-bd);
+    border-radius: 12px;
+    padding: 9px 12px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .14s ease, transform .14s ease;
+    white-space: nowrap;
+    box-shadow: 0 12px 28px -12px rgba(20,32,27,0.35);
+    z-index: 6;
+  }
+  .tourney-tip.show { opacity: 1; }
+  .tourney-tip .tt-name { font-size: 12.5px; font-weight: 700; color: var(--ink); }
+  .tourney-tip .tt-meta { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
+  .tourney-tip .tt-date { font-size: 10.5px; color: var(--ink-faint); font-weight: 500; }
+  .tourney-tip .tt-delta {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 6px;
+  }
+  .tt-delta.up { color: var(--emerald-line); background: rgba(31,157,87,0.12); }
+  .tt-delta.down { color: #c2602f; background: rgba(194,96,47,0.12); }
+  .tourney-tip::after {
+    content: "";
+    position: absolute;
+    left: 50%; bottom: -6px;
+    transform: translateX(-50%);
+    width: 11px; height: 11px;
+    background: #fff;
+    border-right: 1px solid var(--card-bd);
+    border-bottom: 1px solid var(--card-bd);
+    rotate: 45deg;
+  }
+
+  .tmarker { cursor: pointer; }
+  .tmarker-hit { fill: transparent; cursor: pointer; }
+
+  /* x-axis labels */
+  .axis-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding: 0 2px;
+  }
+  .axis-row span {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    letter-spacing: 0.03em;
+  }
+
+  /* legend / footnote */
+  .card-foot {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 14px;
+    padding-top: 13px;
+    border-top: 1px solid var(--hair);
+    flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-soft); font-weight: 500; }
+  .legend-dot { width: 9px; height: 9px; border-radius: 999px; }
+  .legend-dot.line { width: 14px; height: 3px; border-radius: 2px; background: var(--emerald-line); }
+  .legend-dot.amber { background: var(--amber); box-shadow: 0 0 0 2px rgba(224,169,59,0.22); }
+  .foot-hint { margin-left: auto; font-size: 10.5px; color: var(--ink-faint); display: flex; align-items: center; gap: 5px; }
+  .foot-hint svg { width: 12px; height: 12px; }
+
+  /* load-in */
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  @keyframes fade { to { opacity: 1; } }
+  .anim-line { animation: draw 1.15s cubic-bezier(.5,0,.2,1) forwards; }
+  .anim-area { opacity: 0; animation: fade .9s ease .35s forwards; }
+  .anim-fade { opacity: 0; animation: fade .55s ease forwards; }
+
+  /* active states */
+  .delta-pill:active, .trend-chip:active { transform: translateY(-2px) scale(0.97); }
+</style>
+</head>
+<body>
+  <div class="page-head">
+    <h1>Rating Trend · Refined Area</h1>
+    <p>Best-in-class version of the DUPR doubles trend chart. Crisp gradient area, pinned peak/low/now labels, a crosshair tooltip that follows your pointer, and tappable amber tournament markers.</p>
+  </div>
+
+  <div class="stack">
+    <div class="size-label">Desktop · 720px</div>
+    <div id="frame-desktop"></div>
+
+    <div class="size-label">Mobile · 360px</div>
+    <div class="frame-mobile" id="frame-mobile"></div>
+  </div>
+
+<script>
+/* ---------- DATA ---------- */
+// ~16 monthly-ish doubles DUPR points over ~8 months, rising 3.41 -> 3.72 (peak 3.74) with dips.
+const points = [
+  { d: "Oct 2",  v: 3.41 },
+  { d: "Oct 18", v: 3.44 },
+  { d: "Nov 5",  v: 3.49 },
+  { d: "Nov 21", v: 3.47 },
+  { d: "Dec 9",  v: 3.53 },
+  { d: "Dec 27", v: 3.56 },
+  { d: "Jan 14", v: 3.55 },
+  { d: "Jan 28", v: 3.58 },
+  { d: "Feb 8",  v: 3.67 },  // Memorial Doubles +0.09
+  { d: "Feb 22", v: 3.65 },
+  { d: "Mar 1",  v: 3.60 },  // Heights Open -0.05
+  { d: "Mar 19", v: 3.63 },
+  { d: "Apr 2",  v: 3.62 },
+  { d: "Apr 12", v: 3.68 },  // Bayou Brawl +0.06
+  { d: "May 6",  v: 3.71 },
+  { d: "May 31", v: 3.74 }   // Casa Pickle Open +0.14 (peak; current shown as 3.72)
+];
+
+// Tournament markers anchored to specific data indices
+const tourneys = [
+  { i: 15, name: "Casa Pickle Open",  date: "May 31", delta: "+0.14", dir: "up" },
+  { i: 13, name: "Bayou Brawl",       date: "Apr 12", delta: "+0.06", dir: "up" },
+  { i: 10, name: "Heights Open",      date: "Mar 1",  delta: "-0.05", dir: "down" },
+  { i: 8,  name: "Memorial Doubles",  date: "Feb 8",  delta: "+0.09", dir: "up" }
+];
+
+const CURRENT = 3.72, PEAK = 3.74, LOW = 3.41;
+
+/* ---------- GEOMETRY ---------- */
+const VW = 680, VH = 250;
+const PAD = { t: 26, r: 16, b: 14, l: 16 };
+const innerW = VW - PAD.l - PAD.r;
+const innerH = VH - PAD.t - PAD.b;
+
+const vals = points.map(p => p.v);
+const vMin = Math.min(...vals) - 0.02;
+const vMax = Math.max(...vals) + 0.02;
+
+const xOf = i => PAD.l + (i / (points.length - 1)) * innerW;
+const yOf = v => PAD.t + (1 - (v - vMin) / (vMax - vMin)) * innerH;
+
+const coords = points.map((p, i) => ({ x: xOf(i), y: yOf(p.v), v: p.v, d: p.d }));
+
+// Smooth (Catmull-Rom -> cubic Bezier) path
+function smoothPath(pts) {
+  if (pts.length < 2) return "";
+  let d = `M ${pts[0].x.toFixed(2)} ${pts[0].y.toFixed(2)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] || p2;
+    const t = 0.18;
+    const c1x = p1.x + (p2.x - p0.x) * t;
+    const c1y = p1.y + (p2.y - p0.y) * t;
+    const c2x = p2.x - (p3.x - p1.x) * t;
+    const c2y = p2.y - (p3.y - p1.y) * t;
+    d += ` C ${c1x.toFixed(2)} ${c1y.toFixed(2)}, ${c2x.toFixed(2)} ${c2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+  }
+  return d;
+}
+const linePath = smoothPath(coords);
+const areaPath = linePath + ` L ${coords[coords.length-1].x.toFixed(2)} ${(VH - PAD.b).toFixed(2)} L ${coords[0].x.toFixed(2)} ${(VH - PAD.b).toFixed(2)} Z`;
+
+// Baseline gridlines (4 lines)
+const gridVals = [];
+{
+  const steps = 4;
+  for (let k = 0; k <= steps; k++) {
+    gridVals.push(vMin + (vMax - vMin) * (k / steps));
+  }
+}
+
+// Peak / Low / Now indices
+const idxPeak = vals.indexOf(Math.max(...vals));
+const idxLow = vals.indexOf(Math.min(...vals));
+const idxNow = points.length - 1;
+
+/* ---------- RENDER ---------- */
+function svgIcon(name) {
+  const I = {
+    spark: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 7-8"/><path d="M16 4h4v4"/></svg>`,
+    up: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 14l6-6 6 6"/></svg>`,
+    rise: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16l5-5 4 3 8-9"/></svg>`,
+    touch: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 11V6a2 2 0 1 1 4 0v5"/><path d="M12 11V9a2 2 0 1 1 4 0v2"/><path d="M16 11a2 2 0 1 1 4 0v3a6 6 0 0 1-6 6h-2.5a4 4 0 0 1-3-1.4L4 14.5a2 2 0 0 1 3-2.6l1 .9"/></svg>`
+  };
+  return I[name] || "";
+}
+
+function buildCard(uid) {
+  const gid = "grad-" + uid;
+  const clip = "clip-" + uid;
+
+  // gridlines
+  let gridSvg = "";
+  gridVals.forEach((gv, k) => {
+    const y = yOf(gv).toFixed(2);
+    gridSvg += `<line x1="${PAD.l}" x2="${VW - PAD.r}" y1="${y}" y2="${y}" stroke="var(--hair)" stroke-width="1" ${k === 0 ? '' : 'stroke-dasharray="2 4"'} />`;
+  });
+
+  // tournament markers
+  let tSvg = "";
+  tourneys.forEach((t, k) => {
+    const c = coords[t.i];
+    tSvg += `
+      <g class="tmarker anim-fade" style="animation-delay:${0.9 + k * 0.08}s" data-tourney="${k}">
+        <circle cx="${c.x.toFixed(2)}" cy="${c.y.toFixed(2)}" r="8.5" fill="var(--amber)" opacity="0.14"/>
+        <circle class="tmarker-core" cx="${c.x.toFixed(2)}" cy="${c.y.toFixed(2)}" r="4.6" fill="var(--amber)" stroke="#fff" stroke-width="2"/>
+        <circle class="tmarker-hit" cx="${c.x.toFixed(2)}" cy="${c.y.toFixed(2)}" r="16"/>
+      </g>`;
+  });
+
+  // pinned annotations: peak (above), low (below), now (right)
+  function pin(idx, tag, place) {
+    const c = coords[idx];
+    let ty, lblY, tagY, anchor = "middle", tx = c.x;
+    if (place === "up") { ty = -16; }
+    else if (place === "down") { ty = 24; }
+    // value text
+    const dy1 = place === "up" ? c.y - 18 : c.y + 26;
+    const dy2 = place === "up" ? c.y - 28 : c.y + 36;
+    // keep within bounds horizontally
+    if (tx < 40) { anchor = "start"; tx = c.x - 4; }
+    if (tx > VW - 40) { anchor = "end"; tx = c.x + 4; }
+    return `
+      <g class="anim-fade" style="animation-delay:1.05s">
+        <circle cx="${c.x.toFixed(2)}" cy="${c.y.toFixed(2)}" r="3.4" fill="var(--emerald-deep)" stroke="#fff" stroke-width="1.6"/>
+        <text class="pin-label" x="${tx.toFixed(2)}" y="${dy1.toFixed(2)}" text-anchor="${anchor}">${c.v.toFixed(2)}</text>
+        <text class="pin-label tag" x="${tx.toFixed(2)}" y="${dy2.toFixed(2)}" text-anchor="${anchor}">${tag}</text>
+      </g>`;
+  }
+
+  const pins = pin(idxPeak, "Peak", "up") + pin(idxLow, "Low", "down") +
+    (idxNow !== idxPeak ? pin(idxNow, "Now", "up") : "");
+
+  return `
+  <div class="chart-card">
+    <div class="card-head">
+      <div class="head-left">
+        <div class="eyebrow">${svgIcon('spark')} Doubles DUPR · 8 mo</div>
+        <div class="value-row">
+          <span class="big-value mono">3.72</span>
+          <span class="delta-pill">${svgIcon('up')}<span class="mono">+0.14</span></span>
+        </div>
+        <div class="delta-sub">vs. 3.58 · 10 results ago</div>
+      </div>
+      <div class="head-right">
+        <span class="trend-chip">${svgIcon('rise')} On the rise</span>
+      </div>
+    </div>
+
+    <div class="chart-wrap" id="wrap-${uid}">
+      <svg class="chart-svg" viewBox="0 0 ${VW} ${VH}" preserveAspectRatio="none" aria-label="Rating trend chart">
+        <defs>
+          <linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#1f9d57" stop-opacity="0.26"/>
+            <stop offset="55%" stop-color="#1f9d57" stop-opacity="0.08"/>
+            <stop offset="100%" stop-color="#1f9d57" stop-opacity="0"/>
+          </linearGradient>
+          <clipPath id="${clip}"><rect x="0" y="0" width="${VW}" height="${VH}"/></clipPath>
+        </defs>
+
+        ${gridSvg}
+
+        <path class="anim-area" d="${areaPath}" fill="url(#${gid})"/>
+        <path class="anim-line" d="${linePath}" fill="none" stroke="var(--emerald-line)" stroke-width="2.4"
+              stroke-linecap="round" stroke-linejoin="round"
+              pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>
+
+        ${pins}
+        ${tSvg}
+
+        <!-- crosshair -->
+        <line class="cross-line" id="cl-${uid}" x1="0" y1="${PAD.t}" x2="0" y2="${VH - PAD.b}"/>
+        <g class="cross-dot" id="cd-${uid}">
+          <circle r="6.5" fill="var(--emerald-line)" opacity="0.16"/>
+          <circle r="4" fill="#fff" stroke="var(--emerald-line)" stroke-width="2.4"/>
+        </g>
+      </svg>
+
+      <div class="cross-tip" id="ctip-${uid}">
+        <div class="ct-val mono">3.72</div>
+        <div class="ct-date">May 31</div>
+      </div>
+
+      <div class="tourney-tip" id="ttip-${uid}">
+        <div class="tt-name">Casa Pickle Open</div>
+        <div class="tt-meta">
+          <span class="tt-date">May 31</span>
+          <span class="tt-delta up">+0.14</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="axis-row">
+      <span>Oct</span><span>Dec</span><span>Feb</span><span>Apr</span><span>May</span>
+    </div>
+
+    <div class="card-foot">
+      <span class="legend-item"><span class="legend-dot line"></span> Rating</span>
+      <span class="legend-item"><span class="legend-dot amber"></span> Tournament</span>
+      <span class="foot-hint">${svgIcon('touch')} Drag across the line</span>
+    </div>
+  </div>`;
+}
+
+/* ---------- WIRE INTERACTIONS ---------- */
+function wire(uid) {
+  const wrap = document.getElementById("wrap-" + uid);
+  const svg = wrap.querySelector(".chart-svg");
+  const cl = document.getElementById("cl-" + uid);
+  const cd = document.getElementById("cd-" + uid);
+  const ctip = document.getElementById("ctip-" + uid);
+  const ttip = document.getElementById("ttip-" + uid);
+
+  // Map an SVG viewBox X to interpolated value/date along the line
+  function sample(svgX) {
+    // clamp
+    const x = Math.max(coords[0].x, Math.min(coords[coords.length - 1].x, svgX));
+    // find segment
+    let i = 0;
+    while (i < coords.length - 1 && coords[i + 1].x < x) i++;
+    const a = coords[i], b = coords[Math.min(i + 1, coords.length - 1)];
+    const span = (b.x - a.x) || 1;
+    const f = (x - a.x) / span;
+    const v = a.v + (b.v - a.v) * f;
+    const y = a.y + (b.y - a.y) * f;
+    // nearest date label
+    const d = f < 0.5 ? a.d : b.d;
+    return { x, y, v, d };
+  }
+
+  function clientToSvgX(clientX) {
+    const r = svg.getBoundingClientRect();
+    const rel = (clientX - r.left) / r.width;
+    return rel * VW;
+  }
+  function svgXToWrapPx(svgX) {
+    const r = svg.getBoundingClientRect();
+    const wrapR = wrap.getBoundingClientRect();
+    return (svgX / VW) * r.width + (r.left - wrapR.left);
+  }
+  function svgYToWrapPx(svgY) {
+    const r = svg.getBoundingClientRect();
+    const wrapR = wrap.getBoundingClientRect();
+    return (svgY / VH) * r.height + (r.top - wrapR.top);
+  }
+
+  function move(clientX) {
+    const sx = clientToSvgX(clientX);
+    const s = sample(sx);
+    cl.setAttribute("x1", s.x); cl.setAttribute("x2", s.x);
+    cd.setAttribute("transform", `translate(${s.x},${s.y})`);
+    ctip.querySelector(".ct-val").textContent = s.v.toFixed(2);
+    ctip.querySelector(".ct-date").textContent = s.d;
+    ctip.style.left = svgXToWrapPx(s.x) + "px";
+    ctip.style.top = svgYToWrapPx(s.y) + "px";
+    wrap.classList.add("active");
+    hideTourney();
+  }
+  function leave() { wrap.classList.remove("active"); }
+
+  // pointer (mouse) crosshair
+  wrap.addEventListener("mousemove", e => {
+    // ignore if hovering a marker (handled separately)
+    move(e.clientX);
+  });
+  wrap.addEventListener("mouseleave", leave);
+
+  // touch crosshair (drag)
+  wrap.addEventListener("touchstart", e => {
+    if (e.target.closest(".tmarker")) return; // let marker tap fire
+    move(e.touches[0].clientX);
+  }, { passive: true });
+  wrap.addEventListener("touchmove", e => {
+    move(e.touches[0].clientX);
+  }, { passive: true });
+  wrap.addEventListener("touchend", () => setTimeout(leave, 1400));
+
+  /* tournament markers */
+  let ttHideTimer = null;
+  function showTourney(k, svgX, svgY) {
+    const t = tourneys[k];
+    ttip.querySelector(".tt-name").textContent = t.name;
+    ttip.querySelector(".tt-date").textContent = t.date;
+    const dEl = ttip.querySelector(".tt-delta");
+    dEl.textContent = t.delta;
+    dEl.className = "tt-delta " + t.dir;
+    ttip.style.left = svgXToWrapPx(svgX) + "px";
+    ttip.style.top = svgYToWrapPx(svgY) + "px";
+    ttip.classList.add("show");
+    wrap.classList.remove("active"); // hide crosshair while marker tip up
+  }
+  function hideTourney() { ttip.classList.remove("show"); }
+
+  wrap.querySelectorAll(".tmarker").forEach(g => {
+    const k = +g.dataset.tourney;
+    const c = coords[tourneys[k].i];
+    const core = g.querySelector(".tmarker-core");
+    g.addEventListener("mouseenter", () => { core.setAttribute("r", "5.6"); showTourney(k, c.x, c.y); });
+    g.addEventListener("mouseleave", () => { core.setAttribute("r", "4.6"); hideTourney(); });
+    g.addEventListener("click", e => { e.stopPropagation(); showTourney(k, c.x, c.y); });
+    g.addEventListener("touchstart", e => {
+      e.stopPropagation();
+      clearTimeout(ttHideTimer);
+      showTourney(k, c.x, c.y);
+      ttHideTimer = setTimeout(hideTourney, 2600);
+    }, { passive: true });
+  });
+}
+
+/* ---------- MOUNT ---------- */
+document.getElementById("frame-desktop").innerHTML = buildCard("d");
+document.getElementById("frame-mobile").innerHTML = buildCard("m");
+wire("d");
+wire("m");
+</script>
+</body>
+</html>

@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rating Trend — The Ladder · PickleRadar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --cream: #FFFDF7;
+    --card: #ffffff;
+    --emerald: #1f9d57;
+    --emerald-deep: #065F46;
+    --clay: #c0654a;
+    --clay-deep: #9a4a32;
+    --amber: #E0A93B;
+    --amber-deep: #b9851f;
+    --ink: #15201a;
+    --muted: #6b766f;
+    --faint: #97a09a;
+    --hair: #ece8dd;
+    --grid: #f1ede3;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--cream);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    padding: 40px 16px 80px;
+  }
+
+  .num { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+
+  .page-head {
+    max-width: 720px;
+    margin: 0 auto 28px;
+    padding: 0 4px;
+  }
+  .page-head h1 {
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+  .page-head p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--muted);
+    max-width: 56ch;
+    line-height: 1.5;
+  }
+
+  .size-label {
+    max-width: 720px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--faint);
+    margin-bottom: 12px;
+    margin-top: 44px;
+  }
+  .size-label::after { content: ""; flex: 1; height: 1px; background: var(--hair); }
+
+  .frame { margin: 0 auto; }
+  .frame.desktop { width: 720px; max-width: 100%; }
+  .frame.mobile { width: 360px; max-width: 100%; }
+
+  /* ---------- CARD ---------- */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--hair);
+    border-radius: 20px;
+    box-shadow: 0 1px 2px rgba(20,32,26,0.04), 0 18px 40px -28px rgba(20,32,26,0.22);
+    padding: 22px 22px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .frame.mobile .card { padding: 18px 16px 16px; border-radius: 18px; }
+
+  /* ---------- HEADER ---------- */
+  .head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .head-left .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .head-left .player {
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .current-row { display: flex; align-items: baseline; gap: 12px; }
+  .current-val {
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    color: var(--emerald-deep);
+  }
+  .frame.mobile .current-val { font-size: 36px; }
+  .delta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(31,157,87,0.1);
+    color: var(--emerald);
+    font-weight: 700;
+    font-size: 14px;
+    padding: 5px 9px;
+    border-radius: 999px;
+  }
+  .delta-pill svg { width: 13px; height: 13px; }
+  .trend-tag {
+    font-size: 13px;
+    color: var(--emerald);
+    font-weight: 600;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .trend-tag .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--emerald); box-shadow: 0 0 0 3px rgba(31,157,87,0.18); }
+
+  .head-right {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .stat {
+    text-align: center;
+    padding: 8px 11px;
+    border: 1px solid var(--hair);
+    border-radius: 12px;
+    min-width: 62px;
+    background: #fffefa;
+  }
+  .stat .k {
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .stat .v { font-size: 16px; font-weight: 700; }
+  .stat.peak .v { color: var(--emerald-deep); }
+  .stat.low .v { color: var(--clay); }
+  .frame.mobile .head-right { display: none; }
+
+  /* mobile compact stat strip */
+  .mini-stats {
+    display: none;
+    gap: 14px;
+    margin-bottom: 16px;
+    padding-top: 2px;
+  }
+  .frame.mobile .mini-stats { display: flex; }
+  .mini-stats .ms { display: flex; flex-direction: column; gap: 1px; }
+  .mini-stats .ms .k { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); font-weight: 700; }
+  .mini-stats .ms .v { font-size: 15px; font-weight: 700; }
+  .mini-stats .ms.peak .v { color: var(--emerald-deep); }
+  .mini-stats .ms.low .v { color: var(--clay); }
+
+  /* ---------- CHART ---------- */
+  .chart-wrap { position: relative; width: 100%; }
+  svg.ladder { display: block; width: 100%; height: auto; overflow: visible; }
+
+  .seg-line { stroke-linecap: round; }
+  .riser { stroke-dasharray: 2 4; opacity: 0.55; }
+
+  /* draw-in animation */
+  .draw {
+    stroke-dasharray: var(--len);
+    stroke-dashoffset: var(--len);
+    animation: drawIn 0.5s cubic-bezier(.4,.1,.25,1) forwards;
+    animation-delay: var(--d, 0s);
+  }
+  @keyframes drawIn { to { stroke-dashoffset: 0; } }
+
+  .node {
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    transform: scale(0.2);
+    animation: popIn 0.32s cubic-bezier(.2,1.3,.4,1) forwards;
+    animation-delay: var(--d, 0s);
+  }
+  @keyframes popIn { to { opacity: 1; transform: scale(1); } }
+
+  .deltabar {
+    opacity: 0;
+    animation: fadeBar 0.3s ease forwards;
+    animation-delay: var(--d, 0s);
+  }
+  @keyframes fadeBar { to { opacity: 1; } }
+
+  .tourn-chip-g {
+    opacity: 0;
+    animation: fadeUp 0.4s ease forwards;
+    animation-delay: var(--d, 0s);
+  }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: translateY(0);} }
+
+  .hit { cursor: pointer; fill: transparent; }
+  .node-ring { fill: none; opacity: 0; transition: opacity 0.15s; }
+  .step-g:hover .node-ring,
+  .step-g.active .node-ring { opacity: 1; }
+  .step-g:hover .node-core,
+  .step-g.active .node-core { r: 5.5; }
+  .node-core { transition: r 0.12s; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .draw, .node, .deltabar, .tourn-chip-g { animation: none; opacity: 1; stroke-dashoffset: 0; transform: none; }
+  }
+
+  /* ---------- TOOLTIP ---------- */
+  .tip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--ink);
+    color: #fff;
+    border-radius: 11px;
+    padding: 9px 11px;
+    font-size: 12px;
+    line-height: 1.35;
+    box-shadow: 0 10px 26px -8px rgba(20,32,26,0.5);
+    opacity: 0;
+    transform: translate(-50%, -8px);
+    transition: opacity 0.13s;
+    z-index: 20;
+    white-space: nowrap;
+  }
+  .tip.show { opacity: 1; }
+  .tip::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -5px;
+    width: 10px; height: 10px;
+    background: var(--ink);
+    transform: translateX(-50%) rotate(45deg);
+    border-radius: 2px;
+  }
+  .tip .t-name { font-weight: 700; margin-bottom: 2px; }
+  .tip .t-date { color: #b9c6bf; font-size: 11px; }
+  .tip .t-delta { font-family: 'JetBrains Mono', monospace; font-weight: 700; margin-top: 3px; display: inline-block; }
+  .tip .t-delta.up { color: #6fe0a0; }
+  .tip .t-delta.down { color: #f0a78f; }
+  .tip .t-tag { color: var(--amber); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; margin-bottom: 3px; }
+
+  /* ---------- LEGEND + FOOTER ---------- */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--hair);
+    font-size: 11.5px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .legend .li { display: flex; align-items: center; gap: 6px; }
+  .legend .sw { width: 16px; height: 4px; border-radius: 2px; }
+  .legend .sw.up { background: var(--emerald); }
+  .legend .sw.down { background: var(--clay); }
+  .legend .sw.tour { width: 10px; height: 10px; border-radius: 50%; background: var(--amber); border: 2px solid #fff; box-shadow: 0 0 0 1.5px var(--amber); }
+
+  /* ---------- DETAIL PANEL (tournament tap) ---------- */
+  .detail {
+    margin-top: 14px;
+    border: 1px solid var(--hair);
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fffdf6;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.3s ease, opacity 0.25s ease, margin-top 0.3s ease;
+  }
+  .detail.open { max-height: 200px; opacity: 1; }
+  .detail-inner { padding: 14px 16px; display: flex; align-items: center; gap: 14px; }
+  .detail-badge {
+    width: 38px; height: 38px; border-radius: 11px;
+    background: rgba(224,169,59,0.14);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .detail-badge svg { width: 20px; height: 20px; }
+  .detail-body { flex: 1; min-width: 0; }
+  .detail-body .dt-name { font-weight: 700; font-size: 14px; }
+  .detail-body .dt-meta { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .detail-move {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .detail-move .dm-delta { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 18px; }
+  .detail-move .dm-delta.up { color: var(--emerald); }
+  .detail-move .dm-delta.down { color: var(--clay); }
+  .detail-move .dm-from { font-size: 11px; color: var(--faint); font-family: 'JetBrains Mono', monospace; margin-top: 1px; }
+
+  .hint {
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--faint);
+    text-align: center;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+  <div class="page-head">
+    <h1>Rating Trend · Direction “The Ladder”</h1>
+    <p>The rating as a sequence of discrete, deliberate moves up the ladder — each event a step, tinted by direction, tournaments emphasized. Stock-ticker meets climbing wall.</p>
+  </div>
+
+  <!-- ============ DESKTOP ============ -->
+  <div class="size-label">Desktop · 720px</div>
+  <div class="frame desktop">
+    <div class="card" id="card-d"></div>
+  </div>
+
+  <!-- ============ MOBILE ============ -->
+  <div class="size-label">Mobile · 360px</div>
+  <div class="frame mobile">
+    <div class="card" id="card-m"></div>
+  </div>
+
+<script>
+// ---------------- DATA ----------------
+// 16 rating events over ~8 months, 3.41 -> 3.72, peak 3.74, low 3.41
+// rating = running value AFTER the event; delta = move that event caused
+const EVENTS = [
+  { rating: 3.41, delta: null, date: "Oct 5",  label: "Season start" },
+  { rating: 3.44, delta: +0.03, date: "Oct 26", label: "League night" },
+  { rating: 3.42, delta: -0.02, date: "Nov 16", label: "Open play ladder" },
+  { rating: 3.47, delta: +0.05, date: "Dec 7",  label: "Holiday Round Robin" },
+  { rating: 3.45, delta: -0.02, date: "Dec 28", label: "Club challenge" },
+  { rating: 3.50, delta: +0.05, date: "Jan 18", label: "Winter Series" },
+  { rating: 3.54, delta: +0.04, date: "Jan 31", label: "League playoff" },
+  { rating: 3.63, delta: +0.09, date: "Feb 8",  label: "Memorial Doubles", tourn: true },
+  { rating: 3.60, delta: -0.03, date: "Feb 22", label: "Mixer night" },
+  { rating: 3.55, delta: -0.05, date: "Mar 1",  label: "Heights Open", tourn: true },
+  { rating: 3.59, delta: +0.04, date: "Mar 22", label: "Spring League" },
+  { rating: 3.57, delta: -0.02, date: "Apr 2",  label: "Tune-up session" },
+  { rating: 3.63, delta: +0.06, date: "Apr 12", label: "Bayou Brawl", tourn: true },
+  { rating: 3.66, delta: +0.03, date: "May 3",  label: "Regional qualifier" },
+  { rating: 3.58, delta: -0.08, date: "May 17", label: "Off week dip" },
+  { rating: 3.72, delta: +0.14, date: "May 31", label: "Casa Pickle Open", tourn: true },
+];
+// (declared peak 3.74 / low 3.41 per spec; current 3.72, total +0.14)
+
+const STATS = { current: "3.72", delta: "+0.14", peak: "3.74", low: "3.41", trend: "On the rise" };
+
+// SVG icons (no emoji)
+const ICONS = {
+  spark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 7-8"/><path d="M16 5h4v4"/></svg>',
+  up:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M7 14l5-5 5 5"/></svg>',
+  trophy:'<svg viewBox="0 0 24 24" fill="none" stroke="#b9851f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v3a6 6 0 0 1-12 0z"/><path d="M6 5H4a2 2 0 0 0 0 4h2.3M18 5h2a2 2 0 0 1 0 4h-2.3M9 17h6M10 17v-3M14 17v-3M8 21h8"/></svg>',
+};
+
+// ---------------- RENDER ----------------
+function buildChart(opts) {
+  const { mobile, idSuffix } = opts;
+
+  // On mobile, simplify: collapse some minor intermediate steps but ALWAYS keep tournaments + start + end.
+  let data = EVENTS;
+  if (mobile) {
+    const keepIdx = new Set([0, EVENTS.length - 1]);
+    EVENTS.forEach((e, i) => { if (e.tourn) keepIdx.add(i); });
+    // keep a few connective non-tournament steps so ladder still reads
+    [3, 6, 13].forEach(i => keepIdx.add(i));
+    data = EVENTS.filter((_, i) => keepIdx.has(i));
+  }
+
+  // geometry
+  const W = mobile ? 328 : 660;
+  const H = mobile ? 250 : 270;
+  const padL = mobile ? 34 : 40;
+  const padR = mobile ? 14 : 18;
+  const padT = 30;                 // room for tournament chips
+  const barH = mobile ? 26 : 30;   // delta bar zone
+  const gap = 8;
+  const plotBottom = H - barH - gap - 16; // line plot bottom (above bars)
+  const plotTop = padT;
+
+  const ratings = data.map(d => d.rating);
+  const rMin = 3.39, rMax = 3.76; // padded around low/peak
+  const innerW = W - padL - padR;
+  const n = data.length;
+  const stepW = innerW / n;        // each step occupies a column
+
+  const x = i => padL + stepW * i + stepW / 2;
+  const xLeft = i => padL + stepW * i;
+  const xRight = i => padL + stepW * (i + 1);
+  const y = r => plotTop + (1 - (r - rMin) / (rMax - rMin)) * (plotBottom - plotTop);
+
+  // delta bar scale
+  const maxAbsDelta = 0.14;
+  const barBase = plotBottom + gap + barH; // bottom baseline of bars
+  const barTopLine = plotBottom + gap;     // where bars start drawing zone
+
+  let svg = `<svg class="ladder" viewBox="0 0 ${W} ${H}" role="img" aria-label="Stepped rating ladder">`;
+
+  // ---- gridlines (rating bands) ----
+  const bands = [3.4, 3.5, 3.6, 3.7];
+  bands.forEach(b => {
+    const yy = y(b);
+    svg += `<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${W - padR}" y2="${yy.toFixed(1)}" stroke="var(--grid)" stroke-width="1"/>`;
+    svg += `<text x="${padL - 7}" y="${(yy + 3).toFixed(1)}" text-anchor="end" font-size="9.5" font-family="JetBrains Mono, monospace" fill="var(--faint)">${b.toFixed(1)}</text>`;
+  });
+
+  // delta-bar baseline
+  const midBar = (barTopLine + barBase) / 2;
+
+  // ---- build steps ----
+  let stepGroups = '';
+  let totalDelay = 0;
+  const stepDelay = mobile ? 70 : 60;
+
+  for (let i = 0; i < n; i++) {
+    const d = data[i];
+    const isFirst = i === 0;
+    const delay = (i * stepDelay) / 1000;
+    totalDelay = delay;
+
+    const cx = x(i);
+    const cy = y(d.rating);
+    const segLeft = xLeft(i);
+    const segRight = xRight(i);
+
+    // tread: horizontal segment at this step's rating level
+    const dir = d.delta == null ? 0 : (d.delta >= 0 ? 1 : -1);
+    const segColor = dir > 0 ? 'var(--emerald)' : dir < 0 ? 'var(--clay)' : 'var(--muted)';
+    const treadLen = (segRight - segLeft).toFixed(1);
+
+    // riser: vertical connector from previous step's level to this step's level
+    let riserPath = '';
+    if (!isFirst) {
+      const prevY = y(data[i - 1].rating);
+      const riserLen = Math.abs(cy - prevY).toFixed(1) || 1;
+      riserPath = `<path class="seg-line riser draw" style="--len:${riserLen};--d:${(delay - 0.04).toFixed(3)}s" d="M ${segLeft.toFixed(1)} ${prevY.toFixed(1)} L ${segLeft.toFixed(1)} ${cy.toFixed(1)}" stroke="${segColor}" stroke-width="${mobile?2:2.2}" fill="none"/>`;
+    }
+
+    // tread path (the visible step top)
+    const tread = `<path class="seg-line draw" style="--len:${treadLen};--d:${delay.toFixed(3)}s" d="M ${segLeft.toFixed(1)} ${cy.toFixed(1)} L ${segRight.toFixed(1)} ${cy.toFixed(1)}" stroke="${segColor}" stroke-width="${mobile?3:3.4}" fill="none"/>`;
+
+    // delta bar
+    let bar = '';
+    if (d.delta != null) {
+      const mag = Math.min(Math.abs(d.delta) / maxAbsDelta, 1);
+      const bh = mag * (barH / 2 - 2);
+      const barColor = dir > 0 ? 'var(--emerald)' : 'var(--clay)';
+      const bw = Math.min(stepW * 0.5, 14);
+      const bx = (cx - bw / 2).toFixed(1);
+      const by = dir > 0 ? (midBar - bh).toFixed(1) : midBar.toFixed(1);
+      bar = `<rect class="deltabar" style="--d:${(delay + 0.12).toFixed(3)}s" x="${bx}" y="${by}" width="${bw.toFixed(1)}" height="${Math.max(bh,1).toFixed(1)}" rx="2" fill="${barColor}" opacity="0.85"/>`;
+    }
+
+    // node
+    let node = '';
+    const nDelay = (delay + 0.18).toFixed(3);
+    if (d.tourn) {
+      node = `
+        <circle class="node-ring" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="9" stroke="var(--amber)" stroke-width="2"/>
+        <circle class="node node-core" style="--d:${nDelay}s" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="5" fill="var(--amber)" stroke="#fff" stroke-width="2"/>`;
+    } else {
+      node = `
+        <circle class="node-ring" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="8" stroke="${segColor}" stroke-width="2"/>
+        <circle class="node node-core" style="--d:${nDelay}s" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${mobile?3.2:3.6}" fill="${segColor}" stroke="#fff" stroke-width="1.6"/>`;
+    }
+
+    // tournament chip above node
+    let chip = '';
+    if (d.tourn) {
+      const chipY = Math.max(cy - 20, 14);
+      const sign = d.delta >= 0 ? '+' : '';
+      const short = d.label.length > (mobile?9:16) ? d.label.split(' ')[0] : d.label;
+      chip = `
+        <g class="tourn-chip-g" style="--d:${(delay + 0.22).toFixed(3)}s">
+          <line x1="${cx.toFixed(1)}" y1="${(cy-9).toFixed(1)}" x2="${cx.toFixed(1)}" y2="${(chipY+9).toFixed(1)}" stroke="var(--amber)" stroke-width="1.4" stroke-dasharray="2 2" opacity="0.7"/>
+        </g>`;
+    }
+
+    // hit target (full column) for hover/tap
+    const hit = `<rect class="hit" x="${segLeft.toFixed(1)}" y="${plotTop}" width="${stepW.toFixed(1)}" height="${(barBase - plotTop).toFixed(1)}"/>`;
+
+    stepGroups += `<g class="step-g${d.tourn?' is-tourn':''}" data-i="${i}" data-name="${d.label}" data-date="${d.date}" data-delta="${d.delta==null?'':(d.delta>=0?'+':'')+d.delta.toFixed(2)}" data-rating="${d.rating.toFixed(2)}" data-tourn="${d.tourn?1:0}" data-cx="${cx.toFixed(1)}" data-cy="${cy.toFixed(1)}">
+      ${riserPath}${tread}${bar}${chip}${node}${hit}
+    </g>`;
+  }
+
+  // delta-bar zone divider
+  svg += `<line x1="${padL}" y1="${midBar.toFixed(1)}" x2="${W-padR}" y2="${midBar.toFixed(1)}" stroke="var(--hair)" stroke-width="1"/>`;
+  svg += `<text x="${padL-7}" y="${(midBar+3).toFixed(1)}" text-anchor="end" font-size="8" font-family="JetBrains Mono, monospace" fill="var(--faint)">Δ</text>`;
+
+  svg += stepGroups;
+
+  // tournament chip LABELS rendered as foreign-free SVG text chips above
+  for (let i = 0; i < n; i++) {
+    const d = data[i];
+    if (!d.tourn) continue;
+    const cx = x(i);
+    const cy = y(d.rating);
+    const delay = (i * stepDelay) / 1000;
+    const sign = d.delta >= 0 ? '+' : '';
+    const name = mobile ? d.label.split(' ')[0] : d.label;
+    const chipW = Math.max((name.length * (mobile?5.4:5.8)) + 30, 60);
+    let chipX = cx - chipW / 2;
+    chipX = Math.max(padL, Math.min(chipX, W - padR - chipW));
+    const chipY = Math.max(cy - 30, 6);
+    const deltaColor = d.delta >= 0 ? 'var(--emerald)' : 'var(--clay)';
+    svg += `
+      <g class="tourn-chip-g" style="--d:${(delay + 0.24).toFixed(3)}s">
+        <rect x="${chipX.toFixed(1)}" y="${chipY.toFixed(1)}" width="${chipW.toFixed(1)}" height="18" rx="9" fill="#fff" stroke="var(--amber)" stroke-width="1.3"/>
+        <circle cx="${(chipX+10).toFixed(1)}" cy="${(chipY+9).toFixed(1)}" r="3" fill="var(--amber)"/>
+        <text x="${(chipX+18).toFixed(1)}" y="${(chipY+12.5).toFixed(1)}" font-size="${mobile?9:9.5}" font-weight="700" font-family="Plus Jakarta Sans, sans-serif" fill="var(--ink)">${name}</text>
+        <text x="${(chipX+chipW-7).toFixed(1)}" y="${(chipY+12.5).toFixed(1)}" text-anchor="end" font-size="9" font-weight="700" font-family="JetBrains Mono, monospace" fill="${deltaColor}">${sign}${d.delta.toFixed(2)}</text>
+      </g>`;
+  }
+
+  svg += `</svg>`;
+
+  // ---- HEADER ----
+  const header = `
+    <div class="head">
+      <div class="head-left">
+        <div class="eyebrow"><span style="color:var(--emerald)">${ICONS.spark}</span> DUPR · Doubles</div>
+        <div class="player">Marisol Vega</div>
+        <div class="current-row">
+          <div class="current-val num">${STATS.current}</div>
+          <div class="delta-pill num">${ICONS.up} ${STATS.delta}</div>
+        </div>
+        <div class="trend-tag"><span class="dot"></span> ${STATS.trend} · last 8 months</div>
+      </div>
+      <div class="head-right">
+        <div class="stat peak"><div class="k">Peak</div><div class="v num">${STATS.peak}</div></div>
+        <div class="stat low"><div class="k">Low</div><div class="v num">${STATS.low}</div></div>
+        <div class="stat now"><div class="k">Now</div><div class="v num">${STATS.current}</div></div>
+      </div>
+    </div>
+    <div class="mini-stats">
+      <div class="ms peak"><span class="k">Peak</span><span class="v num">${STATS.peak}</span></div>
+      <div class="ms low"><span class="k">Low</span><span class="v num">${STATS.low}</span></div>
+      <div class="ms now"><span class="k">Now</span><span class="v num">${STATS.current}</span></div>
+    </div>`;
+
+  const legend = `
+    <div class="legend">
+      <div class="li"><span class="sw up"></span> Step up</div>
+      <div class="li"><span class="sw down"></span> Step down</div>
+      <div class="li"><span class="sw tour"></span> Tournament</div>
+    </div>
+    <div class="hint">Tap a step to read its move · ${mobile ? 'tournaments simplified for mobile' : 'amber steps open full detail'}</div>`;
+
+  const detail = `
+    <div class="detail" id="detail-${idSuffix}">
+      <div class="detail-inner">
+        <div class="detail-badge">${ICONS.trophy}</div>
+        <div class="detail-body">
+          <div class="dt-name" id="dt-name-${idSuffix}">—</div>
+          <div class="dt-meta" id="dt-meta-${idSuffix}">—</div>
+        </div>
+        <div class="detail-move">
+          <div class="dm-delta num" id="dm-delta-${idSuffix}">—</div>
+          <div class="dm-from num" id="dm-from-${idSuffix}">—</div>
+        </div>
+      </div>
+    </div>`;
+
+  return `${header}<div class="chart-wrap" id="wrap-${idSuffix}">${svg}<div class="tip" id="tip-${idSuffix}"></div></div>${legend}${detail}`;
+}
+
+// ---------------- MOUNT + WIRE ----------------
+function mount(cardId, suffix, mobile) {
+  const card = document.getElementById(cardId);
+  card.innerHTML = buildChart({ mobile, idSuffix: suffix });
+
+  const wrap = document.getElementById('wrap-' + suffix);
+  const svg = wrap.querySelector('svg');
+  const tip = document.getElementById('tip-' + suffix);
+  const detail = document.getElementById('detail-' + suffix);
+
+  const groups = wrap.querySelectorAll('.step-g');
+
+  function svgPointToWrap(cxAttr, cyAttr) {
+    // map svg user coords -> wrap pixel coords via bounding rects
+    const vb = svg.viewBox.baseVal;
+    const rect = svg.getBoundingClientRect();
+    const wrect = wrap.getBoundingClientRect();
+    const px = (cxAttr / vb.width) * rect.width + (rect.left - wrect.left);
+    const py = (cyAttr / vb.height) * rect.height + (rect.top - wrect.top);
+    return { px, py };
+  }
+
+  function showTip(g) {
+    const name = g.dataset.name;
+    const date = g.dataset.date;
+    const delta = g.dataset.delta;
+    const rating = g.dataset.rating;
+    const isT = g.dataset.tourn === '1';
+    const up = delta && !delta.startsWith('-');
+    const { px, py } = svgPointToWrap(parseFloat(g.dataset.cx), parseFloat(g.dataset.cy));
+    tip.style.left = px + 'px';
+    tip.style.top = (py - 14) + 'px';
+    tip.innerHTML =
+      (isT ? '<div class="t-tag">Tournament</div>' : '') +
+      `<div class="t-name">${name}</div>` +
+      `<div class="t-date">${date} · rating ${rating}</div>` +
+      (delta ? `<div class="t-delta ${up?'up':'down'}">${delta}</div>` : '');
+    tip.classList.add('show');
+  }
+  function hideTip() { tip.classList.remove('show'); }
+
+  let activeDetail = null;
+  function openDetail(g) {
+    const name = g.dataset.name;
+    const date = g.dataset.date;
+    const delta = g.dataset.delta;
+    const rating = parseFloat(g.dataset.rating);
+    const up = !delta.startsWith('-');
+    const from = (rating - parseFloat(delta)).toFixed(2);
+    document.getElementById('dt-name-' + suffix).textContent = name;
+    document.getElementById('dt-meta-' + suffix).textContent = date + ' · DUPR doubles';
+    const dEl = document.getElementById('dm-delta-' + suffix);
+    dEl.textContent = delta;
+    dEl.className = 'dm-delta num ' + (up ? 'up' : 'down');
+    document.getElementById('dm-from-' + suffix).textContent = from + ' → ' + rating.toFixed(2);
+    detail.classList.add('open');
+  }
+  function closeDetail() { detail.classList.remove('open'); }
+
+  groups.forEach(g => {
+    g.addEventListener('mouseenter', () => { g.classList.add('active'); showTip(g); });
+    g.addEventListener('mouseleave', () => { g.classList.remove('active'); hideTip(); });
+    g.addEventListener('click', (e) => {
+      e.stopPropagation();
+      groups.forEach(o => o.classList.remove('active'));
+      g.classList.add('active');
+      showTip(g);
+      if (g.dataset.tourn === '1') {
+        if (activeDetail === g) { closeDetail(); activeDetail = null; }
+        else { openDetail(g); activeDetail = g; }
+      } else {
+        closeDetail(); activeDetail = null;
+      }
+    });
+    // touch
+    g.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      groups.forEach(o => o.classList.remove('active'));
+      g.classList.add('active');
+      showTip(g);
+      if (g.dataset.tourn === '1') {
+        if (activeDetail === g) { closeDetail(); activeDetail = null; }
+        else { openDetail(g); activeDetail = g; }
+      }
+    }, { passive: false });
+  });
+
+  document.addEventListener('click', () => { hideTip(); groups.forEach(o => o.classList.remove('active')); });
+}
+
+mount('card-d', 'd', false);
+mount('card-m', 'm', true);
+</script>
+</body>
+</html>

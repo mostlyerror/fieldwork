@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PickleRadar · Share Card · The Headline (Partner)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..900&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFFDF7;
+    --ink:#0a0a0a;
+    --ink-soft:rgba(10,10,10,.55);
+    --emerald:#065F46;
+    --emerald-bright:#0a7d5a;
+    --gold:#d4a72c;
+    --rule:#e7e3d8;
+    --paper-line:rgba(10,10,10,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+    background:
+      radial-gradient(120% 90% at 50% 0%, #f3efe2 0%, #e9e3d3 60%, #e3dcc9 100%);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:48px 24px;
+    gap:18px;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  .stage{width:1080px;max-width:100%;display:flex;flex-direction:column;align-items:center;gap:14px;}
+
+  .label{
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:rgba(10,10,10,.42);
+  }
+
+  /* ---- THE CARD ---- */
+  .card{
+    position:relative;
+    width:1080px;
+    height:1080px;
+    max-width:min(92vw,1080px);
+    aspect-ratio:1/1;
+    background:var(--cream);
+    overflow:hidden;
+    box-shadow:0 40px 90px -30px rgba(20,30,25,.45), 0 4px 14px rgba(20,30,25,.10);
+    display:flex;
+    flex-direction:column;
+    /* paper grain */
+    background-image:
+      radial-gradient(rgba(10,10,10,.018) 1px, transparent 1px);
+    background-size:4px 4px;
+  }
+
+  /* faint radar arcs, bottom-right, as quiet motif */
+  .radar{position:absolute;right:-180px;bottom:-200px;width:600px;height:600px;pointer-events:none;opacity:.5;}
+  .radar svg{width:100%;height:100%;}
+
+  /* ---- MASTHEAD ---- */
+  .masthead{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:48px 64px 0;
+    z-index:2;
+  }
+  .wordmark{display:flex;align-items:center;gap:13px;}
+  .wordmark .dot{
+    width:26px;height:26px;border-radius:999px;
+    background:var(--emerald);
+    position:relative;
+    box-shadow:0 0 0 5px rgba(6,95,70,.12);
+  }
+  .wordmark .dot::after{
+    content:"";position:absolute;inset:8px;border-radius:999px;background:var(--gold);
+  }
+  .wordmark .name{
+    font-weight:800;font-size:25px;letter-spacing:-.01em;color:var(--ink);
+  }
+  .issue{
+    text-align:right;font-size:14px;font-weight:600;letter-spacing:.14em;
+    text-transform:uppercase;color:rgba(10,10,10,.5);line-height:1.5;
+  }
+  .issue .iss{color:var(--emerald);}
+
+  .rule-top{
+    height:3px;margin:22px 64px 0;
+    background:var(--ink);
+    z-index:2;
+  }
+  .kicker{
+    margin:18px 64px 0;
+    display:flex;align-items:center;gap:14px;
+    z-index:2;
+  }
+  .kicker .tag{
+    font-size:15px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;
+    color:#fff;background:var(--emerald);padding:7px 14px;border-radius:4px;
+  }
+  .kicker .sub{
+    font-size:16px;font-weight:600;letter-spacing:.05em;color:rgba(10,10,10,.55);
+  }
+
+  /* ---- HEADLINE ---- */
+  .headline-wrap{padding:14px 64px 0;z-index:2;}
+  .headline{
+    font-family:'Fraunces',Georgia,serif;
+    font-weight:600;
+    font-size:108px;
+    line-height:.9;
+    letter-spacing:-.025em;
+    color:var(--ink);
+  }
+  .headline em{
+    font-style:italic;
+    color:var(--emerald-bright);
+  }
+
+  .deck{
+    font-family:'Fraunces',Georgia,serif;
+    font-style:italic;
+    font-weight:400;
+    font-size:29px;
+    line-height:1.28;
+    color:rgba(10,10,10,.74);
+    margin:18px 64px 0;
+    max-width:900px;
+    z-index:2;
+  }
+  .deck .drop{
+    font-style:normal;font-weight:800;color:var(--emerald);
+  }
+
+  /* ---- BYLINE / PLAYERS ---- */
+  .byline{
+    margin:20px 64px 0;
+    display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;
+    z-index:2;
+  }
+  .byline .by{
+    font-size:15px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+    color:rgba(10,10,10,.4);
+  }
+  .byline .names{
+    font-size:33px;font-weight:800;letter-spacing:-.01em;color:var(--ink);
+  }
+  .byline .names .amp{color:var(--gold);font-style:italic;padding:0 4px;font-family:'Fraunces',Georgia,serif;font-weight:600;}
+
+  /* spacer pushes stats to bottom */
+  .spacer{flex:1;min-height:8px;}
+
+  /* ---- STAT ROWS (grafted from Receipt) ---- */
+  .rows{
+    margin:0 64px 0;
+    z-index:2;
+    border-top:3px solid var(--ink);
+  }
+  .row{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    padding:12px 0;
+    border-bottom:1px solid var(--rule);
+  }
+  .row:last-child{border-bottom:none;}
+  .row .k{
+    font-size:16px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+    color:rgba(10,10,10,.5);
+    flex:0 0 auto;
+  }
+  .row .leader{
+    flex:1 1 auto;
+    margin:0 18px;
+    height:1px;
+    align-self:center;
+    background:
+      repeating-linear-gradient(
+        to right,
+        var(--paper-line) 0,
+        var(--paper-line) 2px,
+        transparent 2px,
+        transparent 7px
+      );
+    opacity:.85;
+  }
+  .row .v{
+    font-family:'Fraunces',Georgia,serif;
+    font-weight:600;
+    font-size:34px;
+    line-height:1;
+    letter-spacing:-.02em;
+    color:var(--ink);
+    white-space:nowrap;
+    flex:0 0 auto;
+  }
+  .row .v small{font-size:18px;font-weight:600;color:rgba(10,10,10,.5);letter-spacing:0;}
+  .row .v .win{color:var(--emerald-bright);}
+  .row .v.accent{color:var(--emerald-bright);}
+
+  /* ---- FOOTER / CTA ---- */
+  .footer{
+    margin-top:22px;
+    margin-bottom:56px;
+    background:var(--emerald);
+    color:#fff;
+    padding:26px 64px;
+    display:flex;align-items:center;justify-content:space-between;
+    z-index:2;
+  }
+  .footer .cta{
+    display:flex;align-items:center;gap:14px;
+    font-size:30px;font-weight:800;letter-spacing:-.01em;
+  }
+  .footer .cta .arrow{color:var(--gold);}
+  .footer .url{
+    text-align:right;
+    font-size:14px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+    color:rgba(255,255,255,.72);line-height:1.5;
+  }
+  .footer .url b{display:block;color:#fff;font-weight:800;letter-spacing:.06em;font-size:18px;}
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="label">Share card · Instagram 1:1</div>
+
+    <div class="card">
+      <!-- quiet radar motif -->
+      <div class="radar" aria-hidden="true">
+        <svg viewBox="0 0 560 560" fill="none">
+          <g stroke="#065F46" stroke-width="1.4" opacity="0.5">
+            <circle cx="280" cy="280" r="90"/>
+            <circle cx="280" cy="280" r="160"/>
+            <circle cx="280" cy="280" r="230"/>
+            <circle cx="280" cy="280" r="300"/>
+          </g>
+          <path d="M280 280 L520 130 A300 300 0 0 1 540 300 Z" fill="#d4a72c" opacity="0.10"/>
+          <line x1="280" y1="280" x2="540" y2="118" stroke="#d4a72c" stroke-width="2" opacity="0.55"/>
+          <circle cx="280" cy="280" r="6" fill="#065F46"/>
+        </svg>
+      </div>
+
+      <div class="masthead">
+        <div class="wordmark">
+          <span class="dot"></span>
+          <span class="name">PickleRadar</span>
+        </div>
+        <div class="issue">
+          The Scouting Report<br>
+          <span class="iss">Houston · Vol. 1</span>
+        </div>
+      </div>
+
+      <div class="rule-top"></div>
+
+      <div class="kicker">
+        <span class="tag">The Read</span>
+        <span class="sub">Mixed Doubles · The Village Mini · June 2026</span>
+      </div>
+
+      <div class="headline-wrap">
+        <h1 class="headline">Better<br><em>together,</em><br>obviously.</h1>
+      </div>
+
+      <p class="deck">
+        <span class="drop">Two righties</span> who simply will not let you have the middle. Poon sets it up from the baseline, Trinh slams the door at the kitchen — and 60% of the time, the other side goes home wondering what happened.
+      </p>
+
+      <div class="byline">
+        <span class="by">A duo read by</span>
+        <span class="names">Ben Poon <span class="amp">&amp;</span> Cecilia Trinh</span>
+      </div>
+
+      <div class="spacer"></div>
+
+      <div class="rows">
+        <div class="row">
+          <span class="k">Record together</span>
+          <span class="leader"></span>
+          <span class="v"><span class="win">3</span>–2 <small>· 5 matches</small></span>
+        </div>
+        <div class="row">
+          <span class="k">Win rate</span>
+          <span class="leader"></span>
+          <span class="v accent">60%</span>
+        </div>
+        <div class="row">
+          <span class="k">DUPR · Poon / Trinh</span>
+          <span class="leader"></span>
+          <span class="v">3.38 <small>/</small> 3.30</span>
+        </div>
+        <div class="row">
+          <span class="k">Event</span>
+          <span class="leader"></span>
+          <span class="v">The Village Mini</span>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="cta">
+          <span>Read your side</span>
+          <span class="arrow">→</span>
+        </div>
+        <div class="url">
+          See your read on<br>
+          <b>pickleradar.app</b>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

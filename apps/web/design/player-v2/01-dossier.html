@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PickleRadar · Scouting Dossier — Marisol Vega</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --cream: #FFFDF7;
+    --paper: #FFFFFF;
+    --ink: #0E1B16;
+    --ink-2: #3A4843;
+    --ink-3: #6B7A73;
+    --line: #E7E3D7;
+    --line-strong: #D8D3C4;
+    --emerald: #065F46;
+    --emerald-bright: #1f9d57;
+    --emerald-tint: #ECF6F0;
+    --amber: #B7791F;
+    --amber-tint: #FBF1DE;
+    --red: #B23A36;
+    --red-tint: #FBECEA;
+    --shadow-card: 0 18px 40px -24px rgba(6,40,30,.28);
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--cream);
+    color: var(--ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ---- type roles ---- */
+  .label {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  a { color: inherit; }
+
+  /* ============ TOP BAR ============ */
+  .topbar {
+    border-bottom: 1px solid var(--line);
+    background: rgba(255,253,247,.85);
+    backdrop-filter: blur(8px);
+    position: sticky; top: 0; z-index: 20;
+  }
+  .topbar-inner {
+    max-width: 1280px; margin: 0 auto;
+    padding: 12px 20px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .brand { display: flex; align-items: center; gap: 9px; font-weight: 800; letter-spacing: -.01em; font-size: 15px; }
+  .brand .dot { color: var(--emerald-bright); }
+  .file-stamp {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em;
+    color: var(--ink-3); border: 1px solid var(--line-strong);
+    padding: 4px 9px; border-radius: 999px; text-transform: uppercase;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .file-stamp .blink { width: 6px; height: 6px; border-radius: 50%; background: var(--emerald-bright); }
+
+  /* ============ SHELL ============ */
+  .shell {
+    max-width: 1280px; margin: 0 auto;
+    padding: 22px 20px 80px;
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 0;
+  }
+  /* persistent meta column */
+  .meta-col {
+    border-right: 1px solid var(--line);
+    padding-right: 28px;
+  }
+  .recon-col {
+    padding-left: 28px;
+    min-width: 0;
+  }
+
+  @media (max-width: 1023px) {
+    .shell { grid-template-columns: 1fr; padding: 16px 16px 64px; }
+    .meta-col { border-right: none; border-bottom: 1px solid var(--line); padding-right: 0; padding-bottom: 22px; margin-bottom: 22px; }
+    .recon-col { padding-left: 0; }
+  }
+
+  /* ============ META COLUMN ============ */
+  .case-head { margin-bottom: 20px; }
+  .case-kicker {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 10px;
+  }
+  .case-kicker .tag {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--emerald);
+    background: var(--emerald-tint); padding: 3px 8px; border-radius: 4px; font-weight: 600;
+  }
+  .subject-name {
+    font-size: 30px; font-weight: 800; letter-spacing: -.02em; line-height: 1.05;
+    margin-bottom: 6px;
+  }
+  .subject-loc { display: flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 13.5px; font-weight: 500; }
+  .subject-loc svg { color: var(--ink-3); }
+
+  .meta-block { border-top: 1px solid var(--line); padding: 14px 0; }
+  .meta-block:last-child { border-bottom: 1px solid var(--line); }
+
+  .rating-row { display: flex; gap: 10px; }
+  .rating-cell { flex: 1; }
+  .rating-cell .label { margin-bottom: 5px; }
+  .rating-val {
+    font-family: var(--mono); font-weight: 700; font-size: 26px; letter-spacing: -.02em;
+    color: var(--ink); display: flex; align-items: baseline; gap: 6px;
+  }
+  .verify {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--emerald); margin-top: 3px;
+  }
+  .verify.prov { color: var(--amber); }
+  .verify svg { width: 13px; height: 13px; }
+
+  .form-line { display: flex; align-items: center; justify-content: space-between; }
+  .form-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--emerald-tint); color: var(--emerald);
+    font-weight: 700; font-size: 13px; padding: 5px 11px; border-radius: 999px;
+  }
+  .streak { display: flex; gap: 4px; }
+  .streak i {
+    width: 7px; height: 18px; border-radius: 2px; display: inline-block;
+    background: var(--emerald-bright);
+  }
+  .streak i.l { background: var(--red); opacity: .55; }
+
+  .record-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; }
+  .record-cell { padding: 2px 0; }
+  .record-cell + .record-cell { padding-left: 14px; border-left: 1px solid var(--line); }
+  .record-cell .label { margin-bottom: 4px; }
+  .record-cell .rec { font-family: var(--mono); font-weight: 700; font-size: 16px; }
+  .record-cell .pct { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); margin-top: 1px; }
+  .record-cell .pct.pos { color: var(--emerald); }
+  .record-cell .pct.neg { color: var(--red); }
+
+  .updated { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-3); }
+  .updated svg { width: 13px; height: 13px; }
+
+  /* ============ RECON COLUMN ============ */
+  .section { border-top: 1px solid var(--line); padding: 22px 0; }
+  .section:first-child { border-top: none; padding-top: 4px; }
+  .section-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    margin-bottom: 14px;
+  }
+  .section-head .seclabel {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .16em; font-weight: 600;
+    text-transform: uppercase; color: var(--ink);
+    display: flex; align-items: center; gap: 9px;
+  }
+  .section-head .seclabel .idx { color: var(--emerald-bright); }
+  .section-head .meta { font-size: 11.5px; color: var(--ink-3); font-family: var(--mono); }
+
+  /* The Read */
+  .read {
+    font-size: 17px; line-height: 1.62; font-weight: 500; color: var(--ink);
+    letter-spacing: -.005em; max-width: 64ch;
+  }
+  .read .hi { color: var(--emerald); font-weight: 700; }
+  .read .mono { font-weight: 600; }
+  .read-rule { width: 38px; height: 3px; background: var(--emerald-bright); border-radius: 2px; margin-bottom: 14px; }
+
+  /* Badges */
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    border: 1px solid var(--line-strong); background: var(--paper);
+    padding: 7px 12px 7px 10px; border-radius: 999px;
+    font-size: 12.5px; font-weight: 600; cursor: pointer;
+    transition: transform .08s ease, box-shadow .12s ease, border-color .12s ease;
+    position: relative;
+  }
+  .badge:active { transform: translateY(1px) scale(.985); }
+  .badge .bi {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: grid; place-items: center; flex: none;
+  }
+  .badge .bi svg { width: 13px; height: 13px; }
+  .badge .rar { font-family: var(--mono); font-size: 8.5px; letter-spacing: .1em; text-transform: uppercase; opacity: .7; margin-left: 1px; }
+
+  /* rarity theming */
+  .r-common .bi   { background: #EEF0EC; color: var(--ink-2); }
+  .r-common        { border-color: var(--line-strong); }
+  .r-uncommon .bi { background: var(--emerald-tint); color: var(--emerald); }
+  .r-uncommon      { border-color: #BFE3CE; }
+  .r-rare .bi     { background: #E6F0FB; color: #2C5BA8; }
+  .r-rare          { border-color: #BFD6F0; }
+  .r-rare .rar     { color: #2C5BA8; }
+  .r-legendary .bi { background: linear-gradient(135deg,#F7E3A8,#E7B24A); color: #6B4E12; }
+  .r-legendary     { border-color: #E7C879; background: linear-gradient(180deg,#FFFDF4,#FFFBEC); }
+  .r-legendary .rar{ color: var(--amber); }
+
+  .badge-why {
+    display: none;
+    width: 100%;
+    margin-top: 10px;
+    font-size: 12.5px; color: var(--ink-2); line-height: 1.5;
+    border-left: 2px solid var(--emerald-bright);
+    padding: 2px 0 2px 11px;
+  }
+  .badge-why.open { display: block; }
+  .badge-why .who { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); display:block; margin-bottom:2px; }
+
+  /* Chart */
+  .chartwrap { position: relative; }
+  .chart-top {
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
+    margin-bottom: 12px; flex-wrap: wrap;
+  }
+  .chart-current { display: flex; align-items: baseline; gap: 10px; }
+  .chart-current .big { font-family: var(--mono); font-weight: 700; font-size: 30px; letter-spacing: -.02em; }
+  .delta { font-family: var(--mono); font-weight: 700; font-size: 14px; color: var(--emerald); display: inline-flex; align-items: center; gap: 3px; }
+  .chart-legend { display: flex; gap: 14px; font-size: 11px; color: var(--ink-3); }
+  .chart-legend span { display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono); letter-spacing: .04em; }
+  .chart-legend i { width: 9px; height: 9px; border-radius: 50%; }
+  .leg-peak { background: var(--emerald-bright); }
+  .leg-low { background: var(--red); }
+  .leg-tour { background: var(--amber); }
+
+  .chart-svg { width: 100%; height: auto; display: block; touch-action: manipulation; }
+  .tmarker { cursor: pointer; }
+  .tmarker circle.hit { fill: transparent; }
+  .tmarker:active circle.dot { r: 7; }
+
+  .tip {
+    position: absolute; pointer-events: none;
+    background: var(--ink); color: #fff;
+    font-size: 11.5px; padding: 7px 10px; border-radius: 7px;
+    line-height: 1.4; white-space: nowrap; opacity: 0;
+    transform: translate(-50%, -8px); transition: opacity .12s ease;
+    z-index: 5; box-shadow: 0 8px 20px -8px rgba(0,0,0,.4);
+  }
+  .tip.show { opacity: 1; }
+  .tip .t-name { font-weight: 700; }
+  .tip .t-sub { font-family: var(--mono); font-size: 10px; opacity: .8; }
+  .tip .t-d { font-family: var(--mono); color: #6EE7A8; font-weight: 700; }
+
+  /* Data rows (partners / h2h / matches) */
+  .rows { display: flex; flex-direction: column; }
+  .drow {
+    display: grid; align-items: center;
+    border-top: 1px solid var(--line);
+    padding: 11px 2px;
+    gap: 10px;
+  }
+  .drow:first-child { border-top: 1px solid var(--line-strong); }
+  .drow .nm { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .drow .nm .rank { font-family: var(--mono); font-size: 10px; color: var(--ink-3); width: 16px; flex:none; }
+  .drow .wl { font-family: var(--mono); font-size: 13px; font-weight: 600; }
+  .drow .pctcol { font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
+
+  .verdict {
+    font-size: 11px; font-weight: 700; letter-spacing: .02em;
+    padding: 4px 9px; border-radius: 999px; white-space: nowrap;
+    justify-self: end;
+  }
+  .v-elite  { background: var(--emerald-tint); color: var(--emerald); }
+  .v-good   { background: #EEF4F0; color: var(--ink-2); }
+  .v-mid    { background: var(--amber-tint); color: var(--amber); }
+  .v-bad    { background: var(--red-tint); color: var(--red); }
+  .v-leads  { background: var(--emerald-tint); color: var(--emerald); }
+  .v-owns   { background: var(--emerald); color: #fff; }
+  .v-even   { background: #EEF4F0; color: var(--ink-2); }
+  .v-nem    { background: var(--red); color: #fff; }
+
+  /* partner grid columns */
+  .partner-row { grid-template-columns: 1fr auto auto 132px; }
+  .partner-row .pctcol { width: 42px; text-align: right; }
+  /* h2h */
+  .h2h-row { grid-template-columns: 1fr auto 150px; }
+  /* matches */
+  .match-row { grid-template-columns: 78px 52px 1fr auto 26px; }
+  .match-row .mdate { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); }
+  .match-row .mfmt { font-family: var(--mono); font-size: 10px; letter-spacing:.08em; text-transform: uppercase; color: var(--ink-3); }
+  .match-row .mopp { font-weight: 600; font-size: 13.5px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .match-row .mscore { font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); }
+  .match-row .mscore .l { color: var(--red); }
+  .wlbadge { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; font-family: var(--mono); font-weight: 700; font-size: 11px; justify-self: end; }
+  .wlbadge.w { background: var(--emerald-tint); color: var(--emerald); }
+  .wlbadge.l { background: var(--red-tint); color: var(--red); }
+
+  .tourlink {
+    margin-top: 4px;
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11.5px; color: var(--emerald); font-weight: 600;
+    text-decoration: none; border-bottom: 1px dashed rgba(6,95,70,.45);
+    padding-bottom: 1px; width: fit-content;
+  }
+  .tourlink:active { color: var(--emerald-bright); }
+  .tourlink svg { width: 12px; height: 12px; }
+  .tourlink .tdate { color: var(--ink-3); font-family: var(--mono); font-weight: 500; border:none; }
+  .match-meta { grid-column: 3 / -1; }
+
+  .expand-btn {
+    margin-top: 12px;
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase;
+    font-weight: 600; color: var(--emerald);
+    background: none; border: 1px solid var(--line-strong); border-radius: 8px;
+    padding: 8px 13px; cursor: pointer;
+    transition: background .12s ease, transform .08s ease;
+  }
+  .expand-btn:active { transform: translateY(1px); background: var(--emerald-tint); }
+  .expand-btn svg { width: 13px; height: 13px; transition: transform .2s ease; }
+  .expand-btn.open svg { transform: rotate(180deg); }
+  .hidden-rows { display: none; }
+  .hidden-rows.open { display: contents; }
+
+  /* Upcoming */
+  .upcoming { display: flex; flex-direction: column; gap: 0; }
+  .up-row {
+    display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; align-items: center;
+    border-top: 1px solid var(--line); padding: 13px 2px;
+  }
+  .up-row:first-child { border-top: 1px solid var(--line-strong); }
+  .up-cal {
+    border: 1px solid var(--line-strong); border-radius: 9px; text-align: center;
+    overflow: hidden; width: 50px;
+  }
+  .up-cal .m { background: var(--emerald); color: #fff; font-size: 9px; font-weight: 700; letter-spacing: .1em; padding: 2px 0; text-transform: uppercase; font-family: var(--mono); }
+  .up-cal .d { font-family: var(--mono); font-weight: 700; font-size: 18px; padding: 3px 0 4px; }
+  .up-row .un { font-weight: 700; font-size: 14.5px; }
+  .up-row .ue { font-size: 12px; color: var(--ink-3); margin-top: 1px; }
+  .up-row .uarrow { color: var(--ink-3); }
+
+  .footer-note {
+    margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--line);
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; color: var(--ink-3);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+
+  @media (max-width: 480px) {
+    .subject-name { font-size: 26px; }
+    .match-row { grid-template-columns: 64px 1fr auto 24px; }
+    .match-row .mfmt { display: none; }
+    .partner-row { grid-template-columns: 1fr auto 108px; }
+    .partner-row .pctcol { display: none; }
+    .read { font-size: 15.5px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1f9d57" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><line x1="12" y1="3" x2="12" y2="7.5"/>
+        </svg>
+        PickleRadar
+      </div>
+      <span class="file-stamp"><span class="blink"></span>Scouting Dossier · Live</span>
+    </div>
+  </header>
+
+  <main class="shell">
+
+    <!-- =================== META COLUMN =================== -->
+    <aside class="meta-col">
+      <div class="case-head">
+        <div class="case-kicker">
+          <span class="tag">SUBJECT FILE</span>
+          <span class="label mono" style="letter-spacing:.1em">#PR-4471</span>
+        </div>
+        <h1 class="subject-name">Marisol Vega</h1>
+        <div class="subject-loc">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          Houston, TX
+        </div>
+      </div>
+
+      <!-- RATINGS -->
+      <div class="meta-block">
+        <div class="rating-row">
+          <div class="rating-cell">
+            <div class="label">DUPR · Doubles</div>
+            <div class="rating-val mono">3.72</div>
+            <span class="verify"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m4 12 5 5L20 6"/></svg>Verified</span>
+          </div>
+          <div class="rating-cell" style="border-left:1px solid var(--line); padding-left:14px;">
+            <div class="label">DUPR · Singles</div>
+            <div class="rating-val mono">3.41</div>
+            <span class="verify"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m4 12 5 5L20 6"/></svg>Verified</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FORM -->
+      <div class="meta-block">
+        <div class="label" style="margin-bottom:9px;">FORM</div>
+        <div class="form-line">
+          <span class="form-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m4 17 6-6 4 4 6-7"/><path d="M15 8h5v5"/></svg>
+            Won last 4
+          </span>
+          <div class="streak" title="last 7: W W W W L W W">
+            <i class="l"></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- FIELD RECORD -->
+      <div class="meta-block">
+        <div class="label" style="margin-bottom:11px;">FIELD RECORD</div>
+        <div class="record-grid">
+          <div class="record-cell">
+            <div class="label">Overall</div>
+            <div class="rec mono">109–93</div>
+            <div class="pct mono pos">54%</div>
+          </div>
+          <div class="record-cell">
+            <div class="label">Doubles</div>
+            <div class="rec mono">71–52</div>
+            <div class="pct mono pos">58%</div>
+          </div>
+          <div class="record-cell">
+            <div class="label">Singles</div>
+            <div class="rec mono">38–41</div>
+            <div class="pct mono neg">48%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- UPDATED -->
+      <div class="meta-block" style="border-bottom:none;">
+        <div class="updated">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          Updated 2 days ago · synced from DUPR
+        </div>
+      </div>
+    </aside>
+
+    <!-- =================== RECON COLUMN =================== -->
+    <div class="recon-col">
+
+      <!-- THE READ -->
+      <section class="section" style="border-top:none;padding-top:0;">
+        <div class="section-head">
+          <div class="seclabel"><span class="idx">01</span>The Read</div>
+          <div class="meta">analyst summary</div>
+        </div>
+        <div class="read-rule"></div>
+        <p class="read">
+          <span class="hi mono">3.72</span> doubles, verified, and climbing — up <span class="mono">+0.14</span> to a fresh peak. A <span class="hi">58%</span> doubles player over <span class="mono">142</span> matches who travels: both formats hold up. Dangerous with the right partner, streaky alone — <span class="hi">won her last 4</span> and trending into form.
+        </p>
+      </section>
+
+      <!-- BADGES -->
+      <section class="section">
+        <div class="section-head">
+          <div class="seclabel"><span class="idx">02</span>Scouting Tells</div>
+          <div class="meta">6 earned · tap to read</div>
+        </div>
+        <div class="badges" id="badges">
+          <!-- On the Climb -->
+          <button class="badge r-uncommon" data-why="Doubles rating gained +0.14 over the last 30 days — three consecutive upward syncs.">
+            <span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 17 6-6 4 4 6-7"/><path d="M15 8h5v5"/></svg></span>
+            On the Climb <span class="rar">UNC</span>
+          </button>
+          <!-- Hot Hand -->
+          <button class="badge r-rare" data-why="Won 9 of her last 11 matches across both formats — currently riding a 4-match streak.">
+            <span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c1 3-1 4-1 6a3 3 0 0 0 6 0c0-1-.3-2-1-3 2 1 4 4 4 8a8 8 0 1 1-13-6c1 3 3 2 3 0 0-3-1-4-1-5Z"/></svg></span>
+            Hot Hand <span class="rar">RARE</span>
+          </button>
+          <!-- Money Partner -->
+          <button class="badge r-rare" data-why="Wins 81% when paired with Priya Raman — her highest-leverage partnership over 21 matches.">
+            <span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 9.5h3.5a1.8 1.8 0 0 1 0 3.5H10a1.8 1.8 0 0 0 0 3.5h3.5"/></svg></span>
+            Money Partner <span class="rar">RARE</span>
+          </button>
+          <!-- The Pickle -->
+          <button class="badge r-legendary" data-why="Erased 4 match points to win 12–10 at the Casa Pickle Open final — a legendary comeback.">
+            <span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 6.5L21 9l-5 4.3L17.6 20 12 16.5 6.4 20 8 13.3 3 9l6.6-.5L12 2Z"/></svg></span>
+            The Pickle <span class="rar">LEG</span>
+          </button>
+          <!-- Battle-Tested -->
+          <button class="badge r-common" data-why="Logged 202 matches across 19 sanctioned tournaments — well past the 150-match threshold.">
+            <span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3Z"/><path d="m9 12 2 2 4-4"/></svg></span>
+            Battle-Tested <span class="rar">COM</span>
+          </button>
+          <!-- Switch-Hitter -->
+          <button class="badge r-rare" data-why="Holds a verified DUPR in both singles (3.41) and doubles (3.72) with 50+ matches in each.">
+            <span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M21 3l-7 7M8 21H3v-5M3 21l7-7"/></svg></span>
+            Switch-Hitter <span class="rar">RARE</span>
+          </button>
+          <div class="badge-why" id="badge-why"></div>
+        </div>
+      </section>
+
+      <!-- RATING TREND -->
+      <section class="section">
+        <div class="section-head">
+          <div class="seclabel"><span class="idx">03</span>Rating Trajectory · Doubles</div>
+          <div class="meta">12-month window</div>
+        </div>
+        <div class="chartwrap">
+          <div class="chart-top">
+            <div class="chart-current">
+              <span class="big mono">3.72</span>
+              <span class="delta">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                +0.14
+              </span>
+            </div>
+            <div class="chart-legend">
+              <span><i class="leg-peak"></i>PEAK</span>
+              <span><i class="leg-low"></i>LOW</span>
+              <span><i class="leg-tour"></i>TOURNEY</span>
+            </div>
+          </div>
+
+          <!-- 14-point hand-drawn line chart. viewBox 0..680 x 0..220 -->
+          <svg class="chart-svg" viewBox="0 0 680 220" id="chart" preserveAspectRatio="none" aria-label="Doubles DUPR over 12 months">
+            <!-- gridlines -->
+            <g stroke="#EFEBDF" stroke-width="1">
+              <line x1="0" y1="40"  x2="680" y2="40"/>
+              <line x1="0" y1="90"  x2="680" y2="90"/>
+              <line x1="0" y1="140" x2="680" y2="140"/>
+              <line x1="0" y1="190" x2="680" y2="190"/>
+            </g>
+            <!-- y labels -->
+            <g font-family="JetBrains Mono, monospace" font-size="10" fill="#9AA59E">
+              <text x="2" y="36">3.80</text>
+              <text x="2" y="86">3.60</text>
+              <text x="2" y="136">3.40</text>
+              <text x="2" y="186">3.20</text>
+            </g>
+
+            <!-- area fill -->
+            <path d="M30,150 L80,138 L130,156 L180,128 L230,134 L280,108 L330,120 L380,96 L430,112 L480,80 L530,92 L580,70 L630,58 L660,48 L660,210 L30,210 Z"
+                  fill="#1f9d57" opacity="0.07"/>
+            <!-- main line -->
+            <polyline points="30,150 80,138 130,156 180,128 230,134 280,108 330,120 380,96 430,112 480,80 530,92 580,70 630,58 660,48"
+                      fill="none" stroke="#065F46" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+
+            <!-- LOW dot (point @130,156) -->
+            <circle cx="130" cy="156" r="4.5" fill="#fff" stroke="#B23A36" stroke-width="2.5"/>
+            <!-- PEAK / current dot (@660,48) -->
+            <circle cx="660" cy="48" r="5" fill="#1f9d57" stroke="#fff" stroke-width="2.5"/>
+
+            <!-- TOURNAMENT MARKERS (amber) — tappable -->
+            <g class="tmarker" data-name="Bayou Doubles Classic" data-sub="Sep 14 · −0.04" data-d="−0.04" data-x="180" data-y="128">
+              <circle class="hit" cx="180" cy="128" r="16"/>
+              <circle class="dot" cx="180" cy="128" r="4.5" fill="#B7791F" stroke="#fff" stroke-width="2"/>
+            </g>
+            <g class="tmarker" data-name="Lone Star Open" data-sub="Dec 7 · +0.06" data-d="+0.06" data-x="330" data-y="120">
+              <circle class="hit" cx="330" cy="120" r="16"/>
+              <circle class="dot" cx="330" cy="120" r="4.5" fill="#B7791F" stroke="#fff" stroke-width="2"/>
+            </g>
+            <g class="tmarker" data-name="Gulf Coast Shootout" data-sub="Mar 2 · +0.09" data-d="+0.09" data-x="480" data-y="80">
+              <circle class="hit" cx="480" cy="80" r="16"/>
+              <circle class="dot" cx="480" cy="80" r="4.5" fill="#B7791F" stroke="#fff" stroke-width="2"/>
+            </g>
+            <g class="tmarker" data-name="Casa Pickle Open" data-sub="May 31 · +0.14" data-d="+0.14" data-x="630" data-y="58">
+              <circle class="hit" cx="630" cy="58" r="16"/>
+              <circle class="dot" cx="630" cy="58" r="4.5" fill="#B7791F" stroke="#fff" stroke-width="2"/>
+            </g>
+          </svg>
+
+          <div class="tip" id="tip"></div>
+
+          <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:#9AA59E;margin-top:6px;letter-spacing:.04em;">
+            <span>JUN</span><span>SEP</span><span>DEC</span><span>MAR</span><span>JUN</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- KNOWN ASSOCIATES (partners) -->
+      <section class="section">
+        <div class="section-head">
+          <div class="seclabel"><span class="idx">04</span>Known Associates</div>
+          <div class="meta">11 partners · doubles</div>
+        </div>
+        <div class="rows" id="partners">
+          <div class="drow partner-row"><div class="nm"><span class="rank mono">01</span>Priya Raman</div><div class="wl mono">17–4</div><div class="pctcol">81%</div><div class="verdict v-elite">Elite duo</div></div>
+          <div class="drow partner-row"><div class="nm"><span class="rank mono">02</span>Diego Fuentes</div><div class="wl mono">14–7</div><div class="pctcol">67%</div><div class="verdict v-good">Reliable pairing</div></div>
+          <div class="drow partner-row"><div class="nm"><span class="rank mono">03</span>Tomás Okafor</div><div class="wl mono">11–6</div><div class="pctcol">65%</div><div class="verdict v-good">Reliable pairing</div></div>
+          <div class="drow partner-row"><div class="nm"><span class="rank mono">04</span>Lena Whitfield</div><div class="wl mono">8–5</div><div class="pctcol">62%</div><div class="verdict v-good">Reliable pairing</div></div>
+          <div class="drow partner-row"><div class="nm"><span class="rank mono">05</span>Camila Soto</div><div class="wl mono">6–6</div><div class="pctcol">50%</div><div class="verdict v-mid">Still gelling</div></div>
+
+          <div class="hidden-rows" id="partners-more">
+            <div class="drow partner-row"><div class="nm"><span class="rank mono">06</span>Marcus Bell</div><div class="wl mono">5–4</div><div class="pctcol">56%</div><div class="verdict v-good">Reliable pairing</div></div>
+            <div class="drow partner-row"><div class="nm"><span class="rank mono">07</span>Hana Kobayashi</div><div class="wl mono">4–4</div><div class="pctcol">50%</div><div class="verdict v-mid">Still gelling</div></div>
+            <div class="drow partner-row"><div class="nm"><span class="rank mono">08</span>Rafael Mendes</div><div class="wl mono">3–3</div><div class="pctcol">50%</div><div class="verdict v-mid">Still gelling</div></div>
+            <div class="drow partner-row"><div class="nm"><span class="rank mono">09</span>Aisha Bello</div><div class="wl mono">2–4</div><div class="pctcol">33%</div><div class="verdict v-bad">Out of sync</div></div>
+            <div class="drow partner-row"><div class="nm"><span class="rank mono">10</span>Grant Hollis</div><div class="wl mono">3–2</div><div class="pctcol">60%</div><div class="verdict v-good">Reliable pairing</div></div>
+            <div class="drow partner-row"><div class="nm"><span class="rank mono">11</span>Yuki Tanaka</div><div class="wl mono">1–3</div><div class="pctcol">25%</div><div class="verdict v-bad">Out of sync</div></div>
+          </div>
+        </div>
+        <button class="expand-btn" id="partners-btn" aria-expanded="false">
+          <span id="partners-btn-txt">Show all 11 partners</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+      </section>
+
+      <!-- RIVALRIES (h2h) -->
+      <section class="section">
+        <div class="section-head">
+          <div class="seclabel"><span class="idx">05</span>Rivalries</div>
+          <div class="meta">subject's perspective</div>
+        </div>
+        <div class="rows">
+          <div class="drow h2h-row"><div class="nm">Sloane Carrington</div><div class="wl mono">6–1</div><div class="verdict v-owns">Owns the matchup</div></div>
+          <div class="drow h2h-row"><div class="nm">Theo Vasquez</div><div class="wl mono">5–3</div><div class="verdict v-leads">Leads</div></div>
+          <div class="drow h2h-row"><div class="nm">Naomi Ferraro</div><div class="wl mono">4–4</div><div class="verdict v-even">Even</div></div>
+          <div class="drow h2h-row"><div class="nm">Kwame Adeyemi</div><div class="wl mono">3–5</div><div class="verdict v-mid">Trails</div></div>
+          <div class="drow h2h-row"><div class="nm">Bianca Russo</div><div class="wl mono">1–6</div><div class="verdict v-nem">Nemesis</div></div>
+        </div>
+      </section>
+
+      <!-- RECENT MATCHES -->
+      <section class="section">
+        <div class="section-head">
+          <div class="seclabel"><span class="idx">06</span>Recent Engagements</div>
+          <div class="meta">last 6 · tap event</div>
+        </div>
+        <div class="rows">
+
+          <div class="drow match-row">
+            <div class="mdate">May 31</div><div class="mfmt">DBL</div>
+            <div class="mopp">vs. Carrington / Vance</div>
+            <div class="mscore">12–10, 9–11, 11–7</div>
+            <div class="wlbadge w">W</div>
+            <a class="tourlink match-meta" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>Casa Pickle Open <span class="tdate">· May 31</span></a>
+          </div>
+
+          <div class="drow match-row">
+            <div class="mdate">May 31</div><div class="mfmt">DBL</div>
+            <div class="mopp">vs. Ferraro / Soto</div>
+            <div class="mscore">11–6, 11–9</div>
+            <div class="wlbadge w">W</div>
+            <a class="tourlink match-meta" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>Casa Pickle Open <span class="tdate">· May 31</span></a>
+          </div>
+
+          <div class="drow match-row">
+            <div class="mdate">May 30</div><div class="mfmt">SGL</div>
+            <div class="mopp">vs. Bianca Russo</div>
+            <div class="mscore"><span class="l">8–11</span>, 11–9, <span class="l">7–11</span></div>
+            <div class="wlbadge l">L</div>
+            <a class="tourlink match-meta" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>Casa Pickle Open <span class="tdate">· May 30</span></a>
+          </div>
+
+          <div class="drow match-row">
+            <div class="mdate">Apr 19</div><div class="mfmt">DBL</div>
+            <div class="mopp">vs. Adeyemi / Bell</div>
+            <div class="mscore">11–4, 11–8</div>
+            <div class="wlbadge w">W</div>
+            <a class="tourlink match-meta" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>Heights Spring Slam <span class="tdate">· Apr 19</span></a>
+          </div>
+
+          <div class="drow match-row">
+            <div class="mdate">Apr 18</div><div class="mfmt">SGL</div>
+            <div class="mopp">vs. Naomi Ferraro</div>
+            <div class="mscore">11–7, <span class="l">9–11</span>, 11–6</div>
+            <div class="wlbadge w">W</div>
+            <a class="tourlink match-meta" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>Heights Spring Slam <span class="tdate">· Apr 18</span></a>
+          </div>
+
+          <div class="drow match-row">
+            <div class="mdate">Mar 02</div><div class="mfmt">DBL</div>
+            <div class="mopp">vs. Tanaka / Kim</div>
+            <div class="mscore"><span class="l">6–11</span>, <span class="l">10–12</span></div>
+            <div class="wlbadge l">L</div>
+            <a class="tourlink match-meta" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>Gulf Coast Shootout <span class="tdate">· Mar 02</span></a>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- UPCOMING -->
+      <section class="section">
+        <div class="section-head">
+          <div class="seclabel"><span class="idx">07</span>Confirmed Sightings</div>
+          <div class="meta">2 upcoming</div>
+        </div>
+        <div class="upcoming">
+          <div class="up-row">
+            <div class="up-cal"><div class="m">JUN</div><div class="d mono">21</div></div>
+            <div><div class="un">Bayou City Championships</div><div class="ue">Women's Doubles 3.5 · Houston, TX</div></div>
+            <svg class="uarrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+          <div class="up-row">
+            <div class="up-cal"><div class="m">JUL</div><div class="d mono">12</div></div>
+            <div><div class="un">Texas State Open</div><div class="ue">Mixed Doubles 3.75 · Austin, TX</div></div>
+            <svg class="uarrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer-note">
+        <span>PICKLERADAR · DOSSIER PR-4471 · CLASSIFICATION: OPEN INTEL</span>
+        <span>RATINGS © DUPR · MIRRORED, NOT AFFILIATED</span>
+      </div>
+
+    </div>
+  </main>
+
+<script>
+(function () {
+  // ---- Badge tap reveal ----
+  var badgesWrap = document.getElementById('badges');
+  var whyEl = document.getElementById('badge-why');
+  var activeBadge = null;
+  badgesWrap.querySelectorAll('.badge').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var name = b.childNodes[2] ? b.textContent.replace(/\s+/g,' ').trim() : '';
+      if (activeBadge === b) {
+        whyEl.classList.remove('open');
+        activeBadge = null;
+        return;
+      }
+      activeBadge = b;
+      whyEl.innerHTML = '<span class="who">' + name.replace(/(COM|UNC|RARE|LEG)$/,'').trim() + '</span>' + b.getAttribute('data-why');
+      whyEl.classList.add('open');
+    });
+  });
+
+  // ---- Partner expand ----
+  var pBtn = document.getElementById('partners-btn');
+  var pMore = document.getElementById('partners-more');
+  var pTxt = document.getElementById('partners-btn-txt');
+  pBtn.addEventListener('click', function () {
+    var open = pMore.classList.toggle('open');
+    pBtn.classList.toggle('open', open);
+    pBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    pTxt.textContent = open ? 'Show top 5 only' : 'Show all 11 partners';
+  });
+
+  // ---- Tournament marker tap ----
+  var chart = document.getElementById('chart');
+  var tip = document.getElementById('tip');
+  var wrap = chart.parentElement; // chartwrap
+  var activeMarker = null;
+
+  function showTip(g) {
+    var cx = parseFloat(g.getAttribute('data-x'));
+    var cy = parseFloat(g.getAttribute('data-y'));
+    var rect = chart.getBoundingClientRect();
+    // viewBox is 680 x 220
+    var px = (cx / 680) * rect.width;
+    var py = (cy / 220) * rect.height;
+    tip.innerHTML = '<div class="t-name">' + g.getAttribute('data-name') + '</div>' +
+                    '<div class="t-sub">' + g.getAttribute('data-sub') + '</div>';
+    tip.style.left = px + 'px';
+    tip.style.top = (py - 6) + 'px';
+    tip.classList.add('show');
+  }
+  function hideTip() { tip.classList.remove('show'); activeMarker = null; }
+
+  chart.querySelectorAll('.tmarker').forEach(function (g) {
+    g.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (activeMarker === g) { hideTip(); return; }
+      activeMarker = g;
+      showTip(g);
+    });
+  });
+  document.addEventListener('click', function (e) {
+    if (activeMarker && !e.target.closest('.tmarker')) hideTip();
+  });
+  window.addEventListener('resize', function () { if (activeMarker) showTip(activeMarker); });
+})();
+</script>
+</body>
+</html>

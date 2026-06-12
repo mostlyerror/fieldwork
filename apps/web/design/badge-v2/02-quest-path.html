@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PickleRadar · Badge Grid v2 — Quest Path</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --cream: #FFFDF7;
+    --ink: #122017;
+    --ink-soft: #4a5a50;
+    --brand: #065F46;
+    --brand-bright: #1f9d57;
+
+    /* rarity fills (face / dark edge / glyph) */
+    --common-face: #94a3b8;
+    --common-edge: #64748b;
+    --common-deep: #475569;
+
+    --uncommon-face: #1f9d57;
+    --uncommon-edge: #157a42;
+    --uncommon-deep: #0d5e30;
+
+    --rare-face: #f5b522;
+    --rare-edge: #c98a09;
+    --rare-deep: #9a6a05;
+
+    --legend-face1: #1f9d57;
+    --legend-face2: #f5b522;
+    --legend-edge: #b07d10;
+
+    --locked-face: #e7e2d6;
+    --locked-edge: #cdc6b5;
+    --locked-glyph: #a8a08c;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 40px 16px 80px;
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(31,157,87,0.05), transparent 40%),
+      radial-gradient(circle at 88% 92%, rgba(245,181,34,0.06), transparent 42%);
+  }
+
+  .page-head {
+    max-width: 920px;
+    margin: 0 auto 36px;
+    text-align: center;
+  }
+  .page-head .kicker {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--brand-bright);
+    margin: 0 0 6px;
+  }
+  .page-head h1 {
+    font-size: 26px;
+    font-weight: 800;
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+  }
+  .page-head p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .stage {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 48px;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .size-block { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .size-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    background: rgba(18,32,23,0.05);
+    padding: 5px 12px;
+    border-radius: 999px;
+  }
+
+  /* ---- the rail card ---- */
+  .rail {
+    background: #fff;
+    border: 1px solid rgba(18,32,23,0.08);
+    border-radius: 24px;
+    box-shadow: 0 18px 40px -24px rgba(18,32,23,0.30), 0 2px 0 rgba(18,32,23,0.02);
+    padding: 18px 16px 22px;
+  }
+  .rail--narrow { width: 320px; }
+  .rail--wide { width: 560px; }
+
+  /* ---- top flourish: streak / level ---- */
+  .flourish {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #0d5e30, #1f9d57 70%);
+    border-radius: 16px;
+    padding: 10px 12px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .flourish::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%);
+    transform: translateX(-120%);
+    animation: shine 4.5s ease-in-out infinite;
+  }
+  @keyframes shine { 0%,60% { transform: translateX(-120%);} 80%,100% { transform: translateX(120%);} }
+  .flourish .lvl-badge {
+    width: 38px; height: 38px; flex: none;
+    border-radius: 12px;
+    background: linear-gradient(160deg, #f9c94b, #e89c12);
+    display: grid; place-items: center;
+    color: #5a3d04; font-weight: 800; font-size: 16px;
+    box-shadow: inset 0 -3px 0 rgba(154,106,5,0.55), 0 2px 6px rgba(0,0,0,0.18);
+  }
+  .flourish .lvl-text { line-height: 1.1; color: #fff; flex: 1; min-width: 0; }
+  .flourish .lvl-text .t { font-size: 13px; font-weight: 800; }
+  .flourish .lvl-text .s { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.78); }
+  .flourish .streak {
+    display: flex; align-items: center; gap: 4px;
+    background: rgba(255,255,255,0.16);
+    border-radius: 999px; padding: 4px 9px;
+    color: #fff; font-weight: 800; font-size: 12px;
+    flex: none;
+  }
+  .flourish .streak svg { width: 13px; height: 13px; }
+
+  /* ---- header + progress ---- */
+  .badges-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .badges-head .title { font-size: 15px; font-weight: 800; letter-spacing: -0.01em; }
+  .badges-head .count {
+    font-size: 12px; font-weight: 700; color: var(--brand-bright);
+  }
+  .progress {
+    height: 12px;
+    background: rgba(18,32,23,0.07);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: inset 0 1px 2px rgba(18,32,23,0.10);
+  }
+  .progress > i {
+    display: block; height: 100%;
+    width: 66.6%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #1f9d57, #f5b522);
+    box-shadow: inset 0 -2px 0 rgba(0,0,0,0.12);
+    position: relative;
+    animation: fillBar 1.1s cubic-bezier(.2,.9,.25,1) both;
+  }
+  @keyframes fillBar { from { width: 0; } }
+  .progress > i::after {
+    content:""; position:absolute; inset:0;
+    background: linear-gradient(100deg, transparent 40%, rgba(255,255,255,0.45) 50%, transparent 60%);
+    transform: translateX(-150%);
+    animation: barShine 3.2s ease-in-out 1.1s infinite;
+  }
+  @keyframes barShine { 0%,55%{transform:translateX(-150%);} 75%,100%{transform:translateX(220%);} }
+
+  /* ---- the quest grid ---- */
+  .quest {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px 10px;
+    justify-items: center;
+  }
+  .rail--wide .quest { grid-template-columns: repeat(5, 1fr); gap: 22px 16px; }
+
+  /* staggered path feel: nudge alternating cells */
+  .quest .node:nth-child(3n+2) { transform: translateY(14px); }
+  .rail--wide .quest .node:nth-child(5n+2),
+  .rail--wide .quest .node:nth-child(5n+4) { transform: translateY(16px); }
+
+  .node {
+    display: flex; flex-direction: column; align-items: center; gap: 7px;
+    width: 100%;
+    opacity: 0;
+    animation: popIn .55s cubic-bezier(.18,1.3,.5,1) both;
+  }
+  @keyframes popIn {
+    0% { opacity: 0; transform: translateY(8px) scale(.4); }
+    100% { opacity: 1; }
+  }
+  /* keep the path offset after pop-in by re-applying transform via wrapper */
+  .quest .node:nth-child(3n+2) { animation-name: popInDown; }
+  @keyframes popInDown {
+    0% { opacity: 0; transform: translateY(22px) scale(.4); }
+    100% { opacity: 1; transform: translateY(14px); }
+  }
+  .rail--wide .quest .node:nth-child(5n+2),
+  .rail--wide .quest .node:nth-child(5n+4) { animation-name: popInDownWide; }
+  @keyframes popInDownWide {
+    0% { opacity: 0; transform: translateY(24px) scale(.4); }
+    100% { opacity: 1; transform: translateY(16px); }
+  }
+
+  /* the pressable duo button */
+  .btn {
+    position: relative;
+    width: 64px; height: 64px;
+    border: none; padding: 0; cursor: pointer;
+    background: transparent;
+    border-radius: 20px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .rail--wide .btn { width: 72px; height: 72px; }
+
+  .btn .face {
+    position: absolute; inset: 0 0 6px 0;
+    border-radius: 20px;
+    display: grid; place-items: center;
+    transition: transform .12s cubic-bezier(.3,.7,.4,1);
+    z-index: 2;
+  }
+  .btn .edge {
+    position: absolute; inset: 6px 0 0 0;
+    border-radius: 20px;
+    z-index: 1;
+    transition: inset .12s cubic-bezier(.3,.7,.4,1);
+  }
+  .btn .face svg { width: 30px; height: 30px; display: block; }
+  .rail--wide .btn .face svg { width: 34px; height: 34px; }
+
+  /* press squash */
+  .btn:active .face { transform: translateY(4px); }
+  .btn:active .edge { inset: 2px 0 0 0; }
+  /* springy bounce class toggled by JS */
+  .btn.bounce .face { animation: squish .42s cubic-bezier(.2,1.5,.4,1); }
+  @keyframes squish {
+    0% { transform: translateY(4px) scale(.92,.96); }
+    45% { transform: translateY(-3px) scale(1.06,.96); }
+    70% { transform: translateY(0) scale(.98,1.02); }
+    100% { transform: translateY(0) scale(1); }
+  }
+
+  /* rarity faces */
+  .common .face { background: linear-gradient(160deg, #a7b4c2, var(--common-face)); }
+  .common .edge { background: var(--common-edge); }
+  .common .face svg { color: #fff; }
+
+  .uncommon .face { background: linear-gradient(160deg, #2fb869, var(--uncommon-face)); }
+  .uncommon .edge { background: var(--uncommon-edge); }
+  .uncommon .face svg { color: #fff; }
+
+  .rare .face { background: linear-gradient(160deg, #ffcf52, var(--rare-face)); }
+  .rare .edge { background: var(--rare-edge); }
+  .rare .face svg { color: #6b4905; }
+
+  .legendary .face {
+    background: linear-gradient(150deg, var(--legend-face1) 8%, #5bbf6e 38%, #f5b522 78%);
+  }
+  .legendary .edge { background: var(--legend-edge); }
+  .legendary .face svg { color: #fff; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.25)); }
+
+  /* legendary perpetual glow */
+  .legendary .btn::before {
+    content:""; position:absolute; inset:-5px; border-radius:24px; z-index:0;
+    background: conic-gradient(from 0deg, #1f9d57, #f5b522, #1f9d57);
+    filter: blur(7px); opacity: .55;
+    animation: spinGlow 5s linear infinite;
+  }
+  @keyframes spinGlow { to { transform: rotate(360deg); } }
+
+  /* locked */
+  .locked .face {
+    background: linear-gradient(160deg, #efe9dc, var(--locked-face));
+    box-shadow: inset 0 0 0 1px rgba(168,160,140,0.25);
+  }
+  .locked .edge { background: var(--locked-edge); }
+  .locked .face svg { color: var(--locked-glyph); }
+  .locked .btn { cursor: pointer; }
+
+  /* progress ring for in-progress locked */
+  .ring {
+    position: absolute; inset: -8px; z-index: 3; pointer-events: none;
+  }
+  .rail--wide .ring { inset: -9px; }
+  .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring .track { stroke: rgba(168,160,140,0.30); }
+  .ring .fill {
+    stroke: var(--rare-face);
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s ease;
+  }
+  .ring-label {
+    position: absolute; bottom: -3px; left: 50%; transform: translateX(-50%);
+    z-index: 4;
+    background: var(--rare-face);
+    color: #5a3d04;
+    font-size: 10px; font-weight: 800;
+    padding: 1px 6px; border-radius: 999px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.18);
+    white-space: nowrap;
+  }
+
+  /* mini lock corner pip on locked */
+  .pip {
+    position: absolute; top: -4px; right: -4px; z-index: 5;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #fff; display: grid; place-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+  }
+  .pip svg { width: 10px; height: 10px; color: var(--locked-glyph); }
+
+  /* label under node */
+  .node .name {
+    font-size: 10.5px; font-weight: 700; text-align: center;
+    line-height: 1.15; max-width: 76px;
+    letter-spacing: -0.01em;
+  }
+  .rail--wide .node .name { font-size: 11.5px; max-width: 88px; }
+  .locked .name { color: var(--locked-glyph); }
+
+  /* tagline reveal */
+  .node .why {
+    font-size: 10px; font-weight: 600; line-height: 1.25;
+    text-align: center; color: var(--ink-soft);
+    max-width: 92px;
+    max-height: 0; opacity: 0; overflow: hidden;
+    transition: max-height .35s ease, opacity .3s ease, margin .35s ease;
+  }
+  .node.open .why { max-height: 60px; opacity: 1; margin-top: 1px; }
+  .rail--wide .node .why { font-size: 11px; max-width: 110px; }
+  .locked .why { color: #9a937f; }
+
+  /* sparkle burst */
+  .spark {
+    position: absolute; left: 50%; top: 50%; z-index: 6;
+    width: 6px; height: 6px; border-radius: 50%;
+    pointer-events: none; opacity: 0;
+  }
+  .btn.bounce .spark { animation: burst .6s ease-out forwards; }
+  .btn .spark:nth-child(1){ --tx: 0px;   --ty:-26px; background:#f5b522; }
+  .btn .spark:nth-child(2){ --tx: 22px;  --ty:-14px; background:#1f9d57; animation-delay:.02s;}
+  .btn .spark:nth-child(3){ --tx: 24px;  --ty: 12px; background:#f9c94b; animation-delay:.04s;}
+  .btn .spark:nth-child(4){ --tx: 0px;   --ty: 26px; background:#1f9d57; animation-delay:.01s;}
+  .btn .spark:nth-child(5){ --tx:-24px;  --ty: 12px; background:#f5b522; animation-delay:.03s;}
+  .btn .spark:nth-child(6){ --tx:-22px;  --ty:-14px; background:#2fb869; animation-delay:.05s;}
+  @keyframes burst {
+    0% { opacity: 1; transform: translate(-50%,-50%) scale(.2); }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(1); }
+  }
+
+  .legend-row {
+    display: flex; flex-wrap: wrap; gap: 10px 16px; justify-content: center;
+    margin-top: 22px; padding-top: 16px;
+    border-top: 1px dashed rgba(18,32,23,0.12);
+    font-size: 10.5px; font-weight: 700; color: var(--ink-soft);
+  }
+  .legend-row span { display: inline-flex; align-items: center; gap: 5px; }
+  .legend-row i { width: 11px; height: 11px; border-radius: 4px; display: inline-block; }
+  .lg-common { background: var(--common-face); }
+  .lg-uncommon { background: var(--uncommon-face); }
+  .lg-rare { background: var(--rare-face); }
+  .lg-legend { background: linear-gradient(135deg,#1f9d57,#f5b522); }
+
+  .foot {
+    max-width: 920px; margin: 40px auto 0; text-align: center;
+    font-size: 12px; color: var(--ink-soft); font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+  <div class="page-head">
+    <p class="kicker">PickleRadar · Badge Grid v2</p>
+    <h1>Quest Path</h1>
+    <p>Duolingo-style pressable nodes · tap a badge to hear why it was earned</p>
+  </div>
+
+  <div class="stage">
+
+    <!-- ============ NARROW RAIL (~320px) ============ -->
+    <div class="size-block">
+      <div class="size-label">Rail · ~320px (real context)</div>
+      <div class="rail rail--narrow" id="rail-a"></div>
+    </div>
+
+    <!-- ============ WIDE STANDALONE (~560px) ============ -->
+    <div class="size-block">
+      <div class="size-label">Standalone · ~560px</div>
+      <div class="rail rail--wide" id="rail-b"></div>
+    </div>
+
+  </div>
+
+  <p class="foot">Player: Marisol Vega · 6 of 9 badges earned · one classifier feeds the player-read, badges, and Arc</p>
+
+<script>
+/* ---------- glyphs (simple inline SVG) ---------- */
+const G = {
+  climb: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l5-6 4 4 7-8"/><path d="M20 7v4M20 7h-4"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
+  flame: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2c.5 3-1.5 4.5-3 6.5C8.4 10.6 7 12.3 7 15a5 5 0 0010 0c0-2-1-3.6-2-5 .2 1.2-.3 2.3-1.2 2.8.6-2.2-.6-4.6-2.3-6C12.9 5.2 13.4 3.5 13 2z"/></svg>',
+  partner: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M3 20c0-3 2.5-5 5-5s5 2 5 5"/><path d="M13 20c.4-2.5 2.3-4 4-4s3.6 1.5 4 4"/></svg>',
+  switch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>',
+  pickle: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4c2-2 6-1 9 2s4 7 2 9-6 1-9-2-4-7-2-9z" opacity=".25"/><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="9" r="1"/><circle cx="14" cy="9" r="1"/><circle cx="11" cy="13" r="1"/><circle cx="15" cy="14" r="1"/><circle cx="9" cy="15" r="1"/></svg>',
+  giant: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2 4 4 .5-3 3 .8 4L12 16l-3.8 1.5.8-4-3-3 4-.5z"/><path d="M12 16v6"/></svg>',
+  comeback: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 109-9"/><path d="M3 5v4h4"/></svg>',
+  peak: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18L14 6l-3 5-2-2z"/><circle cx="14" cy="5" r="1.4" fill="currentColor" stroke="none"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>',
+  bolt: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg>'
+};
+
+/* ---------- badge data ---------- */
+const badges = [
+  { name:'On the Climb',  rarity:'uncommon',  glyph:'climb',   why:'Rating trending up toward a fresh peak', earned:true },
+  { name:'Battle-Tested', rarity:'common',    glyph:'shield',  why:'142 matches on record', earned:true },
+  { name:'Hot Hand',      rarity:'rare',      glyph:'flame',   why:'Riding a 5-win streak', earned:true },
+  { name:'Money Partner', rarity:'rare',      glyph:'partner', why:'Elite alongside Diego Fuentes', earned:true },
+  { name:'Switch-Hitter', rarity:'rare',      glyph:'switch',  why:'Equally dangerous singles or doubles', earned:true },
+  { name:'The Pickle',    rarity:'legendary', glyph:'pickle',  why:'Won a game 11-0 — a clean pickle', earned:true },
+  { name:'Giant Slayer',  rarity:'rare',      glyph:'giant',   why:'Beat a team rated 0.5+ above', earned:false, prog:[2,3] },
+  { name:'Comeback Kid',  rarity:'rare',      glyph:'comeback',why:'Win after dropping game 1', earned:false },
+  { name:'At Their Peak', rarity:'legendary', glyph:'peak',    why:'Sit at a career-high rating', earned:false }
+];
+
+const R = 36; // ring radius reference for dasharray
+const CIRC = 2 * Math.PI * R;
+
+function buildNode(b, i) {
+  const cls = b.earned ? b.rarity : 'locked';
+  const node = document.createElement('div');
+  node.className = 'node ' + cls;
+  node.style.animationDelay = (0.08 * i + 0.15) + 's';
+
+  // pressable button
+  const btn = document.createElement('button');
+  btn.className = 'btn';
+  btn.type = 'button';
+  btn.setAttribute('aria-label', b.name);
+
+  const edge = document.createElement('span'); edge.className = 'edge';
+  const face = document.createElement('span'); face.className = 'face';
+  face.innerHTML = b.earned ? G[b.glyph] : G.lock;
+
+  btn.appendChild(edge);
+  btn.appendChild(face);
+
+  // sparkles
+  for (let s = 0; s < 6; s++) {
+    const sp = document.createElement('span'); sp.className = 'spark';
+    btn.appendChild(sp);
+  }
+
+  // progress ring for in-progress locked
+  if (!b.earned && b.prog) {
+    const [cur, tot] = b.prog;
+    const ring = document.createElement('div'); ring.className = 'ring';
+    const pct = cur / tot;
+    ring.innerHTML =
+      '<svg viewBox="0 0 80 80">' +
+        '<circle class="track" cx="40" cy="40" r="'+R+'" fill="none" stroke-width="5"/>' +
+        '<circle class="fill" cx="40" cy="40" r="'+R+'" fill="none" stroke-width="5" ' +
+          'stroke-dasharray="'+CIRC+'" stroke-dashoffset="'+CIRC+'"/>' +
+      '</svg>';
+    btn.appendChild(ring);
+    const lbl = document.createElement('span'); lbl.className = 'ring-label';
+    lbl.textContent = cur + '/' + tot;
+    btn.appendChild(lbl);
+    // animate ring after mount
+    requestAnimationFrame(() => setTimeout(() => {
+      ring.querySelector('.fill').style.strokeDashoffset = (CIRC * (1 - pct)).toFixed(1);
+    }, 600 + i * 60));
+  }
+
+  // lock pip for plain locked (no ring)
+  if (!b.earned && !b.prog) {
+    const pip = document.createElement('span'); pip.className = 'pip';
+    pip.innerHTML = G.lock;
+    btn.appendChild(pip);
+  }
+
+  const name = document.createElement('div'); name.className = 'name';
+  name.textContent = b.name;
+
+  const why = document.createElement('div'); why.className = 'why';
+  why.textContent = b.why;
+
+  node.appendChild(btn);
+  node.appendChild(name);
+  node.appendChild(why);
+
+  // interaction: bounce + sparkle + toggle tagline
+  btn.addEventListener('click', () => {
+    btn.classList.remove('bounce');
+    void btn.offsetWidth; // reflow to restart animation
+    btn.classList.add('bounce');
+    // close siblings in same rail
+    node.parentElement.querySelectorAll('.node.open').forEach(n => { if (n !== node) n.classList.remove('open'); });
+    node.classList.toggle('open');
+  });
+
+  return node;
+}
+
+function buildRail(railEl) {
+  // flourish
+  const fl = document.createElement('div');
+  fl.className = 'flourish';
+  fl.innerHTML =
+    '<span class="lvl-badge">7</span>' +
+    '<span class="lvl-text"><span class="t">Marisol Vega</span><span class="s">Scout Level 7 · climbing</span></span>' +
+    '<span class="streak">' + G.bolt + '5</span>';
+  railEl.appendChild(fl);
+
+  // header + count
+  const head = document.createElement('div');
+  head.className = 'badges-head';
+  head.innerHTML = '<span class="title">Badges</span><span class="count">6 / 9 earned</span>';
+  railEl.appendChild(head);
+
+  // progress bar
+  const prog = document.createElement('div');
+  prog.className = 'progress';
+  prog.innerHTML = '<i></i>';
+  railEl.appendChild(prog);
+
+  // quest grid
+  const quest = document.createElement('div');
+  quest.className = 'quest';
+  badges.forEach((b, i) => quest.appendChild(buildNode(b, i)));
+  railEl.appendChild(quest);
+
+  // rarity legend
+  const lg = document.createElement('div');
+  lg.className = 'legend-row';
+  lg.innerHTML =
+    '<span><i class="lg-common"></i>Common</span>' +
+    '<span><i class="lg-uncommon"></i>Uncommon</span>' +
+    '<span><i class="lg-rare"></i>Rare</span>' +
+    '<span><i class="lg-legend"></i>Legendary</span>';
+  railEl.appendChild(lg);
+}
+
+buildRail(document.getElementById('rail-a'));
+buildRail(document.getElementById('rail-b'));
+</script>
+</body>
+</html>

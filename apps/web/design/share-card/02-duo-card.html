@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PickleRadar · Duo Card</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --cream: #FFFDF7;
+    --emerald: #065F46;
+    --emerald-lt: #0a7d5a;
+    --ink: #0a0a0a;
+    --gold: #d4a72c;
+    --gold-soft: #e6c468;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background:
+      radial-gradient(120% 120% at 50% 0%, #f3efe4 0%, #e9e3d4 55%, #ded6c4 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    color: var(--ink);
+  }
+
+  .label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #9a917f;
+    margin-bottom: 20px;
+  }
+
+  /* ---------- THE CARD ---------- */
+  .card {
+    position: relative;
+    width: 1080px;
+    height: 1080px;
+    transform: scale(0.56);
+    transform-origin: top center;
+    margin-bottom: -475px; /* compensate for scale so backdrop hugs card */
+    border-radius: 44px;
+    overflow: hidden;
+    background:
+      linear-gradient(160deg, #073d2e 0%, #065F46 38%, #0a7d5a 100%);
+    box-shadow:
+      0 2px 0 rgba(255,255,255,0.06) inset,
+      0 40px 90px -30px rgba(6,40,30,0.55),
+      0 8px 24px -12px rgba(6,40,30,0.4);
+    color: var(--cream);
+  }
+
+  /* iridescent foil sweep over the whole card */
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(115deg,
+        rgba(212,167,44,0.00) 18%,
+        rgba(212,167,44,0.16) 30%,
+        rgba(255,255,255,0.10) 38%,
+        rgba(120,190,255,0.10) 46%,
+        rgba(180,130,255,0.08) 54%,
+        rgba(212,167,44,0.14) 64%,
+        rgba(212,167,44,0.00) 78%);
+    mix-blend-mode: screen;
+    pointer-events: none;
+    z-index: 4;
+  }
+
+  /* faint radar-ring texture */
+  .card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 50% 44%, transparent 0 188px, rgba(255,255,255,0.05) 189px 191px, transparent 192px),
+      radial-gradient(circle at 50% 44%, transparent 0 290px, rgba(255,255,255,0.04) 291px 293px, transparent 294px),
+      radial-gradient(circle at 50% 44%, transparent 0 400px, rgba(255,255,255,0.03) 401px 403px, transparent 404px);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* gold inner hairline border */
+  .frame {
+    position: absolute;
+    inset: 22px;
+    border-radius: 30px;
+    border: 1.5px solid rgba(230,196,104,0.55);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.10) inset;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  .inner {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    padding: 64px 70px 60px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---------- TOP BAR ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .logomark {
+    width: 52px; height: 52px;
+    flex: 0 0 52px;
+  }
+  .brand-name {
+    font-weight: 800;
+    font-size: 30px;
+    letter-spacing: -0.01em;
+  }
+  .brand-name span { color: var(--gold-soft); }
+
+  .rarity {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 20px 11px 16px;
+    border-radius: 999px;
+    background: linear-gradient(120deg, rgba(212,167,44,0.95), rgba(230,196,104,0.95));
+    color: #2a2208;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: 0.02em;
+    box-shadow: 0 6px 18px -6px rgba(212,167,44,0.6), 0 1px 0 rgba(255,255,255,0.5) inset;
+  }
+  .rarity .dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff7df, #b9871a);
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.35);
+  }
+
+  /* ---------- TYPE BANNER ---------- */
+  .typeline {
+    margin-top: 46px;
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+  }
+  .typeline .tier {
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+  }
+  .typeline .meta {
+    font-weight: 600;
+    font-size: 19px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255,253,247,0.62);
+  }
+
+  /* ---------- DUO NAMES ---------- */
+  .duo {
+    margin-top: 18px;
+  }
+  .duo .names {
+    font-weight: 800;
+    font-size: 90px;
+    line-height: 0.96;
+    letter-spacing: -0.02em;
+  }
+  .duo .amp {
+    display: inline-block;
+    margin: 0 6px;
+    color: var(--gold-soft);
+    font-weight: 700;
+  }
+  .duo .sub {
+    margin-top: 14px;
+    font-weight: 600;
+    font-size: 22px;
+    color: rgba(255,253,247,0.72);
+    letter-spacing: 0.01em;
+  }
+
+  /* ---------- CHEMISTRY HERO ---------- */
+  .hero {
+    margin-top: 50px;
+    display: flex;
+    align-items: stretch;
+    gap: 30px;
+  }
+
+  .chem {
+    flex: 0 0 360px;
+    position: relative;
+    border-radius: 28px;
+    padding: 34px 32px 30px;
+    background:
+      radial-gradient(130% 120% at 30% 10%, rgba(255,255,255,0.10), rgba(255,255,255,0.0) 60%),
+      linear-gradient(150deg, rgba(8,52,40,0.65), rgba(4,33,25,0.55));
+    border: 1px solid rgba(230,196,104,0.32);
+    box-shadow: 0 18px 40px -24px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.08) inset;
+  }
+  .chem .klabel {
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: rgba(255,253,247,0.66);
+  }
+  .chem .num {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .chem .score {
+    font-weight: 800;
+    font-size: 156px;
+    line-height: 0.86;
+    letter-spacing: -0.04em;
+    background: linear-gradient(180deg, #fff6df 0%, var(--gold-soft) 55%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 2px 30px rgba(212,167,44,0.18);
+  }
+  .chem .of {
+    font-weight: 700;
+    font-size: 34px;
+    color: rgba(255,253,247,0.40);
+  }
+  /* chemistry meter */
+  .meter {
+    margin-top: 22px;
+    height: 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.10);
+    overflow: hidden;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.2) inset;
+  }
+  .meter > i {
+    display: block;
+    height: 100%;
+    width: 78%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-soft) 70%, #fff3d2);
+    box-shadow: 0 0 16px rgba(212,167,44,0.55);
+  }
+  .chem .verdict {
+    margin-top: 16px;
+    font-weight: 600;
+    font-size: 18px;
+    color: rgba(255,253,247,0.72);
+    letter-spacing: 0.01em;
+  }
+
+  /* ---------- STATS COLUMN ---------- */
+  .stats {
+    flex: 1;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 22px;
+  }
+  .record {
+    border-radius: 24px;
+    padding: 26px 30px;
+    background: linear-gradient(150deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+    border: 1px solid rgba(255,255,255,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .record .wl {
+    font-weight: 800;
+    font-size: 64px;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .record .wl .dash { color: rgba(255,253,247,0.40); margin: 0 4px; }
+  .record .wl .l { color: rgba(255,253,247,0.55); }
+  .record .rlabel {
+    text-align: right;
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: rgba(255,253,247,0.62);
+    line-height: 1.4;
+  }
+  .record .rlabel b { color: var(--gold-soft); font-weight: 800; }
+
+  .dupr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+  }
+  .pcard {
+    border-radius: 24px;
+    padding: 24px 28px;
+    background: linear-gradient(150deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,255,255,0.12);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .pcard .pn {
+    font-weight: 700;
+    font-size: 26px;
+    letter-spacing: -0.01em;
+  }
+  .pcard .row {
+    margin-top: 18px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .pcard .dl {
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255,253,247,0.52);
+  }
+  .pcard .dv {
+    font-weight: 800;
+    font-size: 40px;
+    letter-spacing: -0.02em;
+    color: var(--cream);
+  }
+
+  /* ---------- FOOTER / CTA ---------- */
+  .foot {
+    margin-top: auto;
+    padding-top: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid rgba(255,255,255,0.12);
+  }
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 30px;
+    border-radius: 999px;
+    background: linear-gradient(120deg, var(--gold), var(--gold-soft));
+    color: #2a2208;
+    font-weight: 800;
+    font-size: 24px;
+    letter-spacing: 0.01em;
+    box-shadow: 0 10px 26px -8px rgba(212,167,44,0.55), 0 1px 0 rgba(255,255,255,0.5) inset;
+  }
+  .cta .arrow { font-size: 26px; line-height: 1; }
+  .foot .url {
+    text-align: right;
+    font-weight: 700;
+    font-size: 24px;
+    letter-spacing: 0.01em;
+    color: var(--cream);
+  }
+  .foot .url small {
+    display: block;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255,253,247,0.55);
+    margin-top: 4px;
+  }
+
+  /* corner serial flourish */
+  .serial {
+    position: absolute;
+    bottom: 40px; left: 70px;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.22em;
+    color: rgba(255,253,247,0.32);
+    z-index: 6;
+  }
+</style>
+</head>
+<body>
+  <div class="label">Share card · Instagram 1:1</div>
+
+  <div class="card">
+    <div class="frame"></div>
+    <div class="inner">
+
+      <!-- TOP BAR -->
+      <div class="topbar">
+        <div class="brand">
+          <svg class="logomark" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="gold" x1="0" y1="0" x2="52" y2="52">
+                <stop offset="0" stop-color="#fff3d2"/>
+                <stop offset="0.5" stop-color="#e6c468"/>
+                <stop offset="1" stop-color="#d4a72c"/>
+              </linearGradient>
+            </defs>
+            <circle cx="26" cy="26" r="24" stroke="url(#gold)" stroke-width="2" opacity="0.5"/>
+            <circle cx="26" cy="26" r="16" stroke="url(#gold)" stroke-width="2" opacity="0.7"/>
+            <!-- radar sweep -->
+            <path d="M26 26 L26 4 A22 22 0 0 1 45 17 Z" fill="url(#gold)" opacity="0.28"/>
+            <!-- paddle / ball blip -->
+            <circle cx="34.5" cy="17.5" r="4.5" fill="url(#gold)"/>
+            <circle cx="26" cy="26" r="3" fill="#fff3d2"/>
+          </svg>
+          <div class="brand-name">Pickle<span>Radar</span></div>
+        </div>
+
+        <div class="rarity">
+          <span class="dot"></span>
+          RISING DUO
+        </div>
+      </div>
+
+      <!-- TIER / META LINE -->
+      <div class="typeline">
+        <span class="tier">Mixed Doubles</span>
+        <span class="meta">The Village Mini · Houston · Jun 2026</span>
+      </div>
+
+      <!-- DUO NAMES -->
+      <div class="duo">
+        <div class="names">Ben Poon <span class="amp">&amp;</span> Cecilia&nbsp;Trinh</div>
+        <div class="sub">Partnership card · forged over 5 matches together</div>
+      </div>
+
+      <!-- HERO ROW -->
+      <div class="hero">
+
+        <!-- CHEMISTRY -->
+        <div class="chem">
+          <div class="klabel">Chemistry</div>
+          <div class="num">
+            <span class="score">78</span>
+            <span class="of">/ 100</span>
+          </div>
+          <div class="meter"><i></i></div>
+          <div class="verdict">Clicking fast — trending up</div>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats">
+          <div class="record">
+            <div class="wl"><span class="w">3</span><span class="dash">–</span><span class="l">2</span></div>
+            <div class="rlabel">Record<br/>together<br/><b>5 matches</b></div>
+          </div>
+
+          <div class="dupr">
+            <div class="pcard">
+              <div class="pn">Ben Poon</div>
+              <div class="row">
+                <span class="dl">DUPR</span>
+                <span class="dv">3.38</span>
+              </div>
+            </div>
+            <div class="pcard">
+              <div class="pn">Cecilia Trinh</div>
+              <div class="row">
+                <span class="dl">DUPR</span>
+                <span class="dv">3.30</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="foot">
+        <div class="cta">
+          See your side
+          <span class="arrow">→</span>
+        </div>
+        <div class="url">
+          pickleradar.app
+          <small>Claim your duo card</small>
+        </div>
+      </div>
+
+    </div>
+    <div class="serial">№ 0001 · HOU · MXD · FOIL</div>
+  </div>
+</body>
+</html>

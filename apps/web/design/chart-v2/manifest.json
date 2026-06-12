@@ -1,0 +1,7 @@
+[
+  { "file": "01-refined-area.html", "name": "Refined Area", "desc": "Best-in-class area line + a crosshair tooltip that follows your finger." },
+  { "file": "02-dark-hero.html", "name": "Dark Hero", "desc": "Luminous line on the deep-emerald card with gold tournament nodes — a hero tile." },
+  { "file": "03-annotated-journey.html", "name": "Annotated Journey", "desc": "Inline callouts on the line; reads 3.48 → 3.72 as a season story." },
+  { "file": "04-cockpit-sparkline.html", "name": "Cockpit Sparkline", "desc": "Sparkline demoted; a dense mono stat grid (Current / Δ / Peak / Low / Volatility)." },
+  { "file": "05-the-ladder.html", "name": "The Ladder", "desc": "Stepped/segmented path — up emerald, dips clay-red, stock-ticker feel." }
+]
