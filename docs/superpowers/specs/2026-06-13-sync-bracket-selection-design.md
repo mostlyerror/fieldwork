@@ -122,8 +122,17 @@ selectFromBracket(id: string): void;    // set state; no scroll
 
 ## Testing
 
-- Unit-test the provider's selection + scroll-decision logic (`selectFromFieldIntel`
-  scrolls only when `hasBracket(id)`; `selectFromBracket` never scrolls).
-- React Testing Library: a FI list click updates the B&R selected tab, and a B&R
-  tab click updates the FI detail — for an event present in both. Verify an
-  FI-only selection leaves the B&R tab unchanged.
+This codebase's vitest setup runs in a **node environment** and tests pure logic
+only (`test/**/*.test.ts`); jsdom and React Testing Library are not installed, and
+component tests are not a convention here (see `lib/field-intel.ts` +
+`test/field-intel.test.ts`). So the non-trivial decision is extracted into a pure
+helper and unit-tested; the component/provider wiring is verified by running the
+app.
+
+- Extract `nextBracketKey(selectedEventId, eventKeys, currentKey)` into
+  `lib/selected-bracket-logic.ts` — returns the shared selection only when
+  Bracket & Results actually has that event, otherwise keeps the current tab (so
+  an FI-only selection never resets the B&R tab). Unit-test it.
+- Verify wiring manually via the dev server: a FI click selects + scrolls to the
+  matching B&R bracket; a B&R tab click updates the FI detail; an FI-only bracket
+  leaves the B&R tab put and does not scroll.
