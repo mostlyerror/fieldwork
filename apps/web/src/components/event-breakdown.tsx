@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useSelectedBracket } from "@/components/selected-bracket-context";
 import type { TournamentEvent } from "@/lib/types";
 import { EventCard } from "./event-card";
 import { IntelSectionHeader } from "@/components/intel-section-header";
@@ -70,7 +70,7 @@ function groupEvents(events: TournamentEvent[]): Map<string, TournamentEvent[]> 
 }
 
 export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const { selectedEventId, selectFromFieldIntel } = useSelectedBracket();
 
   if (events.length === 0) return null;
 
@@ -121,7 +121,7 @@ export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
                   <button
                     key={event.id}
                     type="button"
-                    onClick={() => setSelectedEventId(event.id)}
+                    onClick={() => selectFromFieldIntel(event.id)}
                     className={`w-full border-b border-gray-100 px-4 py-3 text-left transition last:border-b-0 ${
                       isSelected
                         ? "border-l-3 border-l-emerald-700 bg-emerald-50 pl-3.5"

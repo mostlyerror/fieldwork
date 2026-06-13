@@ -6,6 +6,7 @@ import { getCityBySlug, getDefaultCity } from "@/lib/cities";
 import { TournamentChrome, TournamentHero, TournamentOverview } from "@/components/tournament-detail";
 import { EventBreakdown } from "@/components/event-breakdown";
 import { LiveBracket } from "@/components/live-bracket";
+import { SelectedBracketProvider } from "@/components/selected-bracket-context";
 import { TournamentPodium } from "@/components/tournament-podium";
 import { Footer } from "@/components/footer";
 import { FavoriteButton } from "@/components/favorite-button";
@@ -85,6 +86,12 @@ export default async function TournamentPage({ params }: PageProps) {
   ]);
 
   if (!tournament) notFound();
+
+  // Event ids that have a bracket in Bracket & Results — drives the
+  // Field-Intelligence → Bracket scroll/sync.
+  const bracketEventIds = Array.from(
+    new Set(matches.map((m) => m.event_id).filter((id): id is string => id != null)),
+  );
 
   // Other tournaments at the same venue (the reciprocal of the venue page).
   // Only shown once a venue hosts more than this one; grows as data accrues.
@@ -181,6 +188,7 @@ export default async function TournamentPage({ params }: PageProps) {
             banner, and Field Intelligence sits beneath the hero. DOM order stays
             Hero → Overview → Field-Intelligence so the mobile stack is unchanged;
             explicit grid placement reshuffles only on lg+. */}
+        <SelectedBracketProvider bracketEventIds={bracketEventIds}>
         <div className="lg:grid lg:grid-cols-[360px_minmax(0,1fr)] lg:items-start lg:gap-x-8">
           <div className="lg:col-start-2 lg:row-start-1">
             <TournamentHero tournament={tournament} sources={sources} events={events} />
@@ -208,7 +216,10 @@ export default async function TournamentPage({ params }: PageProps) {
               page keeps one consistent alignment below the hero — they used
               to drop back to a centered max-w-4xl, which jogged the layout. */}
           {matches.length > 0 && (
-            <section className="mt-6 lg:col-start-2 lg:row-start-3 lg:mt-8">
+            <section
+              id="bracket-results"
+              className="mt-6 scroll-mt-20 lg:col-start-2 lg:row-start-3 lg:mt-8"
+            >
               <LiveBracket matches={matches} events={events} />
             </section>
           )}
@@ -219,6 +230,7 @@ export default async function TournamentPage({ params }: PageProps) {
             </section>
           )}
         </div>
+        </SelectedBracketProvider>
 
         {/* The quiet "keep exploring" zone stays at reading width (max-w-4xl)
             and centered, identical on mobile and desktop. */}
