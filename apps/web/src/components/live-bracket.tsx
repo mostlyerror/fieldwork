@@ -4,7 +4,9 @@ import type { TournamentMatch, TournamentEvent } from "@/lib/types";
 import { winProbability, formatProbability } from "@/lib/predictions";
 import { IntelSectionHeader } from "@/components/intel-section-header";
 import { cleanEventName } from "@/lib/event-name";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSelectedBracket } from "@/components/selected-bracket-context";
+import { nextBracketKey } from "@/lib/selected-bracket-logic";
 
 // --- Pool standings ---
 
@@ -340,7 +342,15 @@ export function LiveBracket({
 
   const grouped = groupByEventId(matches, events);
   const eventKeys = Array.from(grouped.keys());
+  const { selectedEventId, selectFromBracket } = useSelectedBracket();
   const [selectedEvent, setSelectedEvent] = useState(eventKeys[0]);
+
+  // Follow the shared selection, but only when it's a bracket we actually have —
+  // selecting an FI-only bracket must not reset this tab.
+  useEffect(() => {
+    setSelectedEvent((current) => nextBracketKey(selectedEventId, eventKeys, current));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedEventId]);
 
   const liveCount = matches.filter((m) => m.match_start != null && !m.match_completed).length;
   const completedCount = matches.filter((m) => m.winner > 0).length;
@@ -365,7 +375,10 @@ export function LiveBracket({
               <button
                 key={key}
                 type="button"
-                onClick={() => setSelectedEvent(key)}
+                onClick={() => {
+                  setSelectedEvent(key);
+                  selectFromBracket(key);
+                }}
                 className={`whitespace-nowrap rounded-full px-3 py-1.5 t-caption font-semibold transition ${
                   isSelected
                     ? "bg-emerald-700 text-white"
