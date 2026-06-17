@@ -2,7 +2,9 @@
 
 import { useSelectedBracket } from "@/components/selected-bracket-context";
 import type { TournamentEvent } from "@/lib/types";
+import type { FieldContext } from "@/lib/field-intel";
 import { EventCard } from "./event-card";
+import { FieldIntelEmpty } from "./field-intel-empty";
 import { IntelSectionHeader } from "@/components/intel-section-header";
 import { DuprDistribution } from "./dupr-distribution";
 import { TeamLeaderboard } from "./team-leaderboard";
@@ -69,7 +71,13 @@ function groupEvents(events: TournamentEvent[]): Map<string, TournamentEvent[]> 
   return sorted;
 }
 
-export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
+export function EventBreakdown({
+  events,
+  field,
+}: {
+  events: TournamentEvent[];
+  field: FieldContext;
+}) {
   const { selectedEventId, selectFromFieldIntel } = useSelectedBracket();
 
   if (events.length === 0) return null;
@@ -95,7 +103,7 @@ export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
       {/* Mobile: stacked expandable cards (a lone bracket starts expanded) */}
       <div className="lg:hidden">
         {orderedEvents.map((event) => (
-          <EventCard key={event.id} event={event} defaultExpanded={orderedEvents.length === 1} />
+          <EventCard key={event.id} event={event} field={field} defaultExpanded={orderedEvents.length === 1} />
         ))}
       </div>
 
@@ -214,9 +222,7 @@ export function EventBreakdown({ events }: { events: TournamentEvent[] }) {
               <TeamLeaderboard event={selectedEvent} />
             </div>
           ) : (
-            <p className="mt-12 text-center t-body text-gray-400">
-              No player data available for this event.
-            </p>
+            <FieldIntelEmpty field={field} variant="panel" />
           )}
         </ScrollFade>
       </div>

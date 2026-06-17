@@ -41,6 +41,27 @@ export function isTournamentPast(
   return tournamentEndDate(t) < today;
 }
 
+/**
+ * True while registration is still open: the tournament hasn't ended, and
+ * either no close date is set or it's still in the future. Prefers the close
+ * date over the (often-stale) registration_status flag.
+ */
+export function isRegistrationOpen(
+  t: {
+    date_start: string;
+    date_end: string | null;
+    registration_status: string | null;
+    registration_close_date: string | null;
+  },
+  now: Date = new Date(),
+): boolean {
+  if (isTournamentPast(t, now)) return false;
+  if (t.registration_close_date) {
+    return new Date(t.registration_close_date) > now;
+  }
+  return t.registration_status !== "closed";
+}
+
 export function relativeDate(dateStr: string): string | null {
   const today = new Date();
   today.setHours(0, 0, 0, 0);

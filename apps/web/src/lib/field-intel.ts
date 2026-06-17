@@ -59,6 +59,55 @@ export function registrantLabel(count: number, eventType: string | null): string
   return `${count} ${noun}${count === 1 ? "" : "s"}`;
 }
 
+// ---------------------------------------------------------------------------
+// Empty field state — why a bracket has no player intel yet
+// ---------------------------------------------------------------------------
+
+/** Tournament-level context the empty state needs to pick honest copy. */
+export interface FieldContext {
+  /** Tournament has finished (end date is in the past). */
+  past: boolean;
+  /** Registration is still open (not past, close date not yet reached). */
+  registrationOpen: boolean;
+  /** Outbound registration link, when we have one. */
+  registrationUrl: string | null;
+}
+
+export interface FieldEmptyCopy {
+  headline: string;
+  sub: string;
+  cta: { label: string; href: string } | null;
+}
+
+/**
+ * Pick empty-state copy for a bracket with no captured roster. We don't assert
+ * a registrant count (our scraped count can lag the source right after
+ * registration closes), so the message keys on timing/registration instead.
+ */
+export function fieldEmptyState(field: FieldContext): FieldEmptyCopy {
+  if (field.past) {
+    return {
+      headline: "No field data for this event",
+      sub: "We didn't capture a player roster for this bracket.",
+      cta: null,
+    };
+  }
+  if (field.registrationOpen) {
+    return {
+      headline: "Field intel is still filling in",
+      sub: "Player ratings, field strength, and over-cap reads land here as players register.",
+      cta: field.registrationUrl
+        ? { label: "Register for this event", href: field.registrationUrl }
+        : null,
+    };
+  }
+  return {
+    headline: "Roster not posted yet",
+    sub: "Registration has closed for this bracket — field intel appears once the player list is published.",
+    cta: null,
+  };
+}
+
 /** Expand an event's entries into individual people (doubles → 2 per entry). */
 export function eventPeople(event: TournamentEvent): Person[] {
   const people: Person[] = [];

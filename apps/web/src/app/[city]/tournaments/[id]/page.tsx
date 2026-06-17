@@ -12,7 +12,8 @@ import { Footer } from "@/components/footer";
 import { FavoriteButton } from "@/components/favorite-button";
 import { ReportIssue } from "@/components/report-issue";
 import { ServerHeader } from "@/components/server-header";
-import { formatDateRange, distanceMiles } from "@/lib/format";
+import { formatDateRange, distanceMiles, isTournamentPast, isRegistrationOpen } from "@/lib/format";
+import type { FieldContext } from "@/lib/field-intel";
 import type { Tournament } from "@/lib/types";
 
 export const revalidate = 600;
@@ -92,6 +93,17 @@ export default async function TournamentPage({ params }: PageProps) {
   const bracketEventIds = Array.from(
     new Set(matches.map((m) => m.event_id).filter((id): id is string => id != null)),
   );
+
+  // Context for the field-intel empty state — lets brackets with no captured
+  // roster explain why (registration still filling, roster not posted, or past).
+  const fieldContext: FieldContext = {
+    past: isTournamentPast(tournament),
+    registrationOpen: isRegistrationOpen(tournament),
+    registrationUrl:
+      tournament.registration_url ??
+      sources.find((s) => s.registration_url)?.registration_url ??
+      null,
+  };
 
   // Other tournaments at the same venue (the reciprocal of the venue page).
   // Only shown once a venue hosts more than this one; grows as data accrues.
@@ -208,7 +220,7 @@ export default async function TournamentPage({ params }: PageProps) {
               id="field-intelligence"
               className="mt-6 scroll-mt-20 lg:col-start-2 lg:row-start-2 lg:mt-8"
             >
-              <EventBreakdown events={events} />
+              <EventBreakdown events={events} field={fieldContext} />
             </section>
           )}
 

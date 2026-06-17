@@ -33,3 +33,6 @@ logs/
 packages/scrapers/src/check-active.ts
 packages/scrapers/src/load-test-matches.ts
 packages/scrapers/src/run-live-matches.ts
+
+# graphify knowledge-graph output (local artifact)
+graphify-out/

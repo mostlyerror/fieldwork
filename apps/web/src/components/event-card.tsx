@@ -6,7 +6,8 @@ import { TeamLeaderboard } from "./team-leaderboard";
 import { DuprDistribution } from "./dupr-distribution";
 import { FieldHonesty } from "./field-honesty";
 import { FieldStrip } from "./field-strip";
-import { eventIntel, registrantLabel } from "@/lib/field-intel";
+import { FieldIntelEmpty } from "./field-intel-empty";
+import { eventIntel, registrantLabel, type FieldContext } from "@/lib/field-intel";
 import { cleanEventName } from "@/lib/event-name";
 
 /** Listed → live average transition shown on the right of the card header. */
@@ -30,9 +31,12 @@ function RateTransition({ listed, live }: { listed: number | null; live: number 
 
 export function EventCard({
   event,
+  field,
   defaultExpanded = false,
 }: {
   event: TournamentEvent;
+  /** Tournament-level context for the no-roster empty state. */
+  field: FieldContext;
   /** Single-bracket tournaments expand it by default — with nothing to compare
    *  against, a collapsed lone card just hides the field intel. */
   defaultExpanded?: boolean;
@@ -111,6 +115,8 @@ export function EventCard({
           <TeamLeaderboard event={event} />
         </div>
       )}
+
+      {!hasPlayers && <FieldIntelEmpty field={field} variant="inline" />}
     </div>
   );
 }
