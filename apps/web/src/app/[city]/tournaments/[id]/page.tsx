@@ -18,12 +18,16 @@ import type { Tournament } from "@/lib/types";
 
 export const revalidate = 600;
 
-type PageProps = { params: Promise<{ city: string; id: string }> };
+type PageProps = {
+  params: Promise<{ city: string; id: string }>;
+  searchParams: Promise<{ bracket?: string }>;
+};
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: PageProps): Promise<Metadata> {
-  const { city: citySlug, id } = await params;
+  const [{ city: citySlug, id }, { bracket }] = await Promise.all([params, searchParams]);
   const city = getCityBySlug(citySlug);
   const tournament = await getTournament(id);
   if (!tournament) return { title: "Tournament Not Found" };
@@ -32,7 +36,11 @@ export async function generateMetadata({
   const cityName = city?.name ?? getDefaultCity().name;
   const description = `${formatDateRange(tournament.date_start, tournament.date_end)} at ${tournament.location_name}. Find details and register for this ${cityName}-area pickleball tournament.`;
 
-  const ogImageUrl = `https://pickleradar.app/api/og?id=${id}`;
+  // Bracket-scoped share links unfurl with that bracket's field-intel card;
+  // /api/og degrades to the tournament card if the id is stale.
+  const ogImageUrl = bracket
+    ? `https://pickleradar.app/api/og?id=${id}&bracket=${encodeURIComponent(bracket)}`
+    : `https://pickleradar.app/api/og?id=${id}`;
 
   return {
     title: `${tournament.name} — PickleRadar`,
@@ -73,8 +81,8 @@ function getRelatedTournaments(
   return others.slice(0, 3);
 }
 
-export default async function TournamentPage({ params }: PageProps) {
-  const { city: citySlug, id } = await params;
+export default async function TournamentPage({ params, searchParams }: PageProps) {
+  const [{ city: citySlug, id }, { bracket }] = await Promise.all([params, searchParams]);
   const city = getCityBySlug(citySlug);
   if (!city) notFound();
 
@@ -190,7 +198,12 @@ export default async function TournamentPage({ params }: PageProps) {
         {/* Draft banner + on-scroll sticky action bar. The sticky bar is
             position:fixed so it spans the viewport regardless of this
             container; the draft banner renders here in normal flow (its
-            original position, just after the back link). */}
+            original position, just after the back link). Inside the provider
+            so its ShareButtons can share the selected bracket. */}
+        <SelectedBracketProvider
+          bracketEventIds={bracketEventIds}
+          initialEventId={bracket && events.some((e) => e.id === bracket) ? bracket : null}
+        >
         <TournamentChrome tournament={tournament} sources={sources} events={events} />
 
         {/* Briefing block. Mobile (< lg): plain stack — Hero, then the Overview
@@ -200,7 +213,6 @@ export default async function TournamentPage({ params }: PageProps) {
             banner, and Field Intelligence sits beneath the hero. DOM order stays
             Hero → Overview → Field-Intelligence so the mobile stack is unchanged;
             explicit grid placement reshuffles only on lg+. */}
-        <SelectedBracketProvider bracketEventIds={bracketEventIds}>
         <div className="lg:grid lg:grid-cols-[360px_minmax(0,1fr)] lg:items-start lg:gap-x-8">
           <div className="lg:col-start-2 lg:row-start-1">
             <TournamentHero tournament={tournament} sources={sources} events={events} />
@@ -220,7 +232,16 @@ export default async function TournamentPage({ params }: PageProps) {
               id="field-intelligence"
               className="mt-6 scroll-mt-20 lg:col-start-2 lg:row-start-2 lg:mt-8"
             >
-              <EventBreakdown events={events} field={fieldContext} />
+              <EventBreakdown
+                events={events}
+                field={fieldContext}
+                share={{
+                  tournamentId: tournament.id,
+                  tournamentName: tournament.name,
+                  dateRange: formatDateRange(tournament.date_start, tournament.date_end),
+                  venue: tournament.venue_name || tournament.location_name,
+                }}
+              />
             </section>
           )}
 

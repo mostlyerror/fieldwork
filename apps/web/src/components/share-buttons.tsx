@@ -4,6 +4,17 @@ import { useState, useRef, useEffect } from "react";
 import { track } from "@/lib/analytics";
 import { buildShareUrl, type ShareMedium } from "@/lib/share-url";
 
+/** Bracket-scoped share payload — set when the user has a bracket selected, so
+ *  the share carries that bracket's URL, card, and stats instead of the
+ *  tournament-wide ones. */
+export interface ShareBracket {
+  id: string;
+  name: string;
+  registered?: number;
+  avgDupr?: number | null;
+  overCap?: number;
+}
+
 export interface ShareButtonsProps {
   tournamentId: string;
   tournamentName?: string;
@@ -13,6 +24,7 @@ export interface ShareButtonsProps {
   eventCount?: number;
   sandbaggerAlert?: boolean;
   liveRatings?: number;
+  bracket?: ShareBracket | null;
 }
 
 function buildShareText({
@@ -23,12 +35,15 @@ function buildShareText({
   eventCount,
   sandbaggerAlert,
   liveRatings,
+  bracket,
   url,
 }: ShareButtonsProps & { url: string }): string {
   const lines: string[] = [];
 
   if (tournamentName) {
-    lines.push(`🏓 ${tournamentName}`);
+    lines.push(bracket ? `🏓 ${tournamentName} — ${bracket.name}` : `🏓 ${tournamentName}`);
+  } else if (bracket) {
+    lines.push(`🏓 ${bracket.name}`);
   }
 
   const dateVenueParts: string[] = [];
@@ -38,19 +53,30 @@ function buildShareText({
     lines.push(`📅 ${dateVenueParts.join(" · ")}`);
   }
 
-  if ((registered ?? 0) > 0 || (eventCount ?? 0) > 0) {
+  if (bracket) {
+    // Bracket mode: this bracket's field, not the tournament totals.
     const parts: string[] = [];
-    if ((registered ?? 0) > 0) parts.push(`${registered} registered`);
-    if ((eventCount ?? 0) > 0) parts.push(`${eventCount} events`);
-    lines.push(`👥 ${parts.join(" across ")}`);
-  }
+    if ((bracket.registered ?? 0) > 0) parts.push(`${bracket.registered} registered`);
+    if (bracket.avgDupr != null) parts.push(`avg DUPR ${bracket.avgDupr.toFixed(2)}`);
+    if (parts.length > 0) lines.push(`👥 ${parts.join(" · ")}`);
+    if ((bracket.overCap ?? 0) > 0) {
+      lines.push(`⚠️ ${bracket.overCap} rated over the cap`);
+    }
+  } else {
+    if ((registered ?? 0) > 0 || (eventCount ?? 0) > 0) {
+      const parts: string[] = [];
+      if ((registered ?? 0) > 0) parts.push(`${registered} registered`);
+      if ((eventCount ?? 0) > 0) parts.push(`${eventCount} events`);
+      lines.push(`👥 ${parts.join(" across ")}`);
+    }
 
-  if (sandbaggerAlert) {
-    lines.push(`⚠️ Over-cap field in bracket`);
-  }
+    if (sandbaggerAlert) {
+      lines.push(`⚠️ Over-cap field in bracket`);
+    }
 
-  if ((liveRatings ?? 0) > 0) {
-    lines.push(`📊 ${liveRatings} verified ratings`);
+    if ((liveRatings ?? 0) > 0) {
+      lines.push(`📊 ${liveRatings} verified ratings`);
+    }
   }
 
   lines.push("");
@@ -68,25 +94,41 @@ export function ShareButtons({
   eventCount,
   sandbaggerAlert,
   liveRatings,
+  bracket,
 }: ShareButtonsProps) {
   const [open, setOpen] = useState(false);
   const [copiedText, setCopiedText] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  // With a bracket selected the share defaults to that bracket; the dropdown
+  // offers a switch back to the whole tournament.
+  const [scope, setScope] = useState<"bracket" | "tournament">("bracket");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const activeBracket = scope === "bracket" ? bracket ?? null : null;
+
+  // origin+pathname (not href): an inherited ?bracket= from a shared link must
+  // not leak into a tournament-scoped share.
   const baseUrl =
     typeof window !== "undefined"
-      ? window.location.href
+      ? window.location.origin + window.location.pathname
       : `https://pickleradar.app/tournaments/${tournamentId}`;
+  const targetUrl = activeBracket
+    ? `${baseUrl}?bracket=${encodeURIComponent(activeBracket.id)}`
+    : baseUrl;
 
   // Each share method tags the outbound link with its own utm_medium so we can
   // see in PostHog which method actually drives return visits.
   const shareUrlFor = (medium: ShareMedium) =>
-    buildShareUrl(baseUrl, {
+    buildShareUrl(targetUrl, {
       medium,
       campaign: "tournament",
-      content: tournamentId,
+      content: activeBracket ? `${tournamentId}:${activeBracket.id}` : tournamentId,
     });
+
+  const trackProps = {
+    tournamentId,
+    ...(activeBracket && { bracketId: activeBracket.id }),
+  };
 
   const shareProps: ShareButtonsProps = {
     tournamentId,
@@ -97,6 +139,7 @@ export function ShareButtons({
     eventCount,
     sandbaggerAlert,
     liveRatings,
+    bracket: activeBracket,
   };
 
   // Preview shows the copy-text variant (the primary CTA).
@@ -118,7 +161,7 @@ export function ShareButtons({
   }, [open]);
 
   async function copyText() {
-    track("share_clicked", { method: "copy_text", tournamentId });
+    track("share_clicked", { method: "copy_text", ...trackProps });
     const text = previewText;
     try {
       await navigator.clipboard.writeText(text);
@@ -135,7 +178,7 @@ export function ShareButtons({
   }
 
   async function copyLink() {
-    track("share_clicked", { method: "copy_link", tournamentId });
+    track("share_clicked", { method: "copy_link", ...trackProps });
     const link = shareUrlFor("copy_link");
     try {
       await navigator.clipboard.writeText(link);
@@ -152,11 +195,14 @@ export function ShareButtons({
   }
 
   async function nativeShare() {
-    track("share_clicked", { method: "native_share", tournamentId });
+    track("share_clicked", { method: "native_share", ...trackProps });
     if (navigator.share) {
       try {
         await navigator.share({
-          title: tournamentName ?? "Check out this tournament!",
+          title:
+            activeBracket && tournamentName
+              ? `${tournamentName} — ${activeBracket.name}`
+              : tournamentName ?? "Check out this tournament!",
           text: buildShareText({ ...shareProps, url: shareUrlFor("native_share") }),
           url: shareUrlFor("native_share"),
         });
@@ -193,8 +239,29 @@ export function ShareButtons({
           className="absolute right-0 top-full mt-2 z-50 w-[calc(100vw-2rem)] max-w-80 sm:w-80 rounded-2xl border border-gray-200/70 bg-white shadow-card p-4"
         >
           <p className="mb-2 t-label font-semibold text-gray-400">
-            Share this tournament
+            {activeBracket ? "Share this bracket" : "Share this tournament"}
           </p>
+
+          {bracket && (
+            <div className="mb-3 flex rounded-lg bg-gray-100 p-0.5">
+              <button
+                onClick={() => setScope("bracket")}
+                className={`flex-1 truncate rounded-md px-2 py-1 t-caption font-semibold transition ${
+                  scope === "bracket" ? "bg-white text-emerald-800 shadow-sm" : "text-gray-500"
+                }`}
+              >
+                {bracket.name}
+              </button>
+              <button
+                onClick={() => setScope("tournament")}
+                className={`flex-1 rounded-md px-2 py-1 t-caption font-semibold transition ${
+                  scope === "tournament" ? "bg-white text-emerald-800 shadow-sm" : "text-gray-500"
+                }`}
+              >
+                Whole tournament
+              </button>
+            </div>
+          )}
 
           {hasRichData && (
             <pre className="mb-3 whitespace-pre-wrap rounded-xl bg-gray-50 p-3 t-body font-mono text-gray-700">

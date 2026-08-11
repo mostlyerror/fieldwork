@@ -17,13 +17,16 @@ const SelectedBracketContext = createContext<SelectedBracketValue | null>(null);
 
 export function SelectedBracketProvider({
   bracketEventIds,
+  initialEventId = null,
   children,
 }: {
   /** Event ids that appear in Bracket & Results (events that have match data). */
   bracketEventIds: string[];
+  /** Pre-selected bracket (from a shared ?bracket= link), already validated. */
+  initialEventId?: string | null;
   children: ReactNode;
 }) {
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(initialEventId);
   const bracketIds = useMemo(() => new Set(bracketEventIds), [bracketEventIds]);
 
   const value = useMemo<SelectedBracketValue>(

@@ -14,7 +14,9 @@ import { eventIntel, ratingHistogram } from "@/lib/field-intel";
 import { cleanEventName } from "@/lib/event-name";
 import { googleCalendarUrl } from "@/lib/calendar";
 import { SOURCE_DISPLAY_NAMES } from "@/lib/constants";
-import { ShareButtons } from "./share-buttons";
+import { ShareButtons, type ShareBracket } from "./share-buttons";
+import { useSelectedBracket } from "./selected-bracket-context";
+import { effectiveAvgDupr } from "@/lib/dupr-utils";
 import { RegistrationPill } from "./registration-pill";
 import { getRegistrationStatus } from "@/lib/registration";
 import {
@@ -156,6 +158,21 @@ type ViewProps = {
   citySlug?: string;
 };
 
+/** Share payload for the bracket currently selected in Field Intelligence /
+ *  Bracket & Results, or null before any bracket interaction. */
+function useShareBracket(events: TournamentEvent[]): ShareBracket | null {
+  const { selectedEventId } = useSelectedBracket();
+  const event = events.find((e) => e.id === selectedEventId);
+  if (!event) return null;
+  return {
+    id: event.id,
+    name: cleanEventName(event),
+    registered: event.registered_count,
+    avgDupr: effectiveAvgDupr(event),
+    overCap: eventIntel(event).above,
+  };
+}
+
 /** Draft banner + on-scroll sticky action bar + the view-tracking effect.
  *  Rendered once per page; placement-independent (fixed / flow-level chrome). */
 export function TournamentChrome({
@@ -165,6 +182,7 @@ export function TournamentChrome({
 }: ViewProps) {
   const { primarySource, closed, past, venueName, regStatus, logRegister } =
     useTournamentView(tournament, sources, events);
+  const shareBracket = useShareBracket(events);
 
   const [stickyVisible, setStickyVisible] = useState(false);
   useEffect(() => {
@@ -240,6 +258,7 @@ export function TournamentChrome({
               registered={tournament.total_registered ?? undefined}
               eventCount={tournament.event_count ?? undefined}
               liveRatings={tournament.total_live_dupr ?? undefined}
+              bracket={shareBracket}
             />
           </div>
         </div>
@@ -318,6 +337,7 @@ export function TournamentOverview({
     facts,
     logRegister,
   } = useTournamentView(tournament, sources, events);
+  const shareBracket = useShareBracket(events);
 
   return (
     <div className="relative z-10 mx-auto -mt-8 max-w-3xl sm:-mt-14 lg:mx-0 lg:mt-0 lg:max-w-none">
@@ -445,6 +465,7 @@ export function TournamentOverview({
               registered={tournament.total_registered ?? undefined}
               eventCount={tournament.event_count ?? undefined}
               liveRatings={tournament.total_live_dupr ?? undefined}
+              bracket={shareBracket}
             />
           </div>
         </div>

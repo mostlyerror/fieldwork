@@ -9,6 +9,7 @@ import { FieldStrip } from "./field-strip";
 import { FieldIntelEmpty } from "./field-intel-empty";
 import { eventIntel, registrantLabel, type FieldContext } from "@/lib/field-intel";
 import { cleanEventName } from "@/lib/event-name";
+import { BracketShareCta, type ShareContext } from "./bracket-share-cta";
 
 /** Listed → live average transition shown on the right of the card header. */
 function RateTransition({ listed, live }: { listed: number | null; live: number | null }) {
@@ -32,11 +33,14 @@ function RateTransition({ listed, live }: { listed: number | null; live: number 
 export function EventCard({
   event,
   field,
+  share,
   defaultExpanded = false,
 }: {
   event: TournamentEvent;
   /** Tournament-level context for the no-roster empty state. */
   field: FieldContext;
+  /** Tournament context for the per-bracket share CTA. */
+  share?: ShareContext;
   /** Single-bracket tournaments expand it by default — with nothing to compare
    *  against, a collapsed lone card just hides the field intel. */
   defaultExpanded?: boolean;
@@ -113,6 +117,11 @@ export function EventCard({
           <FieldHonesty event={event} />
           <DuprDistribution event={event} />
           <TeamLeaderboard event={event} />
+          {share && (
+            <div className="mt-3">
+              <BracketShareCta event={event} share={share} />
+            </div>
+          )}
         </div>
       )}
 

@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // The OG route reads its brand fonts off disk at render time (Node runtime);
+  // force them into the serverless bundle since nothing imports them.
+  outputFileTracingIncludes: {
+    "/api/og": ["./src/app/api/og/fonts/**"],
+  },
   // PostHog proxy: ad blockers drop direct requests to us.i.posthog.com.
   // Proxying through /ingest preserves analytics from blocked clients.
   skipTrailingSlashRedirect: true,

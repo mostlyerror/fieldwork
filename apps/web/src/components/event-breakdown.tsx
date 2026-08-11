@@ -15,6 +15,7 @@ import { effectiveAvgDupr, avgDuprPair } from "@/lib/dupr-utils";
 import { registrantLabel } from "@/lib/field-intel";
 import { AvgDuprCell } from "./avg-dupr-cell";
 import { ScrollFade } from "./scroll-fade";
+import { BracketShareCta, type ShareContext } from "./bracket-share-cta";
 
 /** Per-bracket start, shown faithfully from the source label (already venue-local).
  *  "Jun 7 2026 8:30 AM" -> "Jun 7 · 8:30 AM"; "Jun 13 2026 Morning" -> "Jun 13 · Morning". */
@@ -74,9 +75,12 @@ function groupEvents(events: TournamentEvent[]): Map<string, TournamentEvent[]> 
 export function EventBreakdown({
   events,
   field,
+  share,
 }: {
   events: TournamentEvent[];
   field: FieldContext;
+  /** Tournament context for the per-bracket share CTA. */
+  share?: ShareContext;
 }) {
   const { selectedEventId, selectFromFieldIntel } = useSelectedBracket();
 
@@ -103,7 +107,7 @@ export function EventBreakdown({
       {/* Mobile: stacked expandable cards (a lone bracket starts expanded) */}
       <div className="lg:hidden">
         {orderedEvents.map((event) => (
-          <EventCard key={event.id} event={event} field={field} defaultExpanded={orderedEvents.length === 1} />
+          <EventCard key={event.id} event={event} field={field} share={share} defaultExpanded={orderedEvents.length === 1} />
         ))}
       </div>
 
@@ -220,6 +224,7 @@ export function EventBreakdown({
               <FieldHonesty event={selectedEvent} />
               <DuprDistribution event={selectedEvent} />
               <TeamLeaderboard event={selectedEvent} />
+              {share && <BracketShareCta event={selectedEvent} share={share} />}
             </div>
           ) : (
             <FieldIntelEmpty field={field} variant="panel" />
