@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 import { getVenueBySlug, getVenueTournaments } from "@/lib/queries";
@@ -30,8 +29,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title,
     description,
     alternates: { canonical: url },
-    openGraph: { title, description, type: "website", url, siteName: "PickleRadar", images: [ogImage] },
-    twitter: { card: "summary_large_image", title, description, images: [ogImage] },
+    openGraph: { title, description, type: "website", url, siteName: "PickleRadar", images: [{ url: ogImage, width: 1200, height: 630 }] },
+    twitter: { card: "summary_large_image", title, description, images: [{ url: ogImage, width: 1200, height: 630 }] },
   };
 }
 

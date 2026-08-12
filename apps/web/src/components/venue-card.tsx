@@ -17,6 +17,7 @@ export function VenueCard({ venue: v, citySlug }: { venue: VenueCardModel; cityS
             <img
               src={v.photoUrl}
               alt={v.name}
+              loading="lazy"
               className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.045]"
             />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/15 via-transparent to-black/20" />
