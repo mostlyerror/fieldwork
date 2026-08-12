@@ -888,3 +888,28 @@ export async function getVenuesForSitemap(): Promise<
     return [];
   }
 }
+
+export async function getVenuesWithStats(
+  citySlug: string,
+): Promise<import("./venue-stats").VenueCardModel[]> {
+  const { buildVenueCards } = await import("./venue-stats");
+  const today = new Date().toISOString().split("T")[0];
+  try {
+    const [{ data: venues, error: vErr }, { data: tournaments, error: tErr }] =
+      await Promise.all([
+        supabase
+          .from("venues")
+          .select("id, slug, name, photo_url, formatted_address")
+          .eq("city_slug", citySlug),
+        supabase
+          .from("tournaments")
+          .select("venue_id, date_start, date_end")
+          .eq("status", "active")
+          .not("venue_id", "is", null),
+      ]);
+    if (vErr || tErr || !venues) return [];
+    return buildVenueCards(venues, tournaments ?? [], today);
+  } catch {
+    return [];
+  }
+}
