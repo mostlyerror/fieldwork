@@ -8,7 +8,7 @@ import { TournamentCard } from "@/components/tournament-card";
 import { FavoriteButton } from "@/components/favorite-button";
 import { ServerHeader } from "@/components/server-header";
 import { Footer } from "@/components/footer";
-import { BackLink } from "@/components/back-link";
+import { VenueHero } from "@/components/venue-hero";
 
 const MiniMap = dynamic(() => import("@/components/mini-map"));
 
@@ -86,36 +86,35 @@ export default async function VenuePage({ params }: PageProps) {
     <div className="min-h-screen bg-background">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <ServerHeader city={city} />
-      <main className="mx-auto max-w-6xl px-3 sm:px-5 py-10">
-        <BackLink
-          fallbackHref={`/${citySlug}`}
-          fallbackLabel={`Back to ${city.name}`}
-          className="mb-8 inline-flex items-center t-body text-gray-400 hover:text-emerald-700"
+      <main className="mx-auto max-w-6xl px-3 sm:px-5 pb-10 pt-4 sm:pt-6">
+        <VenueHero
+          photoUrl={venue.photo_url}
+          venueName={venue.name}
+          backHref={`/${citySlug}/venues`}
+          backLabel="Venues"
         />
-        <header className="mb-6 flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <h1 className="t-h1 text-gray-900">{venue.name}</h1>
-            {venue.formatted_address && <p className="mt-1 text-gray-500">{venue.formatted_address}</p>}
-            <p className="mt-2 t-body text-gray-600">{cadence}</p>
-          </div>
-          <FavoriteButton
-            compact
-            item={{
-              kind: "venue",
-              id: slug,
-              href: `/${citySlug}/venues/${slug}`,
-              title: venue.name,
-              subtitle: venue.formatted_address ?? null,
-              meta: null,
-            }}
-          />
-        </header>
 
-        {venue.latitude != null && venue.longitude != null && (
-          <div className="mb-8 overflow-hidden rounded-2xl border border-gray-200/70 shadow-card">
-            <MiniMap latitude={venue.latitude} longitude={venue.longitude} />
+        {/* Header card overlapping the hero (design language v2) */}
+        <header className="relative z-10 -mt-14 mx-1 mb-8 rounded-2xl border border-gray-200/70 bg-white p-5 shadow-card sm:mx-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <h1 className="t-h1 text-gray-900">{venue.name}</h1>
+              {venue.formatted_address && <p className="mt-1 text-gray-500">{venue.formatted_address}</p>}
+              <p className="mt-2 t-body text-gray-600">{cadence}</p>
+            </div>
+            <FavoriteButton
+              compact
+              item={{
+                kind: "venue",
+                id: slug,
+                href: `/${citySlug}/venues/${slug}`,
+                title: venue.name,
+                subtitle: venue.formatted_address ?? null,
+                meta: null,
+              }}
+            />
           </div>
-        )}
+        </header>
 
         {upcoming.length > 0 && (
           <section className="mb-10">
@@ -127,10 +126,19 @@ export default async function VenuePage({ params }: PageProps) {
         )}
 
         {past.length > 0 && (
-          <section>
+          <section className="mb-10">
             <h2 className="mb-4 t-h2 font-bold text-gray-800">Past Tournaments</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {past.map((t) => <TournamentCard key={t.id} tournament={t} citySlug={citySlug} />)}
+            </div>
+          </section>
+        )}
+
+        {venue.latitude != null && venue.longitude != null && (
+          <section>
+            <h2 className="mb-4 t-h2 font-bold text-gray-800">Where it is</h2>
+            <div className="overflow-hidden rounded-2xl border border-gray-200/70 shadow-card">
+              <MiniMap latitude={venue.latitude} longitude={venue.longitude} />
             </div>
           </section>
         )}
