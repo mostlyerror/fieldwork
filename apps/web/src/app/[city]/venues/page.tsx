@@ -13,7 +13,8 @@ type PageProps = { params: Promise<{ city: string }> };
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { city: citySlug } = await params;
   const city = getCityBySlug(citySlug);
-  const cityName = city?.name ?? "Houston";
+  if (!city) return { title: "City Not Found — PickleRadar" };
+  const cityName = city.name;
   const title = `Pickleball Venues in ${cityName} — PickleRadar`;
   const description = `Every venue hosting pickleball tournaments in ${cityName}: photos, upcoming events, and tournament history.`;
   const url = `https://pickleradar.app/${citySlug}/venues`;
