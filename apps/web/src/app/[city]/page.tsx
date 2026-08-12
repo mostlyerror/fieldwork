@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import type { Metadata } from "next";
 import { getCityBySlug, CITIES } from "@/lib/cities";
 import { getTournamentsByCity } from "@/lib/queries";
@@ -146,6 +147,9 @@ export default async function CityPage({ params }: PageProps) {
                     We aggregate from PBBrackets, Pickleball Den, and community submissions.
                     {upcomingCount > 0 ? ` ${upcomingCount} upcoming across ${venueCount} venues.` : ""}
                   </p>
+                  <Link href={`/${city.slug}/venues`} className="t-small mt-1 inline-flex items-center gap-1 font-bold text-emerald-700 hover:text-emerald-800">
+                    Browse venues →
+                  </Link>
                 </div>
                 <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-6">
                   <h3 className="t-h2 text-gray-900">Real Rating Intel</h3>

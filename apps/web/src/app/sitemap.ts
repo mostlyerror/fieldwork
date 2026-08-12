@@ -37,6 +37,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }));
 
+  const venueCitySlugs = [...new Set(venues.map((v) => v.city_slug).filter((c): c is string => !!c))];
+  const venueIndexEntries: MetadataRoute.Sitemap = venueCitySlugs.map((c) => ({
+    url: `${baseUrl}/${c}/venues`,
+    lastModified: new Date(),
+    changeFrequency: "daily" as const,
+    priority: 0.7,
+  }));
+
   const cityEntries: MetadataRoute.Sitemap = Object.values(CITIES).map(
     (city) => ({
       url: `${baseUrl}/${city.slug}`,
@@ -62,5 +70,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     ...tournamentEntries,
     ...venueEntries,
+    ...venueIndexEntries,
   ];
 }

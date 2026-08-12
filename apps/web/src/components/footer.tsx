@@ -28,6 +28,9 @@ export function Footer({ citySlug }: { citySlug?: string }) {
               <Link href={browseHref} className="text-gray-600 hover:text-emerald-700">
                 Browse tournaments
               </Link>
+              <Link href={`${browseHref}/venues`} className="text-gray-600 hover:text-emerald-700">
+                Venues
+              </Link>
               <Link href="/submit" className="text-gray-600 hover:text-emerald-700">
                 Submit a tournament
               </Link>
