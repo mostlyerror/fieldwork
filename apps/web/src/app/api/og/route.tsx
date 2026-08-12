@@ -212,6 +212,88 @@ async function fetchData(id: string, needStrip: boolean, bracketId: string | nul
   };
 }
 
+interface VenueOgData {
+  name: string;
+  photoUrl: string | null;
+  citySlug: string;
+  cadence: string; // "9 tournaments hosted · Next on Aug 12"
+}
+
+async function fetchVenueData(slug: string): Promise<VenueOgData | null> {
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  const { data: venue } = await supabase
+    .from("venues")
+    .select("id, name, photo_url, city_slug")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (!venue) return null;
+
+  const today = new Date().toISOString().split("T")[0];
+  const { data: ts } = await supabase
+    .from("tournaments")
+    .select("date_start, date_end")
+    .eq("venue_id", venue.id)
+    .eq("status", "active")
+    .order("date_start", { ascending: true });
+  const rows = ts ?? [];
+  const next = rows.find((t) => ((t.date_end as string | null) ?? (t.date_start as string)) >= today);
+  const { venueOgLine } = await import("@/lib/venue-stats");
+  return {
+    name: venue.name as string,
+    photoUrl: venue.photo_url as string | null,
+    citySlug: ((venue.city_slug as string | null) ?? "houston").toUpperCase(),
+    cadence: venueOgLine(rows.length, (next?.date_start as string | undefined) ?? null),
+  };
+}
+
+// HEAD-check a venue photo URL with a short timeout — see the caller for why.
+async function isReachablePhoto(url: string): Promise<boolean> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+    const res = await fetch(url, { method: "HEAD", signal: controller.signal });
+    clearTimeout(timeout);
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+// VENUE — photo full-bleed with bottom scrim; branded dark fallback without a photo.
+function Style_venue({ v }: { v: VenueOgData }) {
+  return (
+    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-end", fontFamily: "Jakarta", color: "#FFFDF7", position: "relative", background: "#0c1109" }}>
+      {v.photoUrl ? (
+        <img src={v.photoUrl} width={1200} height={630} alt="" style={{ position: "absolute", top: 0, left: 0, width: "1200px", height: "630px", objectFit: "cover" }} />
+      ) : (
+        <img src={logoMark(560)} width={560} height={560} alt="" style={{ position: "absolute", top: "40px", right: "-140px", opacity: 0.08 }} />
+      )}
+      {v.photoUrl && (
+        <div style={{ position: "absolute", top: 0, left: 0, width: "1200px", height: "630px", display: "flex", background: "linear-gradient(180deg, rgba(2,24,16,0.30) 0%, rgba(2,24,16,0.10) 40%, rgba(2,24,16,0.62) 72%, rgba(2,24,16,0.92) 100%)" }} />
+      )}
+      {/* Brand top-left */}
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", position: "absolute", top: "48px", left: "60px" }}>
+        <img src={logoMark(36)} width={36} height={36} alt="" />
+        <div style={{ display: "flex", fontSize: "20px", fontWeight: 800, color: "#FFFDF7", letterSpacing: "5px" }}>PICKLERADAR</div>
+      </div>
+      {v.photoUrl && (
+        <div style={{ display: "flex", position: "absolute", top: "52px", right: "60px", fontSize: "13px", fontWeight: 600, color: "rgba(255,255,255,0.7)", background: "rgba(0,0,0,0.35)", padding: "6px 14px", borderRadius: "999px" }}>Photo · Google</div>
+      )}
+      {/* Bottom block */}
+      <div style={{ display: "flex", flexDirection: "column", padding: "0 60px 56px" }}>
+        <div style={{ display: "flex", fontSize: "22px", fontWeight: 700, letterSpacing: "6px", color: "#9af5c8", marginBottom: "14px" }}>
+          PICKLEBALL VENUE · {v.citySlug}
+        </div>
+        <div style={{ display: "flex", fontSize: headlineSize(v.name), fontWeight: 800, color: "#FFFDF7", lineHeight: 0.98, letterSpacing: "-2px", maxWidth: "1080px" }}>{v.name}</div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "20px" }}>
+          <div style={{ display: "flex", fontSize: "27px", fontWeight: 600, color: "rgba(255,255,255,0.92)" }}>{v.cadence}</div>
+          <div style={{ display: "flex", fontSize: "18px", fontWeight: 700, color: "#9af5c8" }}>pickleradar.app</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // 10. RADAR — cream, real brand type, giant radar watermark fills the void
 function Style_radar({ d }: { d: CardData }) {
   const badge = contextBadge(d);
@@ -506,6 +588,53 @@ export async function GET(request: NextRequest) {
   const id = searchParams.get("id");
   const explicitStyle = searchParams.get("style");
   const bracketId = searchParams.get("bracket");
+
+  const venueSlug = searchParams.get("venue");
+  if (venueSlug) {
+    const v = await fetchVenueData(venueSlug);
+    if (!v) return new Response("Not found", { status: 404 });
+    // Satori doesn't throw on an unfetchable <img> — it logs a warning and
+    // silently omits it, which would otherwise leave the "Photo · Google"
+    // credit badge on screen with no photo behind it. Pre-check reachability
+    // so a stale/expired Google Places photo URL degrades to the branded
+    // no-photo layout instead of that half-broken state.
+    if (v.photoUrl && !(await isReachablePhoto(v.photoUrl))) {
+      v.photoUrl = null;
+    }
+    const [semiBold, bold, extraBold] = await Promise.all([fontSemiBold, fontBold, fontExtraBold]);
+    const imageOpts = {
+      width: 1200,
+      height: 630,
+      fonts: [
+        { name: "Jakarta", data: semiBold, weight: 600 as const, style: "normal" as const },
+        { name: "Jakarta", data: bold, weight: 700 as const, style: "normal" as const },
+        { name: "Jakarta", data: extraBold, weight: 800 as const, style: "normal" as const },
+      ],
+    };
+    // next/og's ImageResponse defers the actual satori render (and thus any
+    // unfetchable-<img> error) into an async ReadableStream `start()` callback —
+    // it does not throw synchronously at construction. The failure only
+    // surfaces once the stream is consumed via arrayBuffer(), so the fallback
+    // must wrap that too, not just `new ImageResponse(...)`.
+    let jpeg: Buffer;
+    try {
+      const png = new ImageResponse(<Style_venue v={v} />, imageOpts);
+      jpeg = await sharp(Buffer.from(await png.arrayBuffer()))
+        .jpeg({ quality: 80, mozjpeg: true })
+        .toBuffer();
+    } catch {
+      const png = new ImageResponse(<Style_venue v={{ ...v, photoUrl: null }} />, imageOpts);
+      jpeg = await sharp(Buffer.from(await png.arrayBuffer()))
+        .jpeg({ quality: 80, mozjpeg: true })
+        .toBuffer();
+    }
+    return new Response(new Uint8Array(jpeg), {
+      headers: {
+        "Content-Type": "image/jpeg",
+        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+      },
+    });
+  }
 
   if (!id) {
     return new Response("Missing id", { status: 400 });

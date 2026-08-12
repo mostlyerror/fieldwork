@@ -25,12 +25,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title = `${venue.name} Pickleball Tournaments — PickleRadar`;
   const description = `Every pickleball tournament at ${venue.name} in ${cityName}. Upcoming events, past results, and registration links.`;
   const url = `https://pickleradar.app/${citySlug}/venues/${slug}`;
+  const ogImage = `https://pickleradar.app/api/og?venue=${slug}`;
   return {
     title,
     description,
     alternates: { canonical: url },
-    openGraph: { title, description, type: "website", url, siteName: "PickleRadar" },
-    twitter: { card: "summary_large_image", title, description },
+    openGraph: { title, description, type: "website", url, siteName: "PickleRadar", images: [ogImage] },
+    twitter: { card: "summary_large_image", title, description, images: [ogImage] },
   };
 }
 
