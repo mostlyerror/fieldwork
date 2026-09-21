@@ -1,9 +1,14 @@
 name: Urgent Refresh
 
 on:
-  schedule:
-    # Hourly during typical waking hours (Houston time zone). Adjust if needed.
-    - cron: "0 * * * *"
+  # DISABLED 2026-09-21: DUPR login has returned HTTP 428 (device verification
+  # required) on every attempt since 2026-09-08, so each scheduled run pulled
+  # nothing AND emailed a sign-in code to the DUPR account. Schedule is off
+  # until auth is fixed (verify once, persist the token, stop logging in fresh
+  # every process). Manual runs still work via workflow_dispatch.
+  # schedule:
+  #   # Hourly during typical waking hours (Houston time zone). Adjust if needed.
+  #   - cron: "0 * * * *"
   workflow_dispatch:
 
 # One group for every DUPR-touching job — a single serialized request stream

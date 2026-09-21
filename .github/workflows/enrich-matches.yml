@@ -4,8 +4,13 @@ name: Enrich Matches
 # the hourly urgent-refresh pass (12) — same queue, same roster-first priority,
 # so stamped-but-empty players get re-attempted instead of being stranded.
 on:
-  schedule:
-    - cron: "0 7,19 * * *" # twice daily (~1 AM / 1 PM CT). Tune cadence as the roster grows.
+  # DISABLED 2026-09-21: DUPR login has returned HTTP 428 (device verification
+  # required) on every attempt since 2026-09-08, so each scheduled run pulled
+  # nothing AND emailed a sign-in code to the DUPR account. Schedule is off
+  # until auth is fixed (verify once, persist the token, stop logging in fresh
+  # every process). Manual runs still work via workflow_dispatch.
+  # schedule:
+  #   - cron: "0 7,19 * * *" # twice daily (~1 AM / 1 PM CT). Tune cadence as the roster grows.
   workflow_dispatch:
 
 concurrency:
