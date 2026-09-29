@@ -13,6 +13,7 @@
     "health-check": "tsx src/health-check.ts",
     "enrich:dupr": "tsx src/enrich-dupr.ts",
     "enrich:matches": "tsx src/enrich-matches.ts",
+    "dupr:login": "tsx --env-file-if-exists=../../apps/web/.env.local src/dupr-login.ts",
     "probe:dupr-profile": "tsx --env-file=../../apps/web/.env.local scripts/probe-profile-endpoint.ts"
   },
   "dependencies": {

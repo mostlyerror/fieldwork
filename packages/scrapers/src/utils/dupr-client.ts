@@ -3,9 +3,10 @@
  * Design: docs/dupr-metered-layer.md
  *
  * What lives here (and ONLY here — callers never touch duprFetch/headers/sleeps):
- *  - getDuprToken(): one browser-header login per process, memoized. The bare
- *    {email,password} POST fails from CI ("Bad request format"); the browser
- *    header set (Origin/Referer/UA) is the only form DUPR's edge accepts.
+ *  - getDuprToken(): reads the stored session (dupr_session table) first, then
+ *    tries a refresh, and only logs in when neither works. Memoized per
+ *    process. Logins always use the browser header set (Origin/Referer/UA);
+ *    the bare {email,password} POST fails from CI ("Bad request format").
  *  - duprSearch / duprHistoryPage / duprProfile: every DUPR endpoint as a
  *    metered primitive. New endpoints get added here, never inline.
  *  - Metering inside meteredFetch:
@@ -20,6 +21,7 @@
 import { duprFetch } from "./dupr-fetch.js";
 import { supabase } from "./supabase.js";
 import { sendDiscordAlert } from "./discord.js";
+import { type DuprSession, isUsableToken, sessionFromAuthBody } from "./dupr-token.js";
 
 const API = "https://api.dupr.gg";
 
@@ -145,6 +147,7 @@ async function takeBudget(): Promise<void> {
 
 let consecutiveBlocks = 0;
 let circuitAlerted = false;
+let authRejectedAlerted = false;
 
 async function tripCircuitIfNeeded(): Promise<void> {
   consecutiveBlocks += 1;
@@ -181,6 +184,21 @@ async function meteredFetch(
       continue;
     }
 
+    if (res.status === 401 && !path.startsWith("/auth/")) {
+      // The stored token died early (revoked, or expiry unknown). Drop it so the
+      // next run refreshes or logs in, and end this run.
+      console.error(`[dupr-client] 401 (token rejected) on ${path}`);
+      if (!authRejectedAlerted) {
+        authRejectedAlerted = true;
+        await clearStoredAccessToken();
+        await sendDiscordAlert({
+          title: "⚠️ DUPR token rejected",
+          description: "DUPR answered 401 to the stored token. Cleared it; the next run will try to refresh or log in.",
+        }).catch(() => {});
+      }
+      throw new DuprAuthFailed();
+    }
+
     if (res.status === 403) {
       // Edge block — not transient; don't retry, but count toward the circuit.
       console.error(`[dupr-client] 403 (blocked) on ${path}`);
@@ -194,16 +212,80 @@ async function meteredFetch(
 }
 
 // ---------------------------------------------------------------------------
-// Auth — one login per process, browser headers always
+// Auth — stored session first, login only when there is no usable token
 // ---------------------------------------------------------------------------
+//
+// Since 2026-09-08 a fresh login gets HTTP 428 and DUPR emails a sign-in code,
+// so logging in per process can't work. Ben verifies once by hand
+// (`npm run dupr:login`), which saves the session to the dupr_session table
+// (service_role only). Every job reads it from there.
+
+const SESSION_ROW = 1; // dupr_session holds exactly one row
 
 let tokenPromise: Promise<string | null> | null = null;
 
-async function login(): Promise<string | null> {
-  if (!process.env.DUPR_EMAIL || !process.env.DUPR_PASSWORD) {
-    console.error("[dupr-client] Missing DUPR_EMAIL / DUPR_PASSWORD");
+async function loadSession(): Promise<DuprSession | null> {
+  const { data, error } = await supabase
+    .from("dupr_session")
+    .select("access_token, refresh_token, expires_at")
+    .eq("id", SESSION_ROW)
+    .maybeSingle();
+  if (error) {
+    console.warn("[dupr-client] Could not read dupr_session:", error.message);
     return null;
   }
+  if (!data) return null;
+  return {
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token,
+    expiresAt: data.expires_at ? new Date(data.expires_at) : null,
+  };
+}
+
+/** Save a session so later jobs reuse it instead of logging in. */
+export async function saveDuprSession(session: DuprSession): Promise<void> {
+  const { error } = await supabase.from("dupr_session").upsert({
+    id: SESSION_ROW,
+    access_token: session.accessToken,
+    refresh_token: session.refreshToken,
+    expires_at: session.expiresAt?.toISOString() ?? null,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) throw new Error(`Could not save dupr_session: ${error.message}`);
+}
+
+/** DUPR said 401 to the stored token. Drop it so the next run refreshes or logs in. */
+async function clearStoredAccessToken(): Promise<void> {
+  const { error } = await supabase
+    .from("dupr_session")
+    .update({ access_token: null, expires_at: null, updated_at: new Date().toISOString() })
+    .eq("id", SESSION_ROW);
+  if (error) console.warn("[dupr-client] Could not clear dupr_session token:", error.message);
+}
+
+/**
+ * Trade the refresh token for a new access token.
+ * GUESS: endpoint and header name. The web dashboard is believed to call
+ * GET /auth/v1.0/refresh/ with the refresh token in `x-refresh-token`. Ben has
+ * to check this against a real session. If it's wrong this just returns null
+ * and we fall through to a normal login.
+ */
+async function refreshSession(refreshToken: string): Promise<DuprSession | null> {
+  const res = await meteredFetch("/auth/v1.0/refresh/", {
+    method: "GET",
+    headers: { ...headers(), "x-refresh-token": refreshToken },
+  });
+  const data = res ? await res.json().catch(() => null) : null;
+  const session = sessionFromAuthBody(data);
+  if (!session) {
+    console.warn(`[dupr-client] DUPR token refresh failed (HTTP ${res?.status ?? "?"}, status=${data?.status ?? "?"})`);
+    return null;
+  }
+  // GUESS: if refresh doesn't hand back a new refresh token, keep the old one.
+  return { ...session, refreshToken: session.refreshToken ?? refreshToken };
+}
+
+async function postLogin(): Promise<{ res: Response | null; data: any }> {
   await sleep(randBetween(1000, 3000)); // simulate the login page loading
   const res = await meteredFetch("/auth/v1.0/login/", {
     method: "POST",
@@ -211,21 +293,53 @@ async function login(): Promise<string | null> {
     body: JSON.stringify({ email: process.env.DUPR_EMAIL, password: process.env.DUPR_PASSWORD }),
   });
   const data = res ? await res.json().catch(() => null) : null;
-  if (!res?.ok || data?.status !== "SUCCESS" || !data?.result?.accessToken) {
-    // Login works from CI through the proxy; a failure here is a real problem —
-    // most often a stale DUPR_EMAIL/DUPR_PASSWORD secret. Surface it loudly.
+  return { res, data };
+}
+
+async function login(): Promise<DuprSession | null> {
+  if (!process.env.DUPR_EMAIL || !process.env.DUPR_PASSWORD) {
+    console.error("[dupr-client] Missing DUPR_EMAIL / DUPR_PASSWORD");
+    return null;
+  }
+  const { res, data } = await postLogin();
+  const session = sessionFromAuthBody(data);
+  if (!res?.ok || !session) {
     const detail = `HTTP ${res?.status ?? "?"}, status=${data?.status ?? "?"}`;
     console.error(`[dupr-client] DUPR login failed (${detail})`);
+    const why =
+      res?.status === 428
+        ? "DUPR wants the emailed sign-in code. Run `npm run dupr:login` in packages/scrapers once to save a fresh session."
+        : "Usually a stale DUPR_EMAIL/DUPR_PASSWORD secret.";
     await sendDiscordAlert({
       title: "⚠️ DUPR login failed",
-      description: `DUPR returned ${detail}. Usually a stale DUPR_EMAIL/DUPR_PASSWORD secret. No DUPR data pulled this run.`,
+      description: `DUPR returned ${detail}. ${why} No DUPR data pulled this run.`,
     }).catch(() => {});
     return null;
   }
-  return data.result.accessToken as string;
+  return session;
 }
 
-/** Authenticate with DUPR once per process (memoized). Null = failed (alerted). */
+async function resolveToken(): Promise<string | null> {
+  const stored = await loadSession();
+  if (isUsableToken(stored)) {
+    console.log("[dupr-client] Using stored DUPR session");
+    return stored!.accessToken;
+  }
+  if (stored?.refreshToken) {
+    const refreshed = await refreshSession(stored.refreshToken);
+    if (refreshed) {
+      await saveDuprSession(refreshed).catch((e) => console.warn("[dupr-client]", e.message));
+      console.log("[dupr-client] Refreshed stored DUPR session");
+      return refreshed.accessToken;
+    }
+  }
+  const session = await login();
+  if (!session) return null;
+  await saveDuprSession(session).catch((e) => console.warn("[dupr-client]", e.message));
+  return session.accessToken;
+}
+
+/** Get a DUPR token once per process (memoized). Null = failed (alerted). */
 export function getDuprToken(): Promise<string | null> {
   // SKIP_DUPR=1 turns DUPR off without touching callers. They already treat a
   // null token as "no DUPR this run". No login means no emailed sign-in code.
@@ -233,8 +347,53 @@ export function getDuprToken(): Promise<string | null> {
     console.warn("[dupr-client] SKIP_DUPR=1, not logging in to DUPR");
     return Promise.resolve(null);
   }
-  if (!tokenPromise) tokenPromise = login();
+  if (!tokenPromise) tokenPromise = resolveToken();
   return tokenPromise;
+}
+
+/**
+ * The one-time manual login behind `npm run dupr:login`. Logs in; if DUPR
+ * answers 428, asks for the emailed code and sends it back. Returns the new
+ * session (the caller saves it) or null.
+ *
+ * GUESSES, all unverified because the agent that wrote this could not reach
+ * DUPR. Ben checks them against the real 428 body, which this prints in full:
+ *  - The 428 body carries some id for this login attempt. We pass along every
+ *    string field in `result` (e.g. a session or challenge id) untouched.
+ *  - The code goes to POST DUPR_VERIFY_PATH (default /auth/v1.0/login/verify/)
+ *    as { email, code, ...those fields }.
+ *  - A good code gets back the same shape as a normal login.
+ */
+export async function interactiveDuprLogin(askCode: () => Promise<string>): Promise<DuprSession | null> {
+  if (!process.env.DUPR_EMAIL || !process.env.DUPR_PASSWORD) {
+    console.error("[dupr-login] Missing DUPR_EMAIL / DUPR_PASSWORD");
+    return null;
+  }
+  const { res, data } = await postLogin();
+  console.log(`[dupr-login] Login answered HTTP ${res?.status ?? "?"}:`);
+  console.log(JSON.stringify(data, null, 2));
+
+  const direct = sessionFromAuthBody(data);
+  if (res?.ok && direct) return direct; // no code needed this time
+  if (res?.status !== 428) return null;
+
+  const challenge: Record<string, string> = {};
+  for (const [k, v] of Object.entries((data?.result ?? {}) as Record<string, unknown>)) {
+    if (typeof v === "string") challenge[k] = v;
+  }
+  const code = (await askCode()).trim();
+  if (!code) return null;
+
+  const path = process.env.DUPR_VERIFY_PATH?.trim() || "/auth/v1.0/login/verify/";
+  const vres = await meteredFetch(path, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ email: process.env.DUPR_EMAIL, code, ...challenge }),
+  });
+  const vdata = vres ? await vres.json().catch(() => null) : null;
+  console.log(`[dupr-login] Verify (${path}) answered HTTP ${vres?.status ?? "?"}:`);
+  console.log(JSON.stringify(vdata, null, 2));
+  return sessionFromAuthBody(vdata);
 }
 
 async function requireToken(): Promise<string> {
