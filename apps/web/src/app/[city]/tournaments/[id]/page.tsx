@@ -11,6 +11,8 @@ import { TournamentPodium } from "@/components/tournament-podium";
 import { Footer } from "@/components/footer";
 import { FavoriteButton } from "@/components/favorite-button";
 import { ReportIssue } from "@/components/report-issue";
+import { GearCard } from "@/components/gear-card";
+import { tournamentBand } from "@/lib/gear";
 import { ServerHeader } from "@/components/server-header";
 import { formatDateRange, distanceMiles, isTournamentPast, isRegistrationOpen } from "@/lib/format";
 import type { FieldContext } from "@/lib/field-intel";
@@ -261,6 +263,14 @@ export default async function TournamentPage({ params, searchParams }: PageProps
             <section className="mt-6 lg:col-start-2 lg:row-start-4 lg:mt-8">
               <TournamentPodium events={events} />
             </section>
+          )}
+
+          {/* Affiliate paddle picks for the field's typical skill cap. Renders
+              nothing unless NEXT_PUBLIC_AFFILIATE_TAG is set. */}
+          {process.env.NEXT_PUBLIC_AFFILIATE_TAG && (
+            <div className="mt-6 lg:col-start-2 lg:row-start-5 lg:mt-8">
+              <GearCard band={tournamentBand(events)} surface="tournament" />
+            </div>
           )}
         </div>
         </SelectedBracketProvider>
