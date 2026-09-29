@@ -45,3 +45,21 @@ export function duprFetch(url: string, init: RequestInit = {}): Promise<Response
   // (.ok/.status/.json()/.text()); cast across the two type worlds.
   return undiciFetch(url, { ...init, dispatcher } as Parameters<typeof undiciFetch>[1]) as unknown as Promise<Response>;
 }
+
+/**
+ * The same residential proxy in Playwright's launch format. PickleballBrackets
+ * started returning 403 to GitHub's IPs around 2026-08-28, so the tournament
+ * scraper uses this proxy too. Undefined when DUPR_PROXY_URL is unset.
+ */
+export function playwrightProxy():
+  | { server: string; username?: string; password?: string }
+  | undefined {
+  const raw = process.env.DUPR_PROXY_URL?.trim();
+  if (!raw) return undefined;
+  const u = new URL(raw);
+  return {
+    server: `${u.protocol}//${u.host}`,
+    username: u.username ? decodeURIComponent(u.username) : undefined,
+    password: u.password ? decodeURIComponent(u.password) : undefined,
+  };
+}

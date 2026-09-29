@@ -24,6 +24,7 @@ import { distanceMiles, HOUSTON_LAT, HOUSTON_LNG, MAX_DISTANCE_MILES } from "../
 import { parseEventName } from "../utils/parse-event-name.js";
 import { localDateString } from "../utils/local-date.js";
 import type { ScrapedTournament, ScrapedEvent, ScrapedPlayer, ScraperSource } from "../types.js";
+import { duprFetch, playwrightProxy } from "../utils/dupr-fetch.js";
 
 // Dev-only page dump for parser development.
 // Set SAVE_PAGES=1 to write each scraped tournament page to packages/scrapers/.cache/
@@ -75,7 +76,8 @@ async function fetchFromSearchApi(): Promise<Map<string, SearchMeta>> {
 
   for (const query of queries) {
     try {
-      const res = await fetch(`${SEARCH_API_URL}?query=${encodeURIComponent(query)}`);
+      // Through the residential proxy: PBB 403s GitHub's datacenter IPs.
+      const res = await duprFetch(`${SEARCH_API_URL}?query=${encodeURIComponent(query)}`);
       if (!res.ok) {
         // Log it. A silent skip here hid a month of zero results.
         const body = (await res.text().catch(() => "")).slice(0, 200);
@@ -609,10 +611,20 @@ export async function scrape(): Promise<ScrapedTournament[]> {
     const apiSlugs = Array.from(apiMeta.keys());
 
     // Step 2: Launch browser and get slugs from the search page
-    browser = await chromium.launch({ headless: true });
+    const proxy = playwrightProxy();
+    browser = await chromium.launch({ headless: true, proxy });
     const context = await browser.newContext({
       viewport: { width: 1280, height: 720 },
     });
+    if (proxy) {
+      // The proxy bills by the byte. The parser reads the DOM only, so skip
+      // images, fonts and media.
+      await context.route("**/*", (route) =>
+        ["image", "font", "media"].includes(route.request().resourceType())
+          ? route.abort()
+          : route.continue(),
+      );
+    }
     const page = await context.newPage();
 
     const pageSlugs = await fetchSlugsFromSearchPage(page);
