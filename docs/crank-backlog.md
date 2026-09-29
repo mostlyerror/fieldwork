@@ -15,7 +15,7 @@ GitHub's IPs, and the repo has no `DUPR_PROXY_URL` secret. The scraper already r
 through that proxy when the secret is set. Until Ben adds one, no new PBB tournaments
 come in. Don't try to work around the block from code.
 
-## 1. Alert when a scraper finds nothing `[todo]`
+## 1. Alert when a scraper finds nothing `[done]`
 
 PickleballBrackets found 0 tournaments on every run from 2026-08-28 to 2026-09-29,
 and each run was saved as `status: success`. Nobody noticed for a month.
