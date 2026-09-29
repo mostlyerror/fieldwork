@@ -227,6 +227,12 @@ async function login(): Promise<string | null> {
 
 /** Authenticate with DUPR once per process (memoized). Null = failed (alerted). */
 export function getDuprToken(): Promise<string | null> {
+  // SKIP_DUPR=1 turns DUPR off without touching callers. They already treat a
+  // null token as "no DUPR this run". No login means no emailed sign-in code.
+  if (process.env.SKIP_DUPR === "1") {
+    console.warn("[dupr-client] SKIP_DUPR=1, not logging in to DUPR");
+    return Promise.resolve(null);
+  }
   if (!tokenPromise) tokenPromise = login();
   return tokenPromise;
 }
