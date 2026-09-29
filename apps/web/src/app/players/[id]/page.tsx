@@ -34,6 +34,8 @@ import {
   buildOpponentRows,
 } from "@/lib/player-read-input";
 import { BackButton } from "@/components/back-button";
+import { GearCard } from "@/components/gear-card";
+import { ratingBand } from "@/lib/gear";
 import { ServerHeader } from "@/components/server-header";
 import { getDefaultCity } from "@/lib/cities";
 
@@ -256,6 +258,10 @@ export default async function PlayerPage({ params }: PageProps) {
                 </div>
               </section>
             )}
+
+            {/* Affiliate paddle picks for this player's rating band. Renders
+                nothing unless NEXT_PUBLIC_AFFILIATE_TAG is set. */}
+            <GearCard band={ratingBand(playerRating)} surface="player" />
 
             {/* Empty state */}
             {!hasMatches && upcoming.length === 0 && (

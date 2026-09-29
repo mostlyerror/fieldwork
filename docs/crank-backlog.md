@@ -44,7 +44,7 @@ sign-in code. Every job logs in fresh, so it can't work. Jobs run with
   say in the PR which parts Ben has to check against a real login.
 - Do not remove `SKIP_DUPR` from the workflows. Ben does that after testing.
 
-## 3. Paddle affiliate links `[todo]`
+## 3. Paddle affiliate links `[done]`
 
 Passive revenue test. Add a small "Gear" card on player pages and tournament
 pages linking to paddles by rating band (beginner, intermediate, advanced).
