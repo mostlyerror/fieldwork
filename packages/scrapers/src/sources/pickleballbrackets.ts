@@ -76,7 +76,12 @@ async function fetchFromSearchApi(): Promise<Map<string, SearchMeta>> {
   for (const query of queries) {
     try {
       const res = await fetch(`${SEARCH_API_URL}?query=${encodeURIComponent(query)}`);
-      if (!res.ok) continue;
+      if (!res.ok) {
+        // Log it. A silent skip here hid a month of zero results.
+        const body = (await res.text().catch(() => "")).slice(0, 200);
+        console.error(`[pickleballbrackets] API search for "${query}" returned HTTP ${res.status}: ${body}`);
+        continue;
+      }
 
       const json = await res.json();
       const tourneys = (json?.data?.tourneys ?? []) as SearchApiTournament[];
