@@ -21,7 +21,7 @@
 import { duprFetch } from "./dupr-fetch.js";
 import { supabase } from "./supabase.js";
 import { sendDiscordAlert } from "./discord.js";
-import { type DuprSession, isUsableToken, sessionFromAuthBody } from "./dupr-token.js";
+import { type DuprSession, isUsableToken, redactAuthBody, sessionFromAuthBody } from "./dupr-token.js";
 
 const API = "https://api.dupr.gg";
 
@@ -357,7 +357,8 @@ export function getDuprToken(): Promise<string | null> {
  * session (the caller saves it) or null.
  *
  * GUESSES, all unverified because the agent that wrote this could not reach
- * DUPR. Ben checks them against the real 428 body, which this prints in full:
+ * DUPR. Ben checks them against the real 428 body, which this prints in full
+ * (tokens redacted):
  *  - The 428 body carries some id for this login attempt. We pass along every
  *    string field in `result` (e.g. a session or challenge id) untouched.
  *  - The code goes to POST DUPR_VERIFY_PATH (default /auth/v1.0/login/verify/)
@@ -371,7 +372,7 @@ export async function interactiveDuprLogin(askCode: () => Promise<string>): Prom
   }
   const { res, data } = await postLogin();
   console.log(`[dupr-login] Login answered HTTP ${res?.status ?? "?"}:`);
-  console.log(JSON.stringify(data, null, 2));
+  console.log(JSON.stringify(redactAuthBody(data), null, 2));
 
   const direct = sessionFromAuthBody(data);
   if (res?.ok && direct) return direct; // no code needed this time
@@ -392,7 +393,7 @@ export async function interactiveDuprLogin(askCode: () => Promise<string>): Prom
   });
   const vdata = vres ? await vres.json().catch(() => null) : null;
   console.log(`[dupr-login] Verify (${path}) answered HTTP ${vres?.status ?? "?"}:`);
-  console.log(JSON.stringify(vdata, null, 2));
+  console.log(JSON.stringify(redactAuthBody(vdata), null, 2));
   return sessionFromAuthBody(vdata);
 }
 

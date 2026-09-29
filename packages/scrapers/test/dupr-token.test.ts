@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EXPIRY_MARGIN_MS, isUsableToken, jwtExpiry, sessionFromAuthBody } from "../src/utils/dupr-token.js";
+import { EXPIRY_MARGIN_MS, isUsableToken, jwtExpiry, redactAuthBody, sessionFromAuthBody } from "../src/utils/dupr-token.js";
 
 function fakeJwt(payload: object): string {
   const enc = (o: object) => Buffer.from(JSON.stringify(o)).toString("base64url");
@@ -53,5 +53,21 @@ describe("sessionFromAuthBody", () => {
     expect(sessionFromAuthBody(null)).toBeNull();
     expect(sessionFromAuthBody({ status: "FAILURE", result: { accessToken: "t" } })).toBeNull();
     expect(sessionFromAuthBody({ status: "SUCCESS", result: {} })).toBeNull();
+  });
+});
+
+describe("redactAuthBody", () => {
+  it("hides tokens and keeps everything else", () => {
+    const body = { status: "SUCCESS", result: { accessToken: "a", refreshToken: "r", challengeId: "c" } };
+    expect(redactAuthBody(body)).toEqual({
+      status: "SUCCESS",
+      result: { accessToken: "[redacted]", refreshToken: "[redacted]", challengeId: "c" },
+    });
+    expect(body.result.accessToken).toBe("a"); // original untouched
+  });
+
+  it("passes through bodies with no result object", () => {
+    expect(redactAuthBody(null)).toBeNull();
+    expect(redactAuthBody({ status: "FAILURE", message: "x" })).toEqual({ status: "FAILURE", message: "x" });
   });
 });

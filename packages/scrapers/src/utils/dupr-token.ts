@@ -56,3 +56,12 @@ export function sessionFromAuthBody(body: unknown): DuprSession | null {
     expiresAt: jwtExpiry(access),
   };
 }
+
+/** Copy of an auth response body with the tokens hidden, safe to print. */
+export function redactAuthBody(body: unknown): unknown {
+  const b = body as { result?: unknown } | null;
+  if (!b || typeof b.result !== "object" || b.result === null) return body;
+  const result: Record<string, unknown> = { ...(b.result as Record<string, unknown>) };
+  for (const k of ["accessToken", "refreshToken"]) if (k in result) result[k] = "[redacted]";
+  return { ...b, result };
+}
