@@ -27,7 +27,7 @@ and each run was saved as `status: success`. Nobody noticed for a month.
   in `supabase/migrations` first).
 - Unit test the "is this a suspicious zero" check as a pure function.
 
-## 2. Keep one DUPR login instead of logging in every run `[todo]`
+## 2. Keep one DUPR login instead of logging in every run `[done]`
 
 Since 2026-09-08 DUPR answers `/auth/v1.0/login/` with HTTP 428 and emails a
 sign-in code. Every job logs in fresh, so it can't work. Jobs run with
