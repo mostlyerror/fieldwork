@@ -5,7 +5,8 @@
  * Add new sources by importing their scrape function and adding to the sources array.
  */
 
-import { startRun, completeRun, failRun } from "./utils/logger.js";
+import { startRun, completeRun, failRun, recentFoundCounts } from "./utils/logger.js";
+import { isSuspiciousZero, median, SUSPICIOUS_ZERO_STATUS } from "./utils/zero-check.js";
 import { upsertTournaments, upsertEvents } from "./utils/upsert.js";
 import { scrape as scrapePickleballBrackets } from "./sources/pickleballbrackets.js";
 import { scrape as scrapePickleballDen } from "./sources/pickleballden.js";
@@ -38,13 +39,15 @@ interface SourceResult {
   name: string;
   ok: boolean;
   found: number;
+  suspiciousZero?: boolean;
   stats?: UpsertStats;
   error?: string;
 }
 
 async function runHealthCheck(results: SourceResult[]) {
   const failures = results.filter((r) => !r.ok);
-  const zeroResults = results.filter((r) => r.ok && r.found === 0);
+  // Suspicious zeros already got their own alert in main().
+  const zeroResults = results.filter((r) => r.ok && r.found === 0 && !r.suspiciousZero);
   const warnings: string[] = [];
 
   if (failures.length === results.length) {
@@ -127,10 +130,29 @@ async function main() {
         }
       }
 
-      await completeRun(run, {
-        tournamentsFound: tournaments.length,
-        ...stats,
-      });
+      // A source that usually finds tournaments and now finds none is
+      // probably blocked (PBB 403'd for a month while logging "success").
+      let suspiciousZero = false;
+      if (tournaments.length === 0) {
+        const recent = await recentFoundCounts(source.name);
+        suspiciousZero = isSuspiciousZero(0, recent);
+        if (suspiciousZero) {
+          await sendDiscordAlert({
+            title: `🚨 ${source.name} found 0 tournaments`,
+            description:
+              `Its last ${recent.length} healthy runs found a median of ${median(recent)}. ` +
+              "The source is probably blocked or its page changed. Run saved as " +
+              `\`${SUSPICIOUS_ZERO_STATUS}\`, not success.`,
+            color: 0xdc2626,
+          });
+        }
+      }
+
+      await completeRun(
+        run,
+        { tournamentsFound: tournaments.length, ...stats },
+        suspiciousZero ? { status: SUSPICIOUS_ZERO_STATUS } : undefined,
+      );
 
       posthog?.capture({
         distinctId: SCRAPER_ID,
@@ -157,7 +179,7 @@ async function main() {
         });
       }
 
-      results.push({ name: source.name, ok: true, found: tournaments.length, stats });
+      results.push({ name: source.name, ok: true, found: tournaments.length, suspiciousZero, stats });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       await failRun(run, message);

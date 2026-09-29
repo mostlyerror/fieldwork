@@ -1,5 +1,6 @@
 import { supabase } from "./supabase.js";
 import { sendDiscordAlert } from "./discord.js";
+import { ZERO_CHECK_WINDOW } from "./zero-check.js";
 
 export interface RunLog {
   id: string;
@@ -27,7 +28,29 @@ export async function startRun(sourcePlatform: string): Promise<RunLog> {
 }
 
 /**
- * Complete a scraper run log entry with results.
+ * tournaments_found from a source's last healthy (`success`) runs, newest
+ * first. Only healthy runs count, so a source stuck at 0 keeps its old
+ * baseline and keeps alerting instead of going quiet after a few runs.
+ */
+export async function recentFoundCounts(sourcePlatform: string): Promise<number[]> {
+  const { data, error } = await supabase
+    .from("scraper_runs")
+    .select("tournaments_found")
+    .eq("source_platform", sourcePlatform)
+    .eq("status", "success")
+    .order("completed_at", { ascending: false })
+    .limit(ZERO_CHECK_WINDOW);
+
+  if (error) {
+    console.error(`[${sourcePlatform}] Failed to read recent runs:`, error);
+    return [];
+  }
+  return (data ?? []).map((r) => r.tournaments_found ?? 0);
+}
+
+/**
+ * Complete a scraper run log entry with results. Pass `status` to save the run
+ * as something other than `success` (e.g. a suspicious zero).
  */
 export async function completeRun(
   run: RunLog,
@@ -38,15 +61,16 @@ export async function completeRun(
     tournamentsDeduplicated: number;
     newTournamentIds?: string[];
   },
-  opts?: { silent?: boolean }
+  opts?: { silent?: boolean; status?: string }
 ): Promise<void> {
   if (run.id === "unknown") return;
+  const status = opts?.status ?? "success";
 
   const { error } = await supabase
     .from("scraper_runs")
     .update({
       completed_at: new Date().toISOString(),
-      status: "success",
+      status,
       tournaments_found: stats.tournamentsFound,
       tournaments_new: stats.tournamentsNew,
       tournaments_updated: stats.tournamentsUpdated,
@@ -58,7 +82,7 @@ export async function completeRun(
     console.error(`[${run.sourcePlatform}] Failed to update run log:`, error);
   } else {
     console.log(
-      `[${run.sourcePlatform}] Run ${run.id} completed — ` +
+      `[${run.sourcePlatform}] Run ${run.id} completed (${status}) — ` +
         `found: ${stats.tournamentsFound}, new: ${stats.tournamentsNew}, ` +
         `updated: ${stats.tournamentsUpdated}, deduped: ${stats.tournamentsDeduplicated}`
     );
@@ -92,7 +116,9 @@ export async function completeRun(
   }
 
   await sendDiscordAlert({
-    title: `✅ Scraper — ${run.sourcePlatform}`,
+    title: status === "success"
+      ? `✅ Scraper — ${run.sourcePlatform}`
+      : `⚠️ Scraper (${status}) — ${run.sourcePlatform}`,
     description: hasNew
       ? `Found **${stats.tournamentsNew}** new tournament(s)!`
       : "No new tournaments this run.",
